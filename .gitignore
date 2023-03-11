@@ -117,3 +117,6 @@ dist
 
 # finder
 .DS_Store
+
+# docker
+docker-volume/
