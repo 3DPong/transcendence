@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  node:
+    image: node:18-alpine
+    container_name: node_dev
+    depends_on:
+      - postgresql
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    working_dir: /app
+    command: npm run start:dev
+
+  postgresql:
+    image: postgres:15-alpine
+    container_name: postgres_dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: transcendence
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    volumes:
+      - type: bind
+        source: ./docker-volume/data
+        target: /var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_dev
+    networks:
+      - backend
+    volumes:
+      - type: bind
+        source: ./docker-volume/redis-data
+        target: /data
+    command: redis-server --appendonly yes
+
+networks:
+  backend:
+    driver: bridge
