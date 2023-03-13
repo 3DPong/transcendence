@@ -22,6 +22,7 @@ import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
 
 import Controller from "@/components/Organism/Controller/Controller";
+import Profile from "@/components/Organism/Profile/Profille";
 import LocalUserList from "@/components/Organism/LocalUserList/LocalUserList";
 import GlobalUserList from "@/components/Organism/GlobalUserList/GlobalUserList";
 
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "profile",
-                element: <L1Template organism={ <div>profile</div> }/>
+                element: <L1Template organism={ <Profile /> }/>
             },
             {
                 path: "friends",
