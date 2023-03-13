@@ -11,11 +11,11 @@
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { LogInForm } from "@/components/Form/LoginForm";
-import { SignInForm } from '@/components/Form/SigninForm';
+import { LogInForm } from "@/components/Organism/Form/LoginForm";
+import { SignInForm } from '@/components/Organism/Form/SigninForm';
 import { ErrorPage } from '@/components/ErrorPage'
 
-import Game from '@/components/Game/Game';
+import Game from '@/components/Organism/Game/Game';
 
 import L0Template from "@/components/L0Template";
 import L1Template from "@/components/L1Template";

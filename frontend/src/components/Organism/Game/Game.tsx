@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 14:33:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 15:29:59 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:32:33 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@ import React, { useState, useEffect, useRef, MutableRefObject, forwardRef, RefOb
 
 import { PongSimulator } from "@/simulation/PongSimulator";
 import { DebugDraw } from "@/simulation/DebugDraw/DebugDraw";
-import { Renderer3D } from '@/components/Game/Renderer/Renderer';
+import { Renderer3D } from '@/components/Organism/Game/Renderer/Renderer';
 import * as GlobalContext from "@/components/GlobalAppContext";
 
 
