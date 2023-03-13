@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/11 14:37:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 15:21:08 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 21:32:48 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,20 +30,12 @@
 */ 
 
 
-import React, {useEffect, useState} from "react";
-
-import SearchTextField from "@/components/Organism/Molecule/SearchTextField";
+import React, { useState} from "react";
+import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
-import MediaCard from "@/components/Organism/Molecule/MediaCard";
-import { bgcolor, Box } from "@mui/system";
-import { Paper } from "@mui/material";
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip'; // 마우스 hover시에 힌트 뜨기 위함.
-
+import MediaCard from "@/components/Molecule/MediaCard";
 import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-
+import CloseIcon from '@mui/icons-material/Close';
 
 export interface User {
     imgSrc: string, // img url
@@ -52,7 +44,6 @@ export interface User {
 
 export type Users = User[]; // user배열.
 
-// Test code
 const UserDataTest: Users = [
     {
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
@@ -142,6 +133,11 @@ export default function GlobalUserList() {
                 title="Add Friends"
                 body="body2 text"
             />
+
+            {/* https://mui.com/material-ui/icons/ */}
+            <div className=" absolute top-0 right-0">
+                <ItemButtonLink primary="Add Friend" to="/friends" icon={ <CloseIcon /*fontSize="large" sx={{color: "#ffffff"}}*//>}/>
+            </div>
 
             {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
             <div className=" border">
