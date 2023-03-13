@@ -3,8 +3,8 @@
 .vscode/
 .vscode
 ../.idea/
-.idea
-./node_modules/
+../.idea
+backend/node_modules/
 
 
 # Logs
