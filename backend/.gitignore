@@ -2,7 +2,7 @@
 #### PROJECT DEFINE IGNORE
 .vscode/
 .vscode
-.idea/
+../.idea/
 .idea
 ./node_modules/
 
