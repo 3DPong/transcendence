@@ -44,6 +44,20 @@ services:
         target: /data
     command: redis-server --appendonly yes
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    networks:
+      - backend
+    restart: always
+    ports:
+      - "5050:80"
+    volumes:
+      - ./docker-volume/pgadmin:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pong@42seoul.kr
+      - PGADMIN_DEFAULT_PASSWORD=pong
+
 networks:
   backend:
     driver: bridge
