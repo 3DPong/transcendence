@@ -30,7 +30,7 @@ services:
       - backend
     volumes:
       - type: bind
-        source: ./docker-volume/data
+        source: ./docker-volume/postgres-data
         target: /var/lib/postgresql/data
 
   redis:
