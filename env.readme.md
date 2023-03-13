@@ -4,6 +4,7 @@
     - **PG_HOST**
       - VALUE
           - in local
+              - `postgresql` (docker container name)
               - `host.docker.internal`
               - `localhost`
 - **port**
