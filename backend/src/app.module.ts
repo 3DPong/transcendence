@@ -8,6 +8,7 @@ import { MatchModule } from './models/game/api';
 import { AlarmModule } from './models/alarm/socket';
 import { PostgresDatabaseProviderModule } from './providers/database/postgres/provider.module';
 import { PostgresConfigModule } from './config/database/postgres/config.module';
+import { AppConfigModule } from './config/app/config.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PostgresConfigModule } from './config/database/postgres/config.module';
     AlarmModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
+    AppConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService],
