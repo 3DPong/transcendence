@@ -8,7 +8,6 @@ import { MatchModule } from './models/game/api';
 import { AlarmModule } from './models/alarm/socket';
 import { PostgresDatabaseProviderModule } from './providers/database/postgres/provider.module';
 import { PostgresConfigModule } from './config/database/postgres/config.module';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -17,9 +16,6 @@ import { ConfigModule } from '@nestjs/config';
     ChatModule,
     MatchModule,
     AlarmModule,
-    ConfigModule.forRoot({
-      envFilePath: '.env.dev',
-    }),
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
   ],
