@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 01:51:16 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 20:34:21 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 16:28:50 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,20 +17,20 @@
 
 import * as React from 'react';
 import { ListItemButton } from '@mui/material';
-import { Users } from './LocalUserList';
+import type { user_t } from '@/types/user';
 import UserCard from '@/components/Molecule/UserCard';
 import { Box } from '@mui/material';
 import { FixedSizeList } from 'react-window';
 import { Assert } from '@/utils/Assert';
 
 export interface UserListProps {
-    users: Users,
+    users: Array<user_t>,
     isLoading?: boolean,
     searchString?: string,
 }
 
 
-const Row = (props: {index: number, style: React.CSSProperties, data: {users: Users, isLoading?: boolean}}) => {
+const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<user_t>, isLoading?: boolean}}) => {
     const { index, style, data } = props;
     const user = data.users[index];
     const { isLoading } = data;
@@ -49,7 +49,7 @@ const Row = (props: {index: number, style: React.CSSProperties, data: {users: Us
 
 export default function VirtualizedUserList(props: UserListProps) {
 
-    let searchedArray: Users | null = null;
+    let searchedArray: Array<user_t> | null = null;
     if (props.searchString) {
         searchedArray = props.users.filter((user) => {
             Assert.NonNullish(props.searchString, "search string is null");

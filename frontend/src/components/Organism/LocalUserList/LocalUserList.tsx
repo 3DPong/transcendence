@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/11 14:37:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 20:34:13 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 16:28:20 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,16 +36,10 @@ import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-
-export interface User {
-    imgSrc: string, // img url
-    name:   string, // nickname
-}
-
-export type Users = User[]; // user배열.
+import type { user_t } from '@/types/user';
 
 // Test code
-const UserDataTest: Users = [
+const UserDataTest: user_t[] = [
     {
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "minkyeki",
@@ -77,7 +71,7 @@ const UserDataTest: Users = [
 ]
     
 const createInitialUsers = (initialCount: number) => {
-    let users = new Array<User>();
+    let users = new Array<user_t>();
     while (initialCount > 0) {
         users.push({
             imgSrc : "",
@@ -92,7 +86,7 @@ const createInitialUsers = (initialCount: number) => {
 export default function LocalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Users>( createInitialUsers(7) );
+    const [users, setUsers] = useState<Array<user_t>>( createInitialUsers(7) );
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -100,7 +94,7 @@ export default function LocalUserList() {
     
     const getUserData = () => {
         setIsLoading(true); // 로딩중 flag
-        return new Promise<Users>((resolve, reject) => {
+        return new Promise<Array<user_t>>((resolve, reject) => {
             setTimeout(() => {
                 resolve(UserDataTest);
             }, 2000);
