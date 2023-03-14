@@ -25,6 +25,7 @@ import Game from '@/components/Organism/Game/Game';
 import L0Template from "@/components/L0Template";
 import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
+import L3Template from "@/components/L2Template";
 
 import Controller from "@/components/Organism/Controller/Controller";
 import Profile from "@/components/Organism/Profile/Profile";
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "profile",
-                element: <L1Template organism={ <Profile /> }/>
+                element: <L1Template organism={ <Profile /* UserId */ /> }/> // 파라미터로 userId 넣어줄 것. 
             },
             {
                 path: "friends",
@@ -48,10 +49,16 @@ const router = createBrowserRouter([
                     {
                         path: "add", // nested routes. => /friends/add
                         element: <L2Template organism={ <GlobalUserList /> } />,
+                        children: [
+                            {
+                                path: ":userId", // Global User List에서 클릭시 L3 위치에서 프로필이 뜨도록.
+                                element: <L3Template organism={ <Profile /* UserId */ /> } /> // 파라미터로 userId 넣어줄 것. 
+                            }
+                        ]
                     },
                     {
                         path: ":userId",
-                        element: <L2Template organism={ <div>profile</div> } /> // 파라미터로 userId 넣어줄 것.
+                        element: <L2Template organism={ <Profile /* UserId */ /> } /> // 파라미터로 userId 넣어줄 것. 
                     },
                 ]
             },
