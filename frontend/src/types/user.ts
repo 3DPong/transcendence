@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 
 export interface user_t {
-    imgSrc: string, // img url
-    name:   string, // nickname
+    id?     : number, // userId
+    imgSrc  : string, // img url
+    name    : string, // nickname
 }
 
 export type recentGames_t = Array<{ 
