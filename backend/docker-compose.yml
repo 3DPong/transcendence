@@ -1,8 +1,10 @@
 version: '3.8'
 
 services:
+# 개발 환경
+# npm install 이 안되어있으면 작동 안함
   node:
-    image: node:18-alpine
+    image: node:18.15-alpine
     container_name: node_dev
     depends_on:
       - postgresql
@@ -16,6 +18,17 @@ services:
         target: /app
     working_dir: /app
     command: npm run start:dev
+#  실제 배포 환경
+#  node:
+#    build: node:18-alpine
+#    container_name: node_dev
+#    depends_on:
+#      - postgresql
+#    ports:
+#      - "3000:3000"
+#    networks:
+#      - backend
+#    command: npm run start:dev
 
   postgresql:
     image: postgres:15-alpine
@@ -30,7 +43,7 @@ services:
       - backend
     volumes:
       - type: bind
-        source: ./docker-volume/data
+        source: ./docker-volume/postgres-data
         target: /var/lib/postgresql/data
 
   redis:
@@ -43,6 +56,20 @@ services:
         source: ./docker-volume/redis-data
         target: /data
     command: redis-server --appendonly yes
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    networks:
+      - backend
+    restart: always
+    ports:
+      - "5050:80"
+    volumes:
+      - ./docker-volume/pgadmin:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pong@42seoul.kr
+      - PGADMIN_DEFAULT_PASSWORD=pong
 
 networks:
   backend:
