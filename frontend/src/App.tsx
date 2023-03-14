@@ -8,6 +8,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+// https://mui.com/material-ui/react-typography/
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -22,7 +27,7 @@ import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
 
 import Controller from "@/components/Organism/Controller/Controller";
-import Profile from "@/components/Organism/Profile/Profille";
+import Profile from "@/components/Organism/Profile/Profile";
 import LocalUserList from "@/components/Organism/LocalUserList/LocalUserList";
 import GlobalUserList from "@/components/Organism/GlobalUserList/GlobalUserList";
 
