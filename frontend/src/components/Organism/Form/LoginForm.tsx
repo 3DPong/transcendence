@@ -6,19 +6,16 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/14 19:14:22 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/04 16:11:51 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:28:44 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { useState, useMemo }     from 'react';
 import * as Utils       from '@/utils/Validator'
-import { TextFields }   from '@/components/Form/TextFields_A';
-import { Button }       from '@/components/Form/Button_A';
-import { eFormStatus, ValidatorRuleFormat }     from '@/components/Form/type';
-
-// React Router
+import { TextFields }   from '@/components/Molecule/TextFields_A';
+import { Button }       from '@/components/Molecule/Button_A';
+import { eFormStatus, ValidatorRuleFormat }     from '@/types/form';
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom"; // react-router-dom v6의 기능. useHistory는 deprecated됨.
 
 
 const { ENABLE, DISABLE, ON_PROCESSING } = eFormStatus;
