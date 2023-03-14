@@ -11,17 +11,18 @@
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { LogInForm } from "@/components/Form/LoginForm";
-import { SignInForm } from '@/components/Form/SigninForm';
+import { LogInForm } from "@/components/Organism/Form/LoginForm";
+import { SignInForm } from '@/components/Organism/Form/SigninForm';
 import { ErrorPage } from '@/components/ErrorPage'
 
-import Game from '@/components/Game/Game';
+import Game from '@/components/Organism/Game/Game';
 
 import L0Template from "@/components/L0Template";
 import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
 
 import Controller from "@/components/Organism/Controller/Controller";
+import Profile from "@/components/Organism/Profile/Profille";
 import LocalUserList from "@/components/Organism/LocalUserList/LocalUserList";
 import GlobalUserList from "@/components/Organism/GlobalUserList/GlobalUserList";
 
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "profile",
-                element: <L1Template organism={ <div>profile</div> }/>
+                element: <L1Template organism={ <Profile /> }/>
             },
             {
                 path: "friends",

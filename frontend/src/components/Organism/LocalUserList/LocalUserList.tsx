@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/11 14:37:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 15:21:21 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:34:13 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,19 +31,11 @@
 
 
 import React, {useEffect, useState} from "react";
-
-import SearchTextField from "@/components/Organism/Molecule/SearchTextField";
+import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
-import MediaCard from "@/components/Organism/Molecule/MediaCard";
-import { bgcolor, Box } from "@mui/system";
-import { Paper } from "@mui/material";
+import MediaCard from "@/components/Molecule/MediaCard";
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip'; // 마우스 hover시에 힌트 뜨기 위함.
-
 import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-
 
 export interface User {
     imgSrc: string, // img url
