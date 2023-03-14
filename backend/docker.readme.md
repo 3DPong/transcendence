@@ -1,6 +1,9 @@
 ## 도커 컨테이너
 ## 사용방법
-`docker-compose up -d` at `/backend`
+### 주의
+- 개발 환경의 경우와 배포 환경에서 서로 다릅니다.
+- 개발 환경일 경우 `/backend`에서 `npm install` 이후 실행해주세요.
+- `docker-compose up -d` at `/backend`
 ### 컨테이너
 #### postgres
 - postgres 컨테이너
