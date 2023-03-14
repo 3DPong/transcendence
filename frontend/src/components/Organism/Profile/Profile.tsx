@@ -22,7 +22,7 @@ import ProfileStatistic from "./ProfileStatistic";
 
 const meTest: user_t = {
     imgSrc: "https://www.richardtmoore.co.uk/wp-content/uploads/2016/10/btx-avatar-placeholder-01-2.jpg",
-    name: "Sungjpar",
+    name: "Nickname",
 }
 
 const opponentTest: user_t = {
@@ -56,7 +56,7 @@ export default function Profle( {userId}: profileProps ) {
     const [profileState, setProfileState] = useState<user_t>();
     const [statisticState, setStatisticState] = useState<userStatistic_t>();
 
-    const TEST_TIME_MILLIES = 2000;
+    const TEST_TIME_MILLIES = 1000;
 
     const getUserStatisticData = () => {
         return new Promise<userStatistic_t>((resolve, reject) => {
@@ -90,7 +90,7 @@ export default function Profle( {userId}: profileProps ) {
     }, []);
 
     return (
-        <div className="border border-red-400">
+        <div>
             <ProfileCard profile={ profileState } />
             <ProfileStatistic statistic={ statisticState } />
         </div>

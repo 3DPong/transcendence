@@ -27,7 +27,7 @@ const Row = ( props: { index: number, style: React.CSSProperties, data?: recentG
     const { index, style, data } = props;
 
     return (
-        <ListItem style={style} key={index} divider={true}>
+        <ListItem style={style} key={index} divider={true} sx={{display: "inline" /* flex 끄기 위함. */}}> 
             {data ? (
                 "test text here"
             ) : (
@@ -45,18 +45,20 @@ interface statisticsListProps {
 
 function StatisticsList({ recentGames }: statisticsListProps ) {
 
+    const HEIGHT = 250;
+
        return (
         <Box
             sx={{
                 width: "100%",
-                height: 400,
+                height: HEIGHT,
                 maxWidth: 360,
                 bgcolor: "background.paper",
             }}
         >
 
             <FixedSizeList
-                height={ 400 }
+                height={ HEIGHT }
                 width="100%"
                 itemSize={60}
                 itemCount={ 10 }
@@ -75,9 +77,9 @@ export default function ProfileStatistic( { statistic }: profileStatisticProps )
 
     return (
         <div className=" max-w-full">
-            <Typography display="block" variant="body2" color="text.primary">
-                total : {statistic?.totalGame}
-            </Typography>
+            <Box className=" p-5 bg-slate-50 border">
+                Total / Win / Lose
+            </Box>
             <StatisticsList recentGames={ statistic?.recentGames } />
         </div>
     );
