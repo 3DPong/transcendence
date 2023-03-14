@@ -27,7 +27,7 @@ interface profileProps {
  */
 function ProfileMedia( { profile }: profileProps ) {
     return (
-        <div className=" max-w-full h-72 p-3">
+        <div className=" max-w-full h-72 p-5">
             {profile ? (
                 <LazyLoadImage
                     src={profile.imgSrc}
@@ -49,7 +49,7 @@ function ProfileMedia( { profile }: profileProps ) {
 
 function ProfileInfo( { profile }: profileProps ) {
     return (
-        <div className=" max-w-full h-14 pl-4">
+        <div className=" max-w-full h-14 pl-5">
             {profile ? (
                 <Typography display="block" variant="h5" color="text.primary">
                     {profile.name}
