@@ -18,7 +18,7 @@
 import * as React from 'react';
 import { ListItemButton } from '@mui/material';
 import type { user_t } from '@/types/user';
-import UserCard from '@/components/Molecule/UserCard';
+import UserListCard from '@/components/Molecule/UserListCard';
 import { Box } from '@mui/material';
 
 import { FixedSizeList } from 'react-window';
@@ -36,7 +36,7 @@ const Row = (props: {index: number, style: React.CSSProperties, data: {users: Ar
 
     return (
         <ListItemButton style={style} key={index} divider={true}>
-            <UserCard
+            <UserListCard
                 imgSrc={user.imgSrc}
                 name={user.name}
                 isLoading={isLoading}

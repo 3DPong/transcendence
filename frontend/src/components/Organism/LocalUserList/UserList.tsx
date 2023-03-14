@@ -16,12 +16,12 @@
  */
 
 import * as React from 'react';
-import { ListItemButton } from '@mui/material';
 import type { user_t } from '@/types/user';
-import UserCard from '@/components/Molecule/UserCard';
+import UserListCard from '@/components/Molecule/UserListCard';
 import { Box } from '@mui/material';
 import { FixedSizeList } from 'react-window';
 import { Assert } from '@/utils/Assert';
+import ListItemButtonLink from '@/components/Molecule/Link/ListItemButtonLink';
 
 export interface UserListProps {
     users: Array<user_t>,
@@ -36,13 +36,15 @@ const Row = (props: {index: number, style: React.CSSProperties, data: {users: Ar
     const { isLoading } = data;
 
     return (
-        <ListItemButton style={style} key={index} divider={true}>
-            <UserCard
-                imgSrc={user.imgSrc}
-                name={user.name}
-                isLoading={isLoading}
-            />
-        </ListItemButton>
+        <ListItemButtonLink style={style} key={user.name} divider={true}
+                            to={ (user.id !== undefined) ? (`./${user.id}`) : ("./") } // if Id exist, then route to [friends/:id]
+                            tooltipTitle={"Profile"}>
+                <UserListCard
+                    imgSrc={user.imgSrc}
+                    name={user.name}
+                    isLoading={isLoading}
+                />
+        </ListItemButtonLink>
     );
 }
 

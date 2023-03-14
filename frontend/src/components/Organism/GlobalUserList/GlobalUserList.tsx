@@ -34,8 +34,6 @@ import React, { useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
-import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-import CloseIcon from '@mui/icons-material/Close';
 import type { user_t } from "@/types/user";
 
 const UserDataTest: user_t[] = [
@@ -81,7 +79,6 @@ const createInitialUsers = (initialCount: number) => {
     return users;
 }
 
-
 export default function GlobalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
@@ -96,7 +93,7 @@ export default function GlobalUserList() {
         return new Promise<Array<user_t>>((resolve, reject) => {
             setTimeout(() => {
                 resolve(UserDataTest);
-            }, 2000);
+            }, 1000);
         });
     }
 
@@ -127,12 +124,7 @@ export default function GlobalUserList() {
                 title="Add Friends"
                 body="body2 text"
             />
-
-            {/* https://mui.com/material-ui/icons/ */}
-            <div className=" absolute top-0 right-0">
-                <ItemButtonLink primary="Add Friend" to="/friends" icon={ <CloseIcon /*fontSize="large" sx={{color: "#ffffff"}}*//>}/>
-            </div>
-
+ 
             {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
             <div className=" border">
                 <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}/>

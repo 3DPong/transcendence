@@ -34,37 +34,44 @@ import React, {useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
+import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
 import type { user_t } from '@/types/user';
 
 // Test code
 const UserDataTest: user_t[] = [
     {
+        id     : 0,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "minkyeki",
     },
     {
+        id     : 1,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "minkyeuKim",
     },
     {
+        id     : 2,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "Jake",
     },
     {
+        id     : 3,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "DongKim",
     },
     {
+        id     : 4,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "User5",
     },
     {
+        id     : 5,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "User6",
     },
     {
+        id     : 6,
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
         name   : "User7",
     },
@@ -97,7 +104,7 @@ export default function LocalUserList() {
         return new Promise<Array<user_t>>((resolve, reject) => {
             setTimeout(() => {
                 resolve(UserDataTest);
-            }, 2000);
+            }, 1000);
         });
     }
 
@@ -107,7 +114,7 @@ export default function LocalUserList() {
         (async () => {
             const receivedData = await getUserData();
             setUsers(receivedData);
-            setIsLoading(false);
+            // setIsLoading(false);
         })(/* IIFE */);
     }, []);
 
@@ -121,11 +128,9 @@ export default function LocalUserList() {
                 body="body2 text"
             />
 
-            {/* https://mui.com/material-ui/icons/ */}
-            <div className=" absolute top-0 right-0">
-                <ItemButtonLink primary="Add Friend" to="/friends/add" icon={ <AddBoxIcon fontSize="large" sx={{color: "#ffffff"}}/>}/>
-            </div>
-
+            <div className=" absolute top-32 right-4">
+                <ButtonLink primary="Add Friend" to="./add" icon={ <AddBoxIcon fontSize="large" />} sx={{color: "#ffffffff"}} />
+            </div> 
 
             {/*  */}
             <div className=" border m-0 p-0">
