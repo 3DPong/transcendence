@@ -1,15 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   GlobalUserList.tsx                                 :+:      :+:    :+:   */
+/*   Profille.tsx                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/11 14:37:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 21:32:48 by minkyeki         ###   ########.fr       */
+/*   Created: 2023/03/13 21:41:20 by minkyeki          #+#    #+#             */
+/*   Updated: 2023/03/13 21:51:04 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 /** (1) List component  
  * @link1 https://mui.com/material-ui/react-list/
@@ -29,13 +28,13 @@
  * 
 */ 
 
-
-import React, { useState} from "react";
+import Avatar from '@mui/material/Avatar';
+import React, {useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
-import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
+import AddBoxIcon from '@mui/icons-material/AddBox';
 import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-import CloseIcon from '@mui/icons-material/Close';
+import { height } from '@mui/system';
 
 export interface User {
     imgSrc: string, // img url
@@ -44,6 +43,7 @@ export interface User {
 
 export type Users = User[]; // user배열.
 
+// Test code
 const UserDataTest: Users = [
     {
         imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
@@ -88,10 +88,10 @@ const createInitialUsers = (initialCount: number) => {
 }
 
 
-export default function GlobalUserList() {
+export default function LocalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Users>( createInitialUsers(50) );
+    const [users, setUsers] = useState<Users>( createInitialUsers(7) );
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -107,45 +107,25 @@ export default function GlobalUserList() {
     }
 
     // (1) initial data loading
-    const onClick = () => {
+    useEffect(() => {
         // async load
-        // GET data from server. --> fetch via search_String
         (async () => {
             const receivedData = await getUserData();
             setUsers(receivedData);
             setIsLoading(false);
         })(/* IIFE */);
-    };
-
-    const onKeyUp = (event: React.KeyboardEvent) => {
-        event.preventDefault();
-        if (event.key === "Enter") {
-            onClick();
-        }
-    }
+    }, []);
 
     return (
         <>
             {/*  */}
-            <MediaCard
-                // 이미지는 Dribble에서 가져옴. https://dribbble.com/shots/17023457-Friend
-                imageUrl="https://cdn.dribbble.com/userupload/3345426/file/original-810456efca16997843a7cf36f34b4ef7.png?compress=1&resize=1024x684"
-                title="Add Friends"
-                body="body2 text"
-            />
 
-            {/* https://mui.com/material-ui/icons/ */}
-            <div className=" absolute top-0 right-0">
-                <ItemButtonLink primary="Add Friend" to="/friends" icon={ <CloseIcon /*fontSize="large" sx={{color: "#ffffff"}}*//>}/>
-            </div>
-
-            {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
-            <div className=" border">
-                <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}/>
-            </div>
+            <Avatar sx={{ width: "auto", height: "auto" }} alt="Remy Sharp" src="https://www.richardtmoore.co.uk/wp-content/uploads/2016/10/btx-avatar-placeholder-01-2.jpg" variant="square" />
 
             {/*  */}
-            <VirtualizedUserList users={users} isLoading={isLoading} />
+            <div className=" border m-0 p-0">
+                <SearchTextField state={searchString} setState={setSearchString} />
+            </div>
         </>
     );
 }

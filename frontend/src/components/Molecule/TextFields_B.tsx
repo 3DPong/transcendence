@@ -6,14 +6,14 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 15:39:11 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/02/28 01:36:44 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:31:05 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 // import * as React from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import { eFormStatus }     from '@/components/Form/type';
+import { eFormStatus }     from '@/types/form';
 
 const { ENABLE, DISABLE, ON_PROCESSING } = eFormStatus;
 
