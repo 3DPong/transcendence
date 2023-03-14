@@ -9,6 +9,8 @@ import { AlarmModule } from './models/alarm/socket';
 import { PostgresDatabaseProviderModule } from './providers/database/postgres/provider.module';
 import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
 
 @Module({
   imports: [
@@ -22,6 +24,12 @@ import { AppConfigModule } from './config/app/config.module';
     AppConfigModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
