@@ -1,11 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   GlobalAppContext.ts                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/03/13 20:35:03 by minkyeki          #+#    #+#             */
+/*   Updated: 2023/03/13 20:35:05 by minkyeki         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import { createContext } from "react";
 import { Assert } from "@/utils/Assert";
 
 // * [ How to use useReducer + useContext ]
 // https://dev.to/elisealcala/react-context-with-usereducer-and-typescript-4obm
-
-
-
 
 
 // -----------------------------------------

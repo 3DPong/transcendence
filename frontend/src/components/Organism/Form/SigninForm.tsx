@@ -6,15 +6,16 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/14 19:14:22 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/02/28 01:36:44 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:13:05 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { useState, useEffect, useMemo }     from 'react';
 import * as Utils       from '@/utils/Validator'
-import { TextFields }   from '@/components/Form/TextFields_B';
-import { Button }       from '@/components/Form/Button_A';
-import { eFormStatus, ValidatorRuleFormat }     from '@/components/Form/type';
+import { TextFields }   from '@/components/Molecule/TextFields_B';
+import { Button }       from '@/components/Molecule/Button_A';
+import { eFormStatus, ValidatorRuleFormat }     from '@/types/form';
+
 
 const { ENABLE, DISABLE, ON_PROCESSING } = eFormStatus;
 const { NAME_RULE, PASSWORD_RULE } = ValidatorRuleFormat;

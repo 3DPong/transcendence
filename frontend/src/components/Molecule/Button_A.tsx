@@ -6,11 +6,11 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/15 18:57:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/02/28 01:36:44 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:30:32 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import { eFormStatus }     from '@/components/Form/type';
+import { eFormStatus }     from '@/types/form';
 
 interface ButtonProps
 {

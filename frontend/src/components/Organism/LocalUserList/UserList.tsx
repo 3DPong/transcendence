@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 01:51:16 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 15:17:50 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:34:21 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,18 +16,10 @@
  */
 
 import * as React from 'react';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import { ListItemButton } from '@mui/material';
-import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import Avatar from '@mui/material/Avatar';
-import Typography from '@mui/material/Typography';
 import { Users } from './LocalUserList';
-import UserCard from '@/components/Organism/Molecule/UserCard';
+import UserCard from '@/components/Molecule/UserCard';
 import { Box } from '@mui/material';
-
 import { FixedSizeList } from 'react-window';
 import { Assert } from '@/utils/Assert';
 

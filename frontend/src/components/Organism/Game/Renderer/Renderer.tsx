@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 14:37:51 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/02/28 21:53:40 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:33:03 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ import { Assert } from "@/utils/Assert";
 import { b2Object } from "@/simulation/Objects";
 
 import React, { useRef, forwardRef, useEffect } from "react";
-import * as ObjectConverter from "@/components/Game/Renderer/ObjectConverter"
+import * as ObjectConverter from "@/components/Organism/Game/Renderer/ObjectConverter"
 
 import * as GlobalContext from "@/components/GlobalAppContext";
 
