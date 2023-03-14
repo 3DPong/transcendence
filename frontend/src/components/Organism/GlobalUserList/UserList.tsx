@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 01:51:16 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 20:28:00 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 16:28:00 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,19 +17,19 @@
 
 import * as React from 'react';
 import { ListItemButton } from '@mui/material';
-import { Users } from './GlobalUserList';
+import type { user_t } from '@/types/user';
 import UserCard from '@/components/Molecule/UserCard';
 import { Box } from '@mui/material';
 
 import { FixedSizeList } from 'react-window';
 
 export interface UserListProps {
-    users: Users,
+    users: Array<user_t>,
     isLoading?: boolean,
 }
 
 
-const Row = (props: {index: number, style: React.CSSProperties, data: {users: Users, isLoading?: boolean}}) => {
+const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<user_t>, isLoading?: boolean}}) => {
     const { index, style, data } = props;
     const user = data.users[index];
     const { isLoading } = data;

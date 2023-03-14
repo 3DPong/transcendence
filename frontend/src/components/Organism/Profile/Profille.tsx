@@ -6,125 +6,112 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 21:41:20 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 21:51:04 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 18:26:33 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/** (1) List component  
- * @link1 https://mui.com/material-ui/react-list/
- * 
- * @link2 https://mui.com/material-ui/react-app-bar/
- * 
- * @link3 https://mui.com/material-ui/react-skeleton/ --> 로딩 지연시 보여줄 내용. (Skeleton)
- * 
- *      - Header
- *      - AddBtn
- *      - Search
- *      - SearchResult (Below is an example if UserList)
- *          - UserCard
- *              - Profile image
- *              - Nickname
- *              - actionBtn (Ban, Add, sendDM)
- * 
-*/ 
-
 import Avatar from '@mui/material/Avatar';
 import React, {useEffect, useState} from "react";
-import SearchTextField from "@/components/Molecule/SearchTextField";
-import MediaCard from "@/components/Molecule/MediaCard";
-import AddBoxIcon from '@mui/icons-material/AddBox';
 import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import { Skeleton } from '@mui/material';
+import type { user_t } from '@/types/user';
+import type { userStatistic_t } from '@/types/user';
+import type { recentGames_t } from '@/types/user';
 import { height } from '@mui/system';
+import 'react-lazy-load-image-component/src/effects/blur.css';
+// ---------------------------------
 
-export interface User {
-    imgSrc: string, // img url
-    name:   string, // nickname
+
+const meTest: user_t = {
+    imgSrc: "https://www.richardtmoore.co.uk/wp-content/uploads/2016/10/btx-avatar-placeholder-01-2.jpg",
+    name: "sungjpar",
 }
 
-export type Users = User[]; // user배열.
+const opponentTest: user_t = {
+    imgSrc: "https://media.licdn.com/dms/image/C4E03AQFWFZ4mjs0CqA/profile-displayphoto-shrink_800_800/0/1517455268292?e=2147483647&v=beta&t=EkD3zEwwCCSfvMTaCYQ5rHyPnG5A8y3Z40lK_sIQ9BQ",
+    name: "schoe",
+}
 
-// Test code
-const UserDataTest: Users = [
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeki",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeuKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "Jake",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "DongKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User5",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User6",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User7",
-    },
-]
-    
-const createInitialUsers = (initialCount: number) => {
-    let users = new Array<User>();
-    while (initialCount > 0) {
-        users.push({
-            imgSrc : "",
-            name: initialCount.toString(),
-        })
-        --initialCount;
-    }
-    return users;
+const recentGamesTest: recentGames_t = [];
+for (let i=0; i< 5; ++i) {
+    recentGamesTest.push({
+        opponent: opponentTest,
+        isWin: true,
+    })
 }
 
 
-export default function LocalUserList() {
+const userStatisticTest: userStatistic_t = {
+    totalGame   : 5,
+    totalWin    : 3,
+    totalLose   : 2,
+    recentGames : recentGamesTest,
+}
 
-    // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Users>( createInitialUsers(7) );
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+// ---------------------------------
 
-    // (1) 검색할 문자열.
-    const [searchString, setSearchString] = useState<string>("");
+export interface profileProps {
+    userId?: string, // 일단 테스트용이니까 옵션으로 지정함. 나중엔 반드시 userId 전달해줄 것.
+}
+
+export default function Profle( {userId}: profileProps ) {
     
-    const getUserData = () => {
-        setIsLoading(true); // 로딩중 flag
-        return new Promise<Users>((resolve, reject) => {
+    const [profileState, setProfileState] = useState<user_t | null>(null);
+    const [statisticState, setStatisticState] = useState<userStatistic_t | null >(null);
+
+    const TEST_TIME_MILLIES = 0;
+
+    const getUserStatisticData = () => {
+        return new Promise<userStatistic_t>((resolve, reject) => {
             setTimeout(() => {
-                resolve(UserDataTest);
-            }, 2000);
+                resolve(userStatisticTest);
+            }, TEST_TIME_MILLIES);
+        });
+    };
+
+    const getUserProfileData = () => {
+        return new Promise<user_t>((resolve, reject) => {
+            setTimeout(() => {
+                resolve(meTest);
+            }, TEST_TIME_MILLIES); 
         });
     }
 
     // (1) initial data loading
     useEffect(() => {
-        // async load
+
         (async () => {
-            const receivedData = await getUserData();
-            setUsers(receivedData);
-            setIsLoading(false);
+            const profile = await getUserProfileData();
+            setProfileState(profile);
+        })(/* IIFE */);
+
+        (async () => {
+            const statistic = await getUserStatisticData();
+            setStatisticState(statistic);
         })(/* IIFE */);
     }, []);
 
     return (
         <>
-            {/*  */}
-
-            <Avatar sx={{ width: "auto", height: "auto" }} alt="Remy Sharp" src="https://www.richardtmoore.co.uk/wp-content/uploads/2016/10/btx-avatar-placeholder-01-2.jpg" variant="square" />
-
-            {/*  */}
-            <div className=" border m-0 p-0">
-                <SearchTextField state={searchString} setState={setSearchString} />
+            <div
+                className=" max-w-full h-72" /* 부모 컴포넌트의 width를 가득 채움 */
+            >
+                {profileState ? (
+                    <LazyLoadImage 
+                    src={profileState.imgSrc}
+                    width="100%" height="100%"
+                    alt={profileState.name}
+                    placeholderSrc={profileState.imgSrc}
+                    effect="blur" 
+                    />
+                ) : (
+                    <Skeleton
+                        variant="rectangular"
+                        animation="pulse"
+                        width="100%" height="100%"
+                    />
+                )}
             </div>
         </>
     );
