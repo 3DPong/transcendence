@@ -36,6 +36,8 @@ export default function Controller() {
         setClickState( (clickState !== srcState) ? srcState : eClickedBtn.NONE);
     }
 
+    const BUTTON_STYLE = ""
+
     return (
         // <Box sx={{ display: "flex" }}>
         <Box>
@@ -54,35 +56,43 @@ export default function Controller() {
             >
                 <Toolbar />
                 <Divider />
-                <List>
-                    <ListItemButtonLink
-                        to={ (clickState !== eClickedBtn.PROFILE) ? "/profile" : "/"}
-                        tooltipTitle="Profile"
-                        children={<AccountBox fontSize="large" />}
-                        onClick={() => toggleClickState(eClickedBtn.PROFILE)}
-                        badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-                    />
-                    <ListItemButtonLink
-                        to={ (clickState !== eClickedBtn.FRIENDS) ? "/friends" : "/"}
-                        tooltipTitle="Friends"
-                        children={<Group fontSize="large" />}
-                        onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-                        badge={3} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-                    />
-                    <ListItemButtonLink
-                        to={ (clickState !== eClickedBtn.ROOMS) ? "/rooms" : "/"}
-                        tooltipTitle="Rooms"
-                        children={<Chat fontSize="large" />}
-                        onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-                        badge={5} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-                    />
-                    <ListItemButtonLink
-                        to={ (clickState !== eClickedBtn.SETTINGS) ? "/settings" : "/"}
-                        tooltipTitle="Settings"
-                        children={<Settings fontSize="large" />}
-                        onClick={() => toggleClickState(eClickedBtn.SETTINGS)}
-                        badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-                    />
+                <List sx={{padding:0, margin:0}}>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            to={ (clickState !== eClickedBtn.PROFILE) ? "/profile" : "/"}
+                            tooltipTitle="Profile"
+                            children={<AccountBox fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.PROFILE)}
+                            badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            to={ (clickState !== eClickedBtn.FRIENDS) ? "/friends" : "/"}
+                            tooltipTitle="Friends"
+                            children={<Group fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
+                            badge={3} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            to={ (clickState !== eClickedBtn.ROOMS) ? "/rooms" : "/"}
+                            tooltipTitle="Rooms"
+                            children={<Chat fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.ROOMS)}
+                            badge={5} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            to={ (clickState !== eClickedBtn.SETTINGS) ? "/settings" : "/"}
+                            tooltipTitle="Settings"
+                            children={<Settings fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.SETTINGS)}
+                            badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
                 </List>
             </Drawer>
         </Box>

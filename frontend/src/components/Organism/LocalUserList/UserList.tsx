@@ -16,46 +16,69 @@
  */
 
 import * as React from 'react';
-import type { user_t } from '@/types/user';
+import { user_t, userListData_t, eUserStatus } from '@/types/user';
 import UserListCard from '@/components/Molecule/UserListCard';
-import { Box } from '@mui/material';
+import { Badge, Box } from '@mui/material';
 import { FixedSizeList } from 'react-window';
 import { Assert } from '@/utils/Assert';
 import ListItemButtonLink from '@/components/Molecule/Link/ListItemButtonLink';
+import { ListItem } from '@mui/material';
 
-export interface UserListProps {
-    users: Array<user_t>,
-    isLoading?: boolean,
-    searchString?: string,
-}
-
-
-const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<user_t>, isLoading?: boolean}}) => {
+const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<userListData_t>, isLoading?: boolean}}) => {
     const { index, style, data } = props;
     const user = data.users[index];
     const { isLoading } = data;
 
     return (
-        <ListItemButtonLink style={style} key={user.name} divider={true}
-                            to={ (user.id !== undefined) ? (`./${user.id}`) : ("./") } // if Id exist, then route to [friends/:id]
-                            tooltipTitle={"Profile"}>
+        // <ListItemButtonLink /*style={style}*/ key={user.name} divider={true}
+        //                     to={ (user.id !== undefined) ? (`./${user.id}`) : ("./") } // if Id exist, then route to [friends/:id]
+        //                     tooltipTitle={"Profile"}
+        //                     >
+        // 기존에는 리스트 전체를 click가능하게 했었는데, 지금은 오른쪽 option 버튼 누르도록...
+        <ListItem
+            style={style}
+            key={index}
+            divider={true}
+            sx={{ margin: 0, padding: 0 }}
+        >
+            {/* block된 유저인지 아닌지 체크 + 로그인/ 로그아웃 상태 검사 */}
+            {/* <Badge
+                color={
+                    user.status === eUserStatus.online ? "primary" : "secondary"
+                }
+                variant="dot"
+                anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                }}
+            > */}
+                {/* 한 리스트 칸에 들어가는 내용 (프로필, 이름, 옵션) (flex container) */}
                 <UserListCard
-                    imgSrc={user.imgSrc}
-                    name={user.name}
+                    imgSrc={user.profile.imgSrc}
+                    name={user.profile.name}
                     isLoading={isLoading}
                 />
-        </ListItemButtonLink>
+            {/* </Badge> */}
+        </ListItem>
+
+        // </ListItemButtonLink>
     );
+}
+
+export interface UserListProps {
+    users: Array<userListData_t>,
+    isLoading?: boolean,
+    searchString?: string,
 }
 
 
 export default function VirtualizedUserList(props: UserListProps) {
 
-    let searchedArray: Array<user_t> | null = null;
+    let searchedArray: Array<userListData_t> | null = null;
     if (props.searchString) {
         searchedArray = props.users.filter((user) => {
             Assert.NonNullish(props.searchString, "search string is null");
-           return user.name.includes(props.searchString);
+           return user.profile.name.includes(props.searchString);
         });
     } else {
         searchedArray = props.users;

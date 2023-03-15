@@ -10,10 +10,21 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+export enum eUserStatus {
+    offline,
+    online,
+}
+
 export interface user_t {
-    id?     : number, // userId
-    imgSrc  : string, // img url
-    name    : string, // nickname
+    id?         : number, // userId
+    imgSrc      : string, // img url
+    name        : string, // nickname
+}
+
+export interface userListData_t {
+    profile     : user_t,
+    isBlocked   : boolean, // true / false
+    status      : eUserStatus, // online / offline
 }
 
 export type recentGames_t = Array<{ 

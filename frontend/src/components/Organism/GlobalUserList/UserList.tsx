@@ -17,36 +17,39 @@
 
 import * as React from 'react';
 import { ListItemButton } from '@mui/material';
-import type { user_t } from '@/types/user';
+import { ListItem } from '@mui/material';
 import UserListCard from '@/components/Molecule/UserListCard';
 import { Box } from '@mui/material';
-
+import { user_t, userListData_t, eUserStatus } from '@/types/user';
 import { FixedSizeList } from 'react-window';
 
-export interface UserListProps {
-    users: Array<user_t>,
-    isLoading?: boolean,
-}
-
-
-const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<user_t>, isLoading?: boolean}}) => {
+const Row = (props: {index: number, style: React.CSSProperties, data: {users: Array<userListData_t>, isLoading?: boolean}}) => {
     const { index, style, data } = props;
     const user = data.users[index];
     const { isLoading } = data;
 
     return (
-        <ListItemButton style={style} key={index} divider={true}>
+        // <ListItemButton style={style} key={index} divider={true}>
+        <ListItem style={style} key={index} divider={true}>
             <UserListCard
-                imgSrc={user.imgSrc}
-                name={user.name}
+                user={user}
                 isLoading={isLoading}
             />
-        </ListItemButton>
+        </ListItem>
+        // </ListItem>
     );
 }
 
+export interface UserListProps {
+    users?: Array<userListData_t> | null,
+    isLoading?: boolean,
+}
 
 export default function VirtualizedUserList(props: UserListProps) {
+
+    if (!props.users) {
+        return (<div></div>)
+    }
 
     return (
         <Box

@@ -72,7 +72,7 @@ const createInitialUsers = (initialCount: number) => {
     while (initialCount > 0) {
         users.push({
             imgSrc : "",
-            name: initialCount.toString(),
+            name: "user" + initialCount.toString(),
         })
         --initialCount;
     }
@@ -82,7 +82,7 @@ const createInitialUsers = (initialCount: number) => {
 export default function GlobalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Array<user_t>>( createInitialUsers(50) );
+    const [users, setUsers] = useState<Array<user_t> | null>( null );
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -92,8 +92,9 @@ export default function GlobalUserList() {
         setIsLoading(true); // 로딩중 flag
         return new Promise<Array<user_t>>((resolve, reject) => {
             setTimeout(() => {
-                resolve(UserDataTest);
-            }, 1000);
+                const randomTestUsers = createInitialUsers(50);
+                resolve(randomTestUsers);
+            }, 2000);
         });
     }
 
