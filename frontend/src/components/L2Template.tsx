@@ -25,7 +25,7 @@ export default function L2Template({organism}: templateProps) {
                 <div className=" shadow-lg w-72">
                     { organism }
                     <div className=" absolute right-2 top-1"> {/* 뒤로가기 버튼. */}
-                        <ButtonLink primary="close" to="../" icon={ <CloseIcon fontSize="small" /> } />
+                        <ButtonLink primary="close" to="../" children={ <CloseIcon fontSize="small" /> } />
                     </div>
                 </div>
                 <Outlet/>
