@@ -36,44 +36,46 @@ import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import type { user_t } from '@/types/user';
+import { user_t, userListData_t, eUserStatus } from '@/types/user';
 
+const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
 // Test code
-const UserDataTest: user_t[] = [
+const UserDataTest: userListData_t[] = [
     {
-        id     : 0,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeki",
+        profile : {
+            id     : 0,
+            imgSrc : DUMMY_IMG,
+            name   : "userA",
+        },
+        isBlocked: false,
+        status: eUserStatus.online
     },
     {
-        id     : 1,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeuKim",
+        profile : {
+            id     : 1,
+            imgSrc : DUMMY_IMG,
+            name   : "userB",
+        },
+        isBlocked: false,
+        status: eUserStatus.offline
     },
     {
-        id     : 2,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "Jake",
+        profile : {
+            id     : 2,
+            imgSrc : DUMMY_IMG,
+            name   : "userC",
+        },
+        isBlocked: true,
+        status: eUserStatus.offline
     },
     {
-        id     : 3,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "DongKim",
-    },
-    {
-        id     : 4,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User5",
-    },
-    {
-        id     : 5,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User6",
-    },
-    {
-        id     : 6,
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User7",
+        profile : {
+            id     : 3,
+            imgSrc : DUMMY_IMG,
+            name   : "userD",
+        },
+        isBlocked: false,
+        status: eUserStatus.online
     },
 ]
     
@@ -93,7 +95,7 @@ const createInitialUsers = (initialCount: number) => {
 export default function LocalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Array<user_t>>( createInitialUsers(7) );
+    const [users, setUsers] = useState<Array<userListData_t>>(UserDataTest);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -101,10 +103,10 @@ export default function LocalUserList() {
     
     const getUserData = () => {
         setIsLoading(true); // 로딩중 flag
-        return new Promise<Array<user_t>>((resolve, reject) => {
+        return new Promise<Array<userListData_t>>((resolve, reject) => {
             setTimeout(() => {
                 resolve(UserDataTest);
-            }, 1000);
+            }, 2000);
         });
     }
 
@@ -114,7 +116,7 @@ export default function LocalUserList() {
         (async () => {
             const receivedData = await getUserData();
             setUsers(receivedData);
-            // setIsLoading(false);
+            setIsLoading(false);
         })(/* IIFE */);
     }, []);
 
@@ -133,7 +135,7 @@ export default function LocalUserList() {
             </div> 
 
             {/*  */}
-            <div className=" border m-0 p-0">
+            <div className=" border m-0 p-4">
                 <SearchTextField state={searchString} setState={setSearchString} />
             </div>
 
