@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 00:12:31 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/15 01:27:07 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/16 03:09:59 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,22 +36,21 @@ const Link = React.forwardRef<HTMLAnchorElement, RouterLinkProps>(function Link(
 });
 
 interface ItemLinkProps {
-    icon?: React.ReactElement;
+    children: React.ReactNode;
     primary: string;
     to: string;
+    onClick?: () => void; 
     sx?: SxProps;
 }
 
 export default function ButtonLink(props: ItemLinkProps) {
-    const { icon, primary, to, sx } = props;
+    const { onClick, children, primary, to, sx } = props;
     return ( 
         <Tooltip title={primary} placement="bottom-start">
-            <Button component={Link} to={to} sx={{margin:0, padding:0, display:"inline", backgroundColor:"transparent"}} >
-                {icon ? (
-                    <IconButton aria-label={primary} sx={{margin:0, padding:0, ...sx}} >
-                        {icon}
-                    </IconButton>
-                ) : null}
+            <Button disableRipple onClick={onClick} component={Link} to={to} sx={{margin:0, padding:0, display:"inline", backgroundColor:"transparent"}} >
+                <IconButton aria-label={primary} sx={{margin:0, padding:0, ...sx}} >
+                    {children}
+                </IconButton>
             </Button>
         </Tooltip>
     );

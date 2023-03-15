@@ -131,7 +131,9 @@ export default function LocalUserList() {
             />
 
             <div className=" absolute top-32 right-4">
-                <ButtonLink primary="Add Friend" to="./add" icon={ <AddBoxIcon fontSize="large" />} sx={{color: "#ffffffff"}} />
+                <ButtonLink primary="Add Friend" to="./add" sx={{color: "#ffffffff"}} >
+                    <AddBoxIcon fontSize="large" />
+                </ButtonLink>
             </div> 
 
             {/*  */}
