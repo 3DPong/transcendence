@@ -26,7 +26,7 @@ export default function L1Template({organism}: templateProps) {
             <div className=" shadow-lg w-72">
                 {organism}
                 <div className=" absolute right-1 top-1"> {/* 뒤로가기 버튼. */}
-                    <ButtonLink primary="close" to="../" icon={ <CloseIcon fontSize="small" /> } sx={{color: "rgba(100,100,100,0.8)"}} />
+                    <ButtonLink primary="close" to="../" children={ <CloseIcon fontSize="small" /> } sx={{color: "rgba(100,100,100,0.8)"}} />
                 </div>
             </div>
             <Outlet />
