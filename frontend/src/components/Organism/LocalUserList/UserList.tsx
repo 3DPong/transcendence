@@ -17,7 +17,7 @@
 
 import * as React from 'react';
 import { user_t, userListData_t, eUserStatus } from '@/types/user';
-import UserListCard from '@/components/Molecule/UserListCard';
+import UserListCard from '@/components/Organism/LocalUserList/UserListCard';
 import { Badge, Box } from '@mui/material';
 import { FixedSizeList } from 'react-window';
 import { Assert } from '@/utils/Assert';
@@ -39,7 +39,6 @@ const Row = (props: {index: number, style: React.CSSProperties, data: {users: Ar
             style={style}
             key={index}
             divider={true}
-            sx={{ margin: 0, padding: 0 }}
         >
             {/* block된 유저인지 아닌지 체크 + 로그인/ 로그아웃 상태 검사 */}
             {/* <Badge
@@ -54,8 +53,7 @@ const Row = (props: {index: number, style: React.CSSProperties, data: {users: Ar
             > */}
                 {/* 한 리스트 칸에 들어가는 내용 (프로필, 이름, 옵션) (flex container) */}
                 <UserListCard
-                    imgSrc={user.profile.imgSrc}
-                    name={user.profile.name}
+                    user={user}
                     isLoading={isLoading}
                 />
             {/* </Badge> */}
@@ -71,8 +69,11 @@ export interface UserListProps {
     searchString?: string,
 }
 
-
 export default function VirtualizedUserList(props: UserListProps) {
+
+    const LIST_HEIGHT = 400;
+    const ROW_WIDTH = "100%"
+    const ROW_HEIGHT = 70;
 
     let searchedArray: Array<userListData_t> | null = null;
     if (props.searchString) {
@@ -97,9 +98,9 @@ export default function VirtualizedUserList(props: UserListProps) {
             {/* https://medium.datadriveninvestor.com/handling-lists-with-react-window-79c68a73c55a */}
             {/* https://mui.com/material-ui/react-list/ */}
             <FixedSizeList
-                height={400}
-                width="100%"
-                itemSize={60}
+                height={LIST_HEIGHT}
+                width={ROW_WIDTH}
+                itemSize={ROW_HEIGHT}
                 itemCount={ searchedArray.length }
                 overscanCount={5}
                 itemData={ { users : searchedArray, isLoading : props.isLoading } }

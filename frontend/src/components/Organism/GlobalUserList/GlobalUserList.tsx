@@ -34,45 +34,21 @@ import React, { useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
-import type { user_t } from "@/types/user";
+import { user_t, userListData_t, eUserStatus } from "@/types/user";
 
-const UserDataTest: user_t[] = [
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeki",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeuKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "Jake",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "DongKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User5",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User6",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User7",
-    },
-]
+const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
     
-const createInitialUsers = (initialCount: number) => {
-    let users = new Array<user_t>();
+const __createInitialTestUsers = (initialCount: number) => {
+    let users = new Array<userListData_t>();
     while (initialCount > 0) {
         users.push({
-            imgSrc : "",
-            name: "user" + initialCount.toString(),
+                profile : {
+                id     : 0,
+                imgSrc : DUMMY_IMG,
+                name: "user" + initialCount.toString(),
+            },
+            isBlocked: false,
+            status: (initialCount % 2)
         })
         --initialCount;
     }
@@ -82,7 +58,7 @@ const createInitialUsers = (initialCount: number) => {
 export default function GlobalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Array<user_t> | null>( null );
+    const [users, setUsers] = useState<Array<userListData_t> | null>( null );
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -90,9 +66,9 @@ export default function GlobalUserList() {
     
     const getUserData = () => {
         setIsLoading(true); // 로딩중 flag
-        return new Promise<Array<user_t>>((resolve, reject) => {
+        return new Promise<Array<userListData_t>>((resolve, reject) => {
             setTimeout(() => {
-                const randomTestUsers = createInitialUsers(50);
+                const randomTestUsers = __createInitialTestUsers(50);
                 resolve(randomTestUsers);
             }, 2000);
         });
@@ -127,7 +103,7 @@ export default function GlobalUserList() {
             />
  
             {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
-            <div className=" border">
+            <div className=" border m-0 p-4">
                 <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}/>
             </div>
 
