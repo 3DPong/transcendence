@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/11 14:37:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 21:32:48 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 16:27:47 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,64 +34,31 @@ import React, { useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "./UserList";
 import MediaCard from "@/components/Molecule/MediaCard";
-import { ItemButtonLink } from "@/components/Organism/Controller/Controller";
-import CloseIcon from '@mui/icons-material/Close';
+import { user_t, userListData_t, eUserStatus } from "@/types/user";
 
-export interface User {
-    imgSrc: string, // img url
-    name:   string, // nickname
-}
-
-export type Users = User[]; // user배열.
-
-const UserDataTest: Users = [
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeki",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "minkyeuKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "Jake",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "DongKim",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User5",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User6",
-    },
-    {
-        imgSrc : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
-        name   : "User7",
-    },
-]
+const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
     
-const createInitialUsers = (initialCount: number) => {
-    let users = new Array<User>();
+const __createInitialTestUsers = (initialCount: number) => {
+    let users = new Array<userListData_t>();
     while (initialCount > 0) {
         users.push({
-            imgSrc : "",
-            name: initialCount.toString(),
+                profile : {
+                id     : 0,
+                imgSrc : DUMMY_IMG,
+                name: "user" + initialCount.toString(),
+            },
+            isBlocked: false,
+            status: (initialCount % 2)
         })
         --initialCount;
     }
     return users;
 }
 
-
 export default function GlobalUserList() {
 
     // (0) UserData (Skeleton render를 위한 초기 initial render용 데이터.)
-    const [users, setUsers] = useState<Users>( createInitialUsers(50) );
+    const [users, setUsers] = useState<Array<userListData_t> | null>( null );
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // (1) 검색할 문자열.
@@ -99,9 +66,10 @@ export default function GlobalUserList() {
     
     const getUserData = () => {
         setIsLoading(true); // 로딩중 flag
-        return new Promise<Users>((resolve, reject) => {
+        return new Promise<Array<userListData_t>>((resolve, reject) => {
             setTimeout(() => {
-                resolve(UserDataTest);
+                const randomTestUsers = __createInitialTestUsers(50);
+                resolve(randomTestUsers);
             }, 2000);
         });
     }
@@ -133,15 +101,11 @@ export default function GlobalUserList() {
                 title="Add Friends"
                 body="body2 text"
             />
-
-            {/* https://mui.com/material-ui/icons/ */}
-            <div className=" absolute top-0 right-0">
-                <ItemButtonLink primary="Add Friend" to="/friends" icon={ <CloseIcon /*fontSize="large" sx={{color: "#ffffff"}}*//>}/>
-            </div>
-
+ 
             {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
-            <div className=" border">
-                <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}/>
+            <div className=" border m-0 p-4">
+                <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}
+                    placeholder={"친구 찾기"}/>
             </div>
 
             {/*  */}

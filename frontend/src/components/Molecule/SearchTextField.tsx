@@ -65,6 +65,7 @@ export interface SearchBarProps {
   setState: (arg: string) => void;
   onClick?: () => void;
   onKeyUp?: (event: React.KeyboardEvent) => void;
+  placeholder?: string
 }
 
 
@@ -73,13 +74,14 @@ export default function SearchTextField(props: SearchBarProps) {
 
 
     return (
-        <Search sx={{padding: 0, margin: 0, marginY: 2}} className=" ml-0">
+          <div className=" flex">
             <input
                 value={props.state}
                 onChange={(event) => {props.setState(event.target.value)}}
                 onKeyUp={props.onKeyUp}
-                placeholder="find friend"
-                className="form-control
+                placeholder={props.placeholder}
+                className=" flex-1 max-w-full
+                            form-control
                             px-3
                             py-1.5
                             text-base
@@ -104,6 +106,6 @@ export default function SearchTextField(props: SearchBarProps) {
                   <SearchIcon  />
                 </IconButton>
               ) }
-        </Search>
+          </div>
     );
 }
