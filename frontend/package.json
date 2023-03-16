@@ -70,10 +70,12 @@
   },
   "dependencies": {
     "@babylonjs/core": "^5.47.1",
+    "@chatscope/chat-ui-kit-react": "^1.10.1",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@fontsource/roboto": "^4.5.8",
     "@mui/icons-material": "^5.11.11",
+    "@mui/lab": "^5.0.0-alpha.123",
     "@mui/material": "^5.11.8",
     "@types/react-window": "^1.8.5",
     "assert": "^2.0.0",

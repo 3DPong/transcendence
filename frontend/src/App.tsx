@@ -32,6 +32,12 @@ import Profile from "@/components/Organism/Profile/Profile";
 import LocalUserList from "@/components/Organism/LocalUserList/LocalUserList";
 import GlobalUserList from "@/components/Organism/GlobalUserList/GlobalUserList";
 
+import LocalChatList from '@/components/Organism/Chat/LocalChatList';
+import GlobalChatList from '@/components/Organism/Chat/GlobalChatList';
+import CreateChat from './components/Organism/Chat/CreateChat';
+import ChatDetail from './components/Organism/Chat/ChatDetail';
+import ChatTemplate from './components/ChatTemplate';
+
 const router = createBrowserRouter([ 
     { // 홈화면 (로그인 후)
         path: "/",
@@ -63,8 +69,22 @@ const router = createBrowserRouter([
                 ]
             },
             {
-                path: "rooms", // /rooms
-                element: <L1Template organism={<div>rooms</div>}/>
+                path: "rooms",
+                element: <L1Template organism={ <LocalChatList /> }/>,
+                children: [
+                    {
+                        path: "create",
+                        element: <L2Template organism={ <CreateChat /> } /> 
+                    },
+                    {
+                        path: "add",
+                        element: <L2Template organism={ <GlobalChatList /> } />
+                    },
+                    {
+                        path: ":roomId",
+                        element: <ChatTemplate organism={ <ChatDetail /> } />
+                    },
+                ]
             },
             {
                 path: "settings", // settings
