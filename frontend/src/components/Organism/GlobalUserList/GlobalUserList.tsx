@@ -104,7 +104,8 @@ export default function GlobalUserList() {
  
             {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
             <div className=" border m-0 p-4">
-                <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}/>
+                <SearchTextField state={searchString} setState={setSearchString} onClick={onClick} onKeyUp={onKeyUp}
+                    placeholder={"친구 찾기"}/>
             </div>
 
             {/*  */}
