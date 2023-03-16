@@ -14,7 +14,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import { Box } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 
 // https://mui-treasury.com/components/card/
 
@@ -39,7 +39,8 @@ export default function MediaCard(props: mediaCardProps) {
         />
 
         { props.title && // add gradient only if title exist.
-          <CardContent className=' absolute bottom-0 w-full' style={{ background: "linear-gradient(to top, #111111, rgba(0,0,0,0))", /*paddingBottom: 16*/}}>
+          // <CardContent className=' absolute bottom-0 w-full' style={{ background: "linear-gradient(to top, rgba(40, 40, 40, 100) 60%, rgba(0,0,0,0) 200%)", /*paddingBottom: 16*/}}>
+          <CardContent className=' absolute bottom-0 w-full' style={{ background: "rgba(50, 50, 50, 0.8)" }}>
                 <Typography gutterBottom variant="h5" component="div"
                             color="common.white" margin={0}>
                     {props.title}
