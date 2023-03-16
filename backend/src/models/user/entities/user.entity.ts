@@ -14,7 +14,7 @@ import { Match } from '../../game/entities';
 import { Factory } from 'nestjs-seeder';
 
 @Entity()
-@Unique(['nickname'])
+@Unique(['nickname', 'email'])
 export class User {
   @PrimaryGeneratedColumn()
   user_id: number;
@@ -22,6 +22,10 @@ export class User {
   @Factory((faker) => faker.helpers.unique(faker.word.noun))
   @Column({ type: 'varchar', length: 20, unique: true })
   nickname: string;
+
+  @Factory((faker) => faker.helpers.unique(faker.internet.email))
+  @Column({ type: 'varchar', length: 100, unique: true })
+  email: string;
 
   @Factory((faker) => faker.image.people())
   @Column({ type: 'varchar', length: 150 })

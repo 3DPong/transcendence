@@ -5,6 +5,14 @@ import { AppConfigService } from './config/app/config.service';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
 import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: number;
+    }
+  }
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new HttpExceptionFilter());
