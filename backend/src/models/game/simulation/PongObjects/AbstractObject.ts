@@ -12,23 +12,22 @@
 
 import { Assert } from '../Assert';
 import { Helpers } from '../Helpers';
-
+import * as Box2D from '../../Box2D';
 // bodyDef, FixtureDef 모음집.
 abstract class ObjectBase
 {
-    protected  m_BodyDef     : Box2D.b2BodyDef;
-    protected  m_FixtureDef  : Box2D.b2FixtureDef;
+    protected  m_BodyDef     : Box2D.BodyDef;
+    protected  m_FixtureDef  : Box2D.FixtureDef;
     protected __helperModule : Helpers;
 
     constructor ( 
-        protected readonly __box2dModule: typeof Box2D & EmscriptenModule, 
         BaseID : string 
     ) {
-        const { b2BodyDef, b2FixtureDef } = this.__box2dModule;
-        this.__helperModule = new Helpers(this.__box2dModule);
+        const { BodyDef, FixtureDef } = Box2D;
+        this.__helperModule = new Helpers();
 
-        this.m_BodyDef = new b2BodyDef();
-        this.m_FixtureDef = new b2FixtureDef();
+        this.m_BodyDef = new BodyDef();
+        this.m_FixtureDef = new FixtureDef();
         this.__helperModule.setIDtoBodyDef(this.m_BodyDef, BaseID);
     }
 

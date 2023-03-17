@@ -11,9 +11,9 @@
 /* ************************************************************************** */
 
 import { Assert } from "./Assert";
-
+import * as Box2D from '../Box2D'
 export class Helpers {
-    constructor(private readonly __box2dModule: typeof Box2D & EmscriptenModule) {}
+    constructor() {}
 
     // Malloc space for input string and returns pointer.
     mallocString = (str: string) => {

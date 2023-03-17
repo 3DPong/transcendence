@@ -10,26 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-//import Box2DFactory = require("box2d-wasm");
 import { Helpers } from './Helpers';
 import { b2Object, b2Ground, b2Ball, b2Paddle, b2RandomPolygon } from './Objects';
-
-/** -----------------------------------------------------*
- * @link https://box2d.org/documentation                 *
- * @core Box2D 물리엔진을 이용한 Simulator class입니다.        *
- * ------------------------------------------------------*/
-
-/** @link https://v8.dev/features/top-level-await */
-/*
-const __box2dModule : Promise<typeof Box2D & EmscriptenModule> = Box2DFactory();
-let box2D : typeof Box2D & EmscriptenModule;
-__box2dModule.then((test) =>{
-    box2D = test;
-})
-Box2DFactory().then(box2D => {
-    const simulator = new PongSimulator(box2D);
-    console.log('tasdfasdfasdf');
-})*/
+import * as Box2D from '../Box2D'
 export namespace ObjectID {
     export const BALL = "ball";
     export const GROUND = "ground";
@@ -42,7 +25,7 @@ export class PongSimulator
     private m_Time: number = 0.0; // 시뮬레이터 시간.
     private m_isStarted: boolean = false;
 
-    private m_World: Box2D.b2World;
+    private m_World: Box2D.World;
     private m_Ground: b2Ground;
     private m_Ball: b2Ball;
     private m_PaddleLeft: b2Paddle;
