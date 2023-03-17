@@ -113,7 +113,6 @@ dist
 .tern-port
 
 # Database ENV file
-.env*
 
 # finder
 .DS_Store
