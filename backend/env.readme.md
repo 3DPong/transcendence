@@ -33,4 +33,29 @@
 - **port**
     - **APP_PORT**
     - default: 3000 (바뀔 수 있습니다.)
- 
+### REDIS
+- **host**
+    - **REDIS_HOST**
+        - redis 에 연결하기 위한 hostname
+    - **REDIS_PORT**
+        - redis 에 연결하기 위한 port 
+
+### SESSION
+- **secret**
+    - **SESSION_SECRET**
+        - session 에 사용되는 secret key
+
+### FT
+
+**auth 모듈 42 api 설정을 위함**
+
+- **client_id**
+    - **FT_CLIENT**
+        - 42 api client id 
+- **secret**
+     - **FT_SECRET**
+        - 42 api secret key
+- **callback**
+    - **FT_CALLBACK**
+        - api redirection uri
+        - `/auth/redirect/42`
