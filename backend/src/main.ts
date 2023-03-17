@@ -6,7 +6,7 @@ import { HttpExceptionFilter } from './common/filters/http/httpException.filter'
 import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
 import * as session from 'express-session';
 import { SessionConfigService } from './config/session/config.service';
-import connectRedis from 'connect-redis';
+import RedisStore from 'connect-redis';
 import { Redis } from 'ioredis';
 import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
@@ -25,14 +25,18 @@ async function bootstrap() {
   const sessionConfig = app.get(SessionConfigService);
   const redisConfig = app.get(RedisConfigService);
   const redisClient = new Redis({ port: redisConfig.port, host: redisConfig.host });
-  const RedisStore = connectRedis.bind(session);
+  // @ts-ignore
+  const redisStore = new RedisStore({
+    client: redisClient,
+    prefix: 'ts:',
+  } as any);
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
   app.use(LoggerMiddleware);
   app.use(
     session({
-      store: new RedisStore({ client: redisClient, prefix: 'ts:' }),
+      store: redisStore,
       secret: sessionConfig.secret,
       resave: false,
       saveUninitialized: false,

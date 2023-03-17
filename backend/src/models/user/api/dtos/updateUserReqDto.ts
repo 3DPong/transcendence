@@ -1,12 +1,11 @@
-import { IsBoolean, IsNumber, IsUrl } from 'class-validator';
+import { IsBoolean, IsOptional, IsUrl } from 'class-validator';
 
 export class UpdateUserReqDto {
-  @IsNumber()
-  user_id: number;
   nickname: string;
   @IsUrl()
   profile_url: string;
 
+  @IsOptional()
   @IsBoolean()
-  two_factor: boolean;
+  two_factor?: boolean;
 }

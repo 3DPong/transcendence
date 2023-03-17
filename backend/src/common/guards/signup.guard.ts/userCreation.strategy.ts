@@ -11,7 +11,7 @@ export class UserCreationStrategy extends PassportStrategy(Strategy, 'creation')
 
   validate(request: Request) {
     const email = request.session.email;
-    if (email) throw new UnauthorizedException('invalid session');
+    if (!email) throw new UnauthorizedException('invalid session');
     return { email: email };
   }
 }

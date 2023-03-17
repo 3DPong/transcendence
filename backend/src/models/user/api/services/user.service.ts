@@ -18,10 +18,11 @@ export class UserService {
     return new GetUserResDto(user);
   }
 
-  async createUser(payload: CreateUserReqDto): Promise<CreateUserResDto> {
+  async createUser(data, payload: CreateUserReqDto): Promise<CreateUserResDto> {
     const newUser = new User();
     newUser.profile_url = payload.profile_url;
     newUser.nickname = payload.nickname;
+    newUser.email = null;
     try {
       return new CreateUserResDto(await this.userRepository.save(newUser));
     } catch (error) {
@@ -35,14 +36,15 @@ export class UserService {
     }
   }
 
-  async updateUser(userId: number, payload: UpdateUserReqDto): Promise<CreateUserResDto> {
+  async updateUser(data, payload: UpdateUserReqDto): Promise<CreateUserResDto> {
     // check user is valid
+    const userId = data.user_id;
     const userToUpdate: User = await this.userRepository.findOne({
       where: {
         user_id: userId,
       },
     });
-    if (userToUpdate === null || userToUpdate === undefined) {
+    if (!userToUpdate) {
       throw new BadRequestException('not exist user');
     }
 

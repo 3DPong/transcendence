@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { UserStatusEnum } from '../../../common/enums';
 import { Request } from 'express';
 import { SessionData } from 'express-session';
+
 @Injectable()
 export class AuthService {
   constructor(@InjectRepository(User) private userRepository: Repository<User>) {}

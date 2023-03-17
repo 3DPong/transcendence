@@ -37,6 +37,7 @@ import { PostgresConfigModule } from '../../../config/database/postgres/config.m
           MessageLog,
         ],
         synchronize: true,
+        logging: true,
         //        entities: [__dirname + '/../../../*/*{.entity.ts,.entity.js}'],
       }),
       inject: [PostgresConfigService],
