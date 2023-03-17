@@ -1,5 +1,3 @@
-import { UserStatus } from "@chatscope/chat-ui-kit-react";
-
 export interface User {
   userId: number;
   profile: string;
@@ -8,6 +6,7 @@ export interface User {
 };
 
 export interface Message {
+  messageId: number;
   userId: number;
   content: string;
   created_at: string;
@@ -21,4 +20,5 @@ export interface Room {
   owner: User;
 }
 
+export type UserStatus = "online" | "offline" | "ingame" | "none";
 export type ChatType = "protected" | "private" | "public";
