@@ -11,6 +11,7 @@ import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
+import { GameModule } from './models/game/socket';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HttpExceptionFilter } from './common/filters/http/httpException.filter'
     ChatModule,
     MatchModule,
     AlarmModule,
+    GameModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
