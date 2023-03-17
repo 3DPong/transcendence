@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-local';
+import { Strategy } from 'passport-custom';
 import { Request } from 'express';
 
 @Injectable()
@@ -10,8 +10,8 @@ export class UserCreationStrategy extends PassportStrategy(Strategy, 'creation')
   }
 
   validate(request: Request) {
-    const session = request.session;
-    if (!session.email) throw new UnauthorizedException('invalid session');
-    return { email: session.email };
+    const email = request.session.email;
+    if (email) throw new UnauthorizedException('invalid session');
+    return { email: email };
   }
 }

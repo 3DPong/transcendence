@@ -1,15 +1,30 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { CreateUserResDto, GetUserResDto, CreateUserReqDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
 import { UserService } from './services';
+import { UserCreationGuard } from '../../../common/guards/signup.guard.ts/userCreation.guard';
+import { SessionGuard } from '../../../common/guards/session/session.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
+
+  @UseGuards(SessionGuard)
+  // @UseGuards(UserCreationGuard)
   @Get('/:userid')
   // guard for admin
   async getUser(@Param('userid') userid: number): Promise<GetUserResDto> {
     return this.userService.getUser(userid);
   }
+
+  // @UseGuards(SessionGuard)
+  @UseGuards(UserCreationGuard)
+  @Get('/test/test')
+  // guard for admin
+  async test() {
+    return;
+  }
+
+  @UseGuards(UserCreationGuard)
   @Post()
   // session guard, get user unique name(intra name or email) from session.
   async createUser(@Body() payload: CreateUserReqDto): Promise<CreateUserResDto> {

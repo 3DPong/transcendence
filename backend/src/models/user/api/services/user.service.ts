@@ -14,6 +14,7 @@ export class UserService {
         user_id: userId,
       },
     });
+    if (!user) return;
     return new GetUserResDto(user);
   }
 

@@ -39,6 +39,7 @@ async function bootstrap() {
       cookie: {
         httpOnly: true,
         maxAge: 30000,
+        sameSite: 'lax',
         // secure: true, // https 아니라서 사용 못함.
       },
     })

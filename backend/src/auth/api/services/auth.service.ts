@@ -70,7 +70,6 @@ export class AuthService {
         email: data.email,
       },
     });
-    console.log(user, data.email);
     if (!user) {
       return await this.signUp(data, req);
     } else {
