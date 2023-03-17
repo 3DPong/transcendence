@@ -23,6 +23,10 @@ export class User {
   @Column({ type: 'varchar', length: 20, unique: true })
   nickname: string;
 
+  @Factory((faker) => faker.helpers.unique(faker.internet.email))
+  @Column({ type: 'varchar', length: 100, unique: true })
+  email: string;
+
   @Factory((faker) => faker.image.people())
   @Column({ type: 'varchar', length: 150 })
   profile_url: string;
