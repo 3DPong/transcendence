@@ -36,9 +36,10 @@ export class ChatChannel {
   @Column({ type: 'enum', enum: ChannelType, default: ChannelType.PUBLIC })
   type: ChannelType;
 
-  @ManyToOne(() => User, (user) => user.ownChannels)
+  @ManyToOne(() => User, (user) => user.ownChannels, { eager: true })
   @JoinColumn({ name: 'owner_id' })
   owner: User;
+
   @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @Column({ type: 'int' })
   owner_id: number;
