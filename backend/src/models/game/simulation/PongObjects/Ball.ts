@@ -12,13 +12,13 @@
 
 import { b2Object } from './AbstractObject';
 import { b2Paddle } from './Paddle';
-
+import * as Box2D from '../../Box2D'
 // https://v8.dev/features/top-level-await
 // const __box2dModule : typeof Box2D & EmscriptenModule = await Box2DFactory();
 
 export interface BallOptions {
     radius: number;
-    position: Box2D.b2Vec2;
+    position: Box2D.Vec2;
     Id?: string;
 }
 
@@ -41,15 +41,14 @@ export class b2Ball extends b2Object
      * ```
      */
     constructor(
-        __box2dModule: typeof Box2D & EmscriptenModule,
         options: BallOptions
     ) {
-        super(__box2dModule, "ball");
+        super("ball");
 
-        const { b2_dynamicBody, b2CircleShape } = this.__box2dModule;
+        const { dynamicBody, CircleShape } = Box2D
 
-        this.m_BodyDef.bullet = true;
-        this.m_BodyDef.set_type(b2_dynamicBody);
+        //this.m_BodyDef.bullet = true; cpu많이 먹음
+        this.m_BodyDef.type = 
         this.m_BodyDef.set_position(options.position);
 
         this.m_FixtureDef.set_density(10.0);
