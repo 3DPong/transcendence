@@ -11,6 +11,9 @@ import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
+import { SessionConfigModule } from './config/session/config.module';
+import { FtConfigModule } from './config/ft/config.module';
+import { RedisConfigModule } from './config/redis/config.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { HttpExceptionFilter } from './common/filters/http/httpException.filter'
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
+    SessionConfigModule,
+    FtConfigModule,
+    RedisConfigModule,
   ],
   controllers: [AppController],
   providers: [
