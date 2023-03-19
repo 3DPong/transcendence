@@ -6,10 +6,10 @@ import { GameRoomTypeEnum } from '../enum/gameRoomTypeEnum';
 import { GameRoom } from '../gameRoom';
 import { createMatchDto } from '../game_dto/createMatch.dto';
 import { Player } from '../player';
-//import { PongSimulator } from '../simulation/PongSimulator';
 import { GameService } from './services';
 import * as Box2d from '../Box2D';
-//import Box2DFactory = require("box2d-wasm");
+import { GameSimulator } from '../simul/GameSimulator';
+
 @WebSocketGateway(4242, {
   namespace : 'game',
   cors : {origin : '*'}, 
@@ -90,50 +90,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   makeSimul(
     @ConnectedSocket() client : Socket
   ) {
-
-      const { BodyDef, dynamicBody, PolygonShape, Vec2, World } = Box2d;
-      const gravity = new Vec2(0, 10);
-      const world = new World(gravity);
-    
-      const sideLengthMetres = 1;
-      const square = new PolygonShape();
-      square.SetAsBox(sideLengthMetres/2, sideLengthMetres/2);
-    
-      const zero = new Vec2(0, 0);
-    
-      const bd = new BodyDef();
-      // bd. = (zero);
-    
-      const body = world.CreateBody(bd);
-      body.CreateFixture(square, 1);
-      body.SetType(dynamicBody);
-      body.SetPosition(zero);
-      body.SetTransformVec(zero, 0);
-      body.SetLinearVelocity(zero);
-      body.SetAwake(true);
-      body.SetEnabled(true);
-    
-      const timeStepMillis = 1/60;
-      const velocityIterations = 1;
-      const positionIterations = 1;
-      const floatCompareTolerance = 0.01;
-    
-      const iterations = 6;
-      for (let i=0; i<iterations; i++) {
-        const timeElapsedMillis = timeStepMillis*i;
-        {
-          const {y} = body.GetLinearVelocity();
-       
-          {
-            const {y} = body.GetPosition();
-           
-          }
+      const gameSimulator : GameSimulator = new GameSimulator();
+      async () => {
+        console.log("simul start");
+        while (true){
+          await gameSimulator.step();
         }
-        world.Step(timeStepMillis, velocityIterations, positionIterations);
       }
-      
-      console.log(`👍 Ran ${iterations} iterations of a falling body. Body had the expected position on each iteration.`);
-
   }
 /*
   @SubscribeMessage('inChatMatch')
