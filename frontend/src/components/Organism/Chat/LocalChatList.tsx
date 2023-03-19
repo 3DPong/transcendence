@@ -1,45 +1,41 @@
-import React, {FC, useEffect, useState} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import MediaCard from "@/components/Molecule/MediaCard";
 import AddCommentIcon from '@mui/icons-material/AddComment';
-import ForumIcon from '@mui/icons-material/Forum';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
 import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
 import { Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
+import GlobalContext from "@/GlobalContext";
 
 
 interface ChatListProps {
 }
 
 const LocalChatList : FC<ChatListProps> = () => {
+  const {rooms, setRooms} = useContext(GlobalContext);
 
-  const [chats, setChats] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
  
-  //async function fetchGlobalChats() : Promise<Room[]> {
-    // isLocal? 에 따라 fetchURL 변경
-    //return [];
-  //}
-
   useEffect(() => {
     async function fetchRooms() {
       setIsLoading(true);
+      setRooms(Dummy.dummy_chatrooms)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    fetchRooms().then(()=>{
+    fetchRooms().then(() =>{
       setIsLoading(false);
-      setChats(Dummy.dummy_chatrooms)
     });
-  })
+  });
 
-  function findRoomsByString(chats : Room[], searchString : string) {
+  function findRoomsByString(rooms: Room[], searchString : string) {
     if (searchString)
-      return chats.filter((chat) => { return chat.channelName.includes(searchString); });
+      return rooms.filter((room) => { return room.channelName.includes(searchString); });
     else
-      return chats;
+      return rooms;
   }
 
   return (
@@ -66,7 +62,7 @@ const LocalChatList : FC<ChatListProps> = () => {
           placeholder={"참여채팅 검색"}/>
       </div>
 
-      <VirtualizedChatList chats={findRoomsByString(chats, searchString)} isLoading={isLoading} />
+      <VirtualizedChatList rooms={findRoomsByString(rooms, searchString)} isLoading={isLoading} isLocal={true}/>
     </>
   );
 }

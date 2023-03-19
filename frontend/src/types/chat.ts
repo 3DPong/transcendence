@@ -16,9 +16,9 @@ export interface Room {
   channelId : number;
   thumbnail? : string;
   channelName : string;
-  channelType : string;  // TODO : ENUM type임 
+  channelType : ChatType;  // TODO : ENUM type임 
   owner: User;
 }
 
 export type UserStatus = "online" | "offline" | "ingame" | "none";
-export type ChatType = "protected" | "private" | "public";
+export type ChatType = "protected" | "private" | "public" | "dm";

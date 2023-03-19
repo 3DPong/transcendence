@@ -1,85 +1,57 @@
-
-import * as React from 'react';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import Avatar from '@mui/material/Avatar';
-import Typography from '@mui/material/Typography';
-import Skeleton from '@mui/material/Skeleton';
-import { Room } from '@/types/chat';
+import React, { FC } from "react";
+import { Box, Skeleton } from "@mui/material";
+import { ChatType, Room } from "@/types/chat";
+import { Lock, LockOpen, Public } from "@mui/icons-material";
 
 interface ChatCardProps {
-  imgURL?: string;
-  chat: Room;
-  isLoading?: boolean; // for skeleton
+  room: Room;
+  isLoading?: boolean;
+  isLocal?: boolean;
 };
 
-const SkeletonChatCard : React.FC = () => {
+const SkeletonCard : React.FunctionComponent = () => {
   return (
     <>
-      <ListItemAvatar>
-        <Skeleton variant="circular" animation="wave">
-          <Avatar />
-        </Skeleton>
-      </ListItemAvatar>
-      <ListItemText
-        primary={
-          <Skeleton 
-            animation="wave" 
-            height={10} 
-            width="40%"
-            style={{ marginBottom:6, marginTop:6 }}
-          />
-        }
-        secondary={
-          <Skeleton 
-            animation="wave" 
-            height={10} 
-            width="80%"
-          />
-        }
-      />
+      <Skeleton variant="circular" width={48} height={48} />
+      <Skeleton variant="text" width={200} height={24} />
     </>
-  );
-}
-
-const LoadedCard : React.FC<ChatCardProps> = ({imgURL, chat}) => {
-  return (
-    <>
-      <ListItemAvatar>
-        <Avatar alt={chat.channelName}
-          src={imgURL ? imgURL : "http://news.kbs.co.kr/data/fckeditor/new/image/2020/12/11/313731607645472653.jpg"} 
-          sx={{
-            borderRadius: '50%',
-            bgcolor: imgURL ? 'transparent' : 'grey.300',
-          }}
-        />
-      </ListItemAvatar>
-      <ListItemText
-        primary={ chat.channelName }
-        secondary= {
-          <React.Fragment>
-            <Typography
-              sx={{ display: "inline" }}
-              component="span"
-              variant="body2"
-              color="text.primary"
-            >
-              additional data here
-            </Typography>
-          </React.Fragment>
-        }
-      />
-    </>
-  );
-}
-
-const ChatCard : React.FC<ChatCardProps> = ({imgURL, chat, isLoading}) => {
-  return (
-    <ListItem alignItems="flex-start" disablePadding>
-      { isLoading ? <SkeletonChatCard/> : <LoadedCard imgURL={imgURL} chat={chat}/> }
-    </ListItem>
   );
 };
+
+const LoadedCard : FC<ChatCardProps> = ({room}) => {
+  function getIcon(type: ChatType) {
+    switch(type){
+    case "public":
+      return <Public />;
+    case "protected":
+      return <LockOpen />;
+    case "private":
+      return <Lock />;
+    default:
+      return;
+    }
+  };
+
+  return (
+    <>
+      <img
+        src={room.thumbnail || "https://pbs.twimg.com/profile_images/859429610248863744/mg7H1c7u_400x400.jpg"}
+        alt="thumbnail"
+        className="w-12 h-12 rounded-full"
+      />
+      <div className="flex flex-col">
+        <span className="text-md font-medium">{room.channelName}</span>
+        <span className="text-gray-500">{getIcon(room.channelType)}  {room.channelType}</span>
+      </div>
+    </>
+  );
+};
+
+const ChatCard : FC<ChatCardProps> = ({room, isLoading, isLocal}) => {
+  return (
+    isLoading ? <SkeletonCard /> :
+    isLocal ? <LoadedCard room={room} /> : <LoadedCard room={room} />
+  );
+}
 
 export default ChatCard;
