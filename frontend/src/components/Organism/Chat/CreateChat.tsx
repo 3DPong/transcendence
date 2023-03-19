@@ -29,8 +29,6 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
   const [thumbnail, setThumbnail] = useState<string>("");
 
-  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => setTitle(event.target.value);
-
   function searchButtonClick() {
     setSearchUsers(Dummy.dummy_users);
   }

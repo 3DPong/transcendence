@@ -1,7 +1,6 @@
 import React, {FC, useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import MediaCard from "@/components/Molecule/MediaCard";
-import CloseIcon from '@mui/icons-material/Close';
 
 import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
 import { Room } from "@/types/chat";
@@ -54,7 +53,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
         />
       </div>
 
-      <VirtualizedChatList chats={chats} isLoading={isLoading} />
+      <VirtualizedChatList rooms={chats} isLoading={isLoading} isLocal={false}/>
     </>
   );
 }
