@@ -16,7 +16,7 @@ export enum eUserStatus {
 }
 
 export interface user_t {
-    id?         : number, // userId
+    id          : number, // userId
     imgSrc      : string, // img url
     name        : string, // nickname
 }
