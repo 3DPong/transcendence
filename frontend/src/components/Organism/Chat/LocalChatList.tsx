@@ -9,12 +9,14 @@ import { Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/GlobalContext";
+import { useNavigate } from "react-router-dom";
 
 
 interface ChatListProps {
 }
 
 const LocalChatList : FC<ChatListProps> = () => {
+  const navigate = useNavigate();
   const {rooms, setRooms} = useContext(GlobalContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -22,20 +24,23 @@ const LocalChatList : FC<ChatListProps> = () => {
  
   useEffect(() => {
     async function fetchRooms() {
-      setIsLoading(true);
-      setRooms(Dummy.dummy_chatrooms)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-    fetchRooms().then(() =>{
+    };
+    setIsLoading(true);
+    setTimeout(() => {
+      setRooms(Dummy.dummy_chatrooms);
       setIsLoading(false);
-    });
-  });
+    }, 2000);
+  }, []);
 
   function findRoomsByString(rooms: Room[], searchString : string) {
     if (searchString)
       return rooms.filter((room) => { return room.channelName.includes(searchString); });
     else
       return rooms;
+  }
+
+  function handleCardClick(id:number) {
+    navigate(`/rooms/${id}`)
   }
 
   return (
@@ -62,7 +67,7 @@ const LocalChatList : FC<ChatListProps> = () => {
           placeholder={"참여채팅 검색"}/>
       </div>
 
-      <VirtualizedChatList rooms={findRoomsByString(rooms, searchString)} isLoading={isLoading} isLocal={true}/>
+      <VirtualizedChatList rooms={findRoomsByString(rooms, searchString)} isLoading={isLoading} handleCardClick={handleCardClick} />
     </>
   );
 }
