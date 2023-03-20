@@ -22,7 +22,7 @@ import { b2Object } from "@/simulation/Objects";
 import React, { useRef, forwardRef, useEffect } from "react";
 import * as ObjectConverter from "@/components/Organism/Game/Renderer/ObjectConverter"
 
-import * as GlobalContext from "@/components/GlobalAppContext";
+// import * as GlobalContext from "@/components/GlobalAppContext";
 
 export interface RenderSceneProps
 {
