@@ -2,12 +2,26 @@ System.register(["@box2d", "@testbed", "./object/ObjectFactory.js"], function (e
     "use strict";
     var Box2D, testbed, ObjectFactory_js_1, PaddleState, GameSimulator, testIndex;
     var __moduleName = context_1 && context_1.id;
+    function BallSpeedCorrection(ball) {
+        const afterVelocity = 50000;
+        const beforeVelocity = ball.GetLinearVelocity().LengthSquared();
+        const vel = ball.GetLinearVelocity().Clone();
+        const coefficient = Math.sqrt(afterVelocity / beforeVelocity);
+        ball.SetLinearVelocity(new Box2D.Vec2(vel.x * coefficient, vel.y * coefficient));
+    }
     function ContactListenerInit(world) {
         //  world.GetContactManager().m_contactListener.BeginContact = ()=>{};
         //  world.GetContactManager().m_contactListener.EndContact = ()=>{};
         //  world.GetContactManager().m_contactListener.PreSolve = ()=>{};
         world.GetContactManager().m_contactListener.PostSolve = function (contact, impulse) {
-            console.log('call contactListener postsolve');
+            const Ashape = contact.GetFixtureA();
+            const Bshape = contact.GetFixtureB();
+            if (Ashape.GetUserData() !== "ball" && Bshape.GetUserData() !== "ball") {
+                return;
+            }
+            const ball = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
+            BallSpeedCorrection(ball);
+            //console.log('call contactListener postsolve');
         };
     }
     function movePeddle(paddle, paddleState) {
@@ -60,7 +74,9 @@ System.register(["@box2d", "@testbed", "./object/ObjectFactory.js"], function (e
                     this.objectFactory.createGround(this.m_world);
                     this.leftPaddle = this.objectFactory.createPaddle(this.m_world, -43, 0); //left
                     this.rightPaddle = this.objectFactory.createPaddle(this.m_world, 43, 0); //right
+                    this.objectFactory.createObstacle(this.m_world);
                     ContactListenerInit(this.m_world);
+                    //start : ball velocity init
                     this.ball.SetLinearVelocity(new Box2D.Vec2(50, 40));
                 }
                 Keyboard(key) {
@@ -97,6 +113,8 @@ System.register(["@box2d", "@testbed", "./object/ObjectFactory.js"], function (e
                 }
                 Step(settings) {
                     super.Step(settings);
+                    //console.log('ball AngularVelocity : ', this.ball.GetAngularVelocity(), 'ball Velocity', this.ball.GetLinearVelocity());
+                    //BallSpeedCorrection(this.ball);
                     if (this.leftButton !== PaddleState.STOP) {
                         movePeddle(this.leftPaddle, this.leftButton);
                     }

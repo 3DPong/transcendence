@@ -2,6 +2,14 @@ import * as Box2D from "@box2d";
 import * as testbed from "@testbed";
 import { ObjectFactory } from "./object/ObjectFactory.js";
 
+function BallSpeedCorrection(ball : Box2D.Body){
+  const afterVelocity : number = 50000;
+  const beforeVelocity : number = ball.GetLinearVelocity().LengthSquared();
+  const vel : Box2D.Vec2 = ball.GetLinearVelocity().Clone();
+  const coefficient : number = Math.sqrt(afterVelocity/ beforeVelocity);
+  ball.SetLinearVelocity(new Box2D.Vec2(vel.x * coefficient, vel.y * coefficient));
+}
+
 function ContactListenerInit(world: Box2D.World){
   //  world.GetContactManager().m_contactListener.BeginContact = ()=>{};
   //  world.GetContactManager().m_contactListener.EndContact = ()=>{};
@@ -10,14 +18,24 @@ function ContactListenerInit(world: Box2D.World){
     ).m_contactListener.PostSolve = function(
       contact: Box2D.Contact, impulse: Box2D.ContactImpulse
     ): void {
-      console.log('call contactListener postsolve');
+      const Ashape : Box2D.Fixture = contact.GetFixtureA();
+      const Bshape : Box2D.Fixture = contact.GetFixtureB();
+      if (Ashape.GetUserData() !== "ball" && Bshape.GetUserData() !== "ball"){
+        return;
+      }
+      const ball : Box2D.Body = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
+      BallSpeedCorrection(ball);
+      //console.log('call contactListener postsolve');
     }
+
+    
 }
 export enum PaddleState{
   UP,
   DOWN,
   STOP,
 }
+
 
 function movePeddle(paddle : Box2D.Body, paddleState :PaddleState){
   const pos : Box2D.Vec2 = paddle.GetPosition();
@@ -52,7 +70,9 @@ export class GameSimulator extends testbed.Test {
       this.objectFactory.createGround(this.m_world);
       this.leftPaddle = this.objectFactory.createPaddle(this.m_world, -43, 0);//left
       this.rightPaddle =  this.objectFactory.createPaddle(this.m_world, 43, 0);//right
+      this.objectFactory.createObstacle(this.m_world);
       ContactListenerInit(this.m_world);
+      //start : ball velocity init
       this.ball.SetLinearVelocity(new Box2D.Vec2(50,40));
   }
 
@@ -91,6 +111,8 @@ export class GameSimulator extends testbed.Test {
   }
   public Step(settings: testbed.Settings): void {
     super.Step(settings);
+    //console.log('ball AngularVelocity : ', this.ball.GetAngularVelocity(), 'ball Velocity', this.ball.GetLinearVelocity());
+    //BallSpeedCorrection(this.ball);
     if (this.leftButton !== PaddleState.STOP){
       movePeddle(this.leftPaddle, this.leftButton);
     } else if (this.rightButton !== PaddleState.STOP) {
