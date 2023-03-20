@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from '../../user/entities';
 import { ChannelUser } from './channelUser.entity';
@@ -24,6 +25,7 @@ export enum ChannelType {
 }
 
 @Entity()
+@Unique(['name'])
 export class ChatChannel {
   @PrimaryGeneratedColumn()
   channel_id: number;

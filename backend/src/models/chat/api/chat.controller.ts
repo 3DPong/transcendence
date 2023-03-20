@@ -1,9 +1,9 @@
-import { Get } from '@nestjs/common';
+import { Delete, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { User } from 'src/models/user/entities/user.entity';
 import { ChannelUser } from '../entities/channelUser.entity';
 import { ChatChannel } from '../entities/chatChannel.entity';
-import { CreateChannelDto } from './dto/create-channel.dto';
+import { ChannelDto} from './dto/create-channel.dto';
 import { GetUser } from './get-user.decorator';
 import { ChatService } from './services/chat.service';
 import { ChatUserService } from './services/chatUser.service';
@@ -31,12 +31,30 @@ export class ChatController {
 	// 	return this.chatService.createChannelUser(8, 74);
 	// }
 
+
 	@Post('/create')
 	async creatChatRoom(
-		@Body() createChannelDto: CreateChannelDto,
+		@Body() channelDto: ChannelDto,
 	) : Promise<ChatChannel> {
-		const user = await this.userService.getUserOne(8);
-		return  this.chatService.creatChatRoom(createChannelDto, user);
+		console.log("create come")
+		const user = await this.userService.getUserOne(88);
+		return  this.chatService.creatChatRoom(channelDto, user);
 	}
 
+	@Post('/:id/update')
+	async updateChatRoom(
+		@Param('id', ParseIntPipe) id: number,
+		@Body() channelDto: ChannelDto,
+	) : Promise <void> {
+		console.log("update come")
+		const user = await this.userService.getUserOne(78);
+		return this.chatService.updateChatRoom(id, channelDto, user);
+	}
+	
+	@Delete('/:id/del')
+	deleteChatRoom(
+		@Param('id', ParseIntPipe) id,
+	): Promise<void> {
+		return this.chatService.deleteChatRoom(id);
+	}
 }

@@ -2,11 +2,11 @@ import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorE
 import { Repository } from 'typeorm';
 import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import * as bcrypt from 'bcryptjs';
-import { CreateChannelDto } from '../dto/create-channel.dto';
+import { ChannelDto } from '../dto/create-channel.dto';
 import { User } from 'src/models/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
-import { ChannelUser } from '../../entities/channelUser.entity';
+import { ChannelUser, ChannelUserRoles } from '../../entities/channelUser.entity';
 import { DmChannel } from '../../entities/dmChannel.entity';
 import { ChannelBanList } from '../../entities/channelBanList.entity';
 import { ChannelMuteList } from '../../entities/channeMuteList.entity';
@@ -93,55 +93,99 @@ export class ChatService {
 		}
 
 
-	async getAllChannels(): Promise <ChatChannel[]> {
+		async getAllChannels(): Promise <ChatChannel[]> {
 
-		const channel: ChatChannel[] = await this.channelRepository
-		.createQueryBuilder("channel")
-		.innerJoin("channel.owner", "owner")
-		.select([
-			"channel.channel_id",
-			"channel.name",
-			"channel.type",
-			"owner.user_id",
-			"owner.nickname",
-			"owner.profile_url"
-		])
-		.where('channel.type != :type', {type: ChannelType.PRIVATE})
-		.getMany();
+			const channel: ChatChannel[] = await this.channelRepository
+			.createQueryBuilder("channel")
+			.innerJoin("channel.owner", "owner")
+			.select([
+				"channel.channel_id",
+				"channel.name",
+				"channel.type",
+				"owner.user_id",
+				"owner.nickname",
+				"owner.profile_url"
+			])
+			.where('channel.type != :type', {type: ChannelType.PRIVATE})
+			.getMany();
 
-		return channel;
-	}
-
-	async creatChatRoom(createChannelDto: CreateChannelDto, user: User) : Promise<ChatChannel> {
-		
-		const { name, password, type } = createChannelDto;
-		let hashedPassword = null;
-
-		if (type == ChannelType.PROTECTED){
-			if (password == undefined) {
-				throw new NotFoundException(`Can't find password`);
-			}
-			const salt = await bcrypt.genSalt();
-			hashedPassword = await bcrypt.hash(password, salt);
+			return channel;
 		}
 
-		const channel = this.channelRepository.create({
-			name,
-			password: hashedPassword,
-			type,
-			owner: user,
-			owner_id: user.user_id
-		})
+	async creatChatRoom(channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
 		try {
+			const { name, password, type } = channelDto;
+			let hashedPassword = null;
+
+			if (type == ChannelType.PROTECTED){
+				if (password == undefined) {
+					throw new NotFoundException(`Can't find password`);
+				}
+				const salt = await bcrypt.genSalt();
+				hashedPassword = await bcrypt.hash(password, salt);
+			}
+
+			const channel = this.channelRepository.create({
+				name,
+				password: hashedPassword,
+				type,
+				owner: user,
+				owner_id: user.user_id
+			})
 			await this.channelRepository.save(channel);
-			delete channel.password;
+			return channel;
+		} catch (error) {
+
+			if (error.code === '23505')
+				throw new ConflictException('Existing Title');
+			else
+				throw new InternalServerErrorException();
+		}
+	}
+
+	async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
+		try {
+			const { name, password, type } = channelDto;
+			const channel = await this.channelRepository.findOne({where :{channel_id}});
+			if (!channel)
+				throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
+
+			if (channel.owner_id != user.user_id && !(await this.chaekUserAdmin(user.user_id, channel_id)))
+				throw new NotFoundException(`Channel [ ${channel_id} ]'s User :${ user.user_id} has no Permission`);
+
+			let hashedPassword = channel.password;
+			if (type == ChannelType.PROTECTED){
+				if (password == undefined) {
+					throw new NotFoundException(`Can't find password`);
+				}
+				const salt = await bcrypt.genSalt();
+				hashedPassword = await bcrypt.hash(password, salt);
+			}
+			channel.name = name;
+			channel.type = type;
+			channel.password = hashedPassword;
+
+			await this.channelRepository.save(channel);
 		} catch (error) {
 			if (error.code === '23505')
 				throw new ConflictException('Existing Title');
 			else
 				throw new InternalServerErrorException();
 		}
-		return channel;
+	}
+
+	async chaekUserAdmin(user_id: number, channel_id: number) : Promise <boolean> {
+		const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+		if (!channelUser || channelUser.role == ChannelUserRoles.USER)
+			return false;
+		return true;
+	}
+
+	async deleteChatRoom(channel_id: number) : Promise <void> {
+		const result = await this.channelRepository.delete({channel_id});
+		if (result.affected === 0)
+			throw new NotFoundException(`Cant't find id ${channel_id}`)
+	console.log('result', result);
 	}
 
 }
