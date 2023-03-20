@@ -7,7 +7,7 @@ import { ChatType, Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import EnterProtectedModal from "@/components/Molecule/Chat/EnterProtectedModal";
 
-import GlobalContext from "@/GlobalContext";
+import GlobalContext from "@/context/GlobalContext";
 
 
 interface ChatListProps {

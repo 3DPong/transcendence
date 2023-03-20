@@ -96,3 +96,64 @@ export const dummy_globalchatrooms:Room[] = [
             {"userId": 3, "profile": "https://cdn.intra.42.fr/users/e433fdfa3b130d737d084240f3e86371/sungjpar.jpg", "nickname": "sungjpar" },
   },
 ]
+
+import { userListData_t, eUserStatus } from '@/types/user';
+
+const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
+export const UserListDataDummy: userListData_t[] = [
+  {
+    profile: {
+      id: 0,
+      imgSrc: DUMMY_IMG,
+      name: "userA",
+    },
+    isBlocked: false,
+    status: eUserStatus.online,
+  },
+  {
+    profile: {
+      id: 1,
+      imgSrc: DUMMY_IMG,
+      name: "userB",
+    },
+    isBlocked: false,
+    status: eUserStatus.offline,
+  },
+  {
+    profile: {
+      id: 2,
+      imgSrc: DUMMY_IMG,
+      name: "userC",
+    },
+    isBlocked: true,
+    status: eUserStatus.offline,
+  },
+  {
+    profile: {
+      id: 3,
+      imgSrc: DUMMY_IMG,
+      name: "userD",
+    },
+    isBlocked: false,
+    status: eUserStatus.online,
+  },
+];
+
+// Create Dummy Data
+export const createDummyUserListData = (initialCount: number) => {
+  const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
+  let users = new Array<userListData_t>();
+  while (initialCount > 0) {
+    users.push({
+      profile: {
+        id: initialCount + 500,
+        imgSrc: DUMMY_IMG,
+        name: "user" + initialCount.toString(),
+      },
+      isBlocked: false,
+      status: initialCount % 2,
+    });
+    --initialCount;
+  }
+  return users;
+};

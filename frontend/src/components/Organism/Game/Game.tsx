@@ -15,7 +15,6 @@ import React, { useState, useEffect, useRef, MutableRefObject, forwardRef, RefOb
 import { PongSimulator } from "@/simulation/PongSimulator";
 import { DebugDraw } from "@/simulation/DebugDraw/DebugDraw";
 import { Renderer3D } from '@/components/Organism/Game/Renderer/Renderer';
-import * as GlobalContext from "@/components/GlobalAppContext";
 
 
 // https://forum.babylonjs.com/t/react-ui-babylon-js-how-to-avoid-usestate-re-rendering-canvas/35154/3
@@ -30,7 +29,7 @@ export interface GameProps {
 }
 
 export interface GameForwardRef {
-    gameState : GlobalContext.eGameState;
+    // gameState : GlobalContext.eGameState;
 }
 
 export function Game({state} : any) {
