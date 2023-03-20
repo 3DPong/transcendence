@@ -12,7 +12,6 @@ export class UserController {
 
   @UseGuards(SessionGuard)
   @Get('/:userid')
-  // guard for admin
   async getUser(@Param('userid') userid: number): Promise<GetUserResDto> {
     return this.userService.getUser(userid);
   }
