@@ -1,5 +1,5 @@
 import * as Box2D from "@box2d";
-import { BallDef, GroundDef, ItemDef, PaddleDef } from "./ObjectDef.js";
+import { BallDef, GroundDef, ItemDef, PaddleDef, PinDef, RectangleDef } from "./ObjectDef.js";
 
 export class ObjectFactory {
 
@@ -34,5 +34,34 @@ export class ObjectFactory {
     const item : Box2D.Body = world.CreateBody(itemDef.objectBodyDef);
     item.CreateFixture(itemDef.objectFixtureDef);
     return item;
+  }
+
+  public createObstacle(world : Box2D.World){
+    const pindef1 : PinDef = new PinDef(0,10);
+    const pin1 : Box2D.Body = world.CreateBody(pindef1.objectBodyDef);
+    pin1.CreateFixture(pindef1.objectFixtureDef);
+
+    const rectangleDef1 : RectangleDef = new RectangleDef(0,20);
+    const rect1 : Box2D.Body = world.CreateBody(rectangleDef1.objectBodyDef);
+    rect1.CreateFixture(rectangleDef1.objectFixtureDef);
+
+    const jd1 = new Box2D.DistanceJointDef();
+    jd1.Initialize(pin1, rect1, pin1.GetPosition(), rect1.GetPosition());
+    jd1.collideConnected = true;
+    world.CreateJoint(jd1);
+
+    const pindef2 : PinDef = new PinDef(0,-10);
+
+    const pin2 : Box2D.Body = world.CreateBody(pindef2.objectBodyDef);
+    pin2.CreateFixture(pindef2.objectFixtureDef);
+
+    const rectangleDef2 : RectangleDef = new RectangleDef(0,-20);
+    const rect2 : Box2D.Body = world.CreateBody(rectangleDef2.objectBodyDef);
+    rect2.CreateFixture(rectangleDef2.objectFixtureDef);
+
+    const jd2 = new Box2D.DistanceJointDef();
+    jd2.Initialize(pin2, rect2, pin2.GetPosition(), rect2.GetPosition());
+    jd2.collideConnected = true;
+    world.CreateJoint(jd2);
   }
 }

@@ -16,3 +16,9 @@ export declare class PaddleDef extends ObjectDefBase {
 export declare class ItemDef extends ObjectDefBase {
     constructor();
 }
+export declare class PinDef extends ObjectDefBase {
+    constructor(posX: number, posY: number);
+}
+export declare class RectangleDef extends ObjectDefBase {
+    constructor(posX: number, posY: number);
+}

@@ -4,4 +4,5 @@ export declare class ObjectFactory {
     createGround(world: Box2D.World): void;
     createPaddle(world: Box2D.World, x: number, y: number): Box2D.Body;
     createItem(world: Box2D.World): Box2D.Body;
+    createObstacle(world: Box2D.World): void;
 }
