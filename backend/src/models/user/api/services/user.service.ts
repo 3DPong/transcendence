@@ -22,7 +22,7 @@ export class UserService {
     const newUser = new User();
     newUser.profile_url = payload.profile_url;
     newUser.nickname = payload.nickname;
-    newUser.email = null;
+    newUser.email = data.email;
     try {
       return new CreateUserResDto(await this.userRepository.save(newUser));
     } catch (error) {
