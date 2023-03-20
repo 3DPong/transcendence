@@ -9,11 +9,22 @@ import { useParams } from 'react-router-dom';
 import MessageSender from '@/components/Molecule/Chat/Detail/MessageSender';
 import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
+import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
+import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
 
-interface Props {
+interface ChatDetailProps {
 }
 
-const ChatRoom: React.FC<Props> = () => {
+const ChatDetail: FC<ChatDetailProps> = () => {
+
+  const [battleModalOpen, setBattleModalOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+
+  const handleGameCreate = (gameType: string) => {
+    //createBattle();
+    setShowNotification(true);
+    setBattleModalOpen(false);
+  };
 
   function fetchMessagesByRoomId(index : number) {
     return Dummy.dummy_chatdata[index];
@@ -42,6 +53,7 @@ const ChatRoom: React.FC<Props> = () => {
 
   // roomId가 변경될때마다 fetch 이후 리렌더링
   useEffect(() => {
+    setShowNotification(false);
     if (!isNaN(roomIdNumber)) {
       setMessages(fetchMessagesByRoomId(roomIdNumber));
       //fetchMessagesByRoomId(roomIdNumber).then((fetchedMessages) => {
@@ -56,21 +68,30 @@ const ChatRoom: React.FC<Props> = () => {
     setMessages([...messages, message]);
   }
 
-
   return (
     <>
-      <div><MessageHeader room={room} users={users} /></div>
-      <div className="flex-1 overflow-y-auto">
+      <div className=" p-2 pl-4 pr-4 border border-gray-200">
+        <MessageHeader room={room} users={users} />
+      </div>
+      <div className=" pl-2 pr-2 border-l border-r border-gray-200 flex-1 overflow-y-auto">
         <MessageList myId={userId} users={users} messages={messages} />
       </div>
-      <div>
-        <MessageSender sendMessage={sendMessage} />
+      <div className=" p-2 border border-gray-200">
+        <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true);}} />
       </div>
+
+      <BattleRequestModal
+        open={battleModalOpen}
+        onClose={() => setBattleModalOpen(false)}
+        onGameCreate={handleGameCreate}
+      />
+      { showNotification && (
+        <div className="absolute top-14 left-0 right-0 ">
+          <BattleNotification onClose={() => setShowNotification(false)} />
+        </div>
+      )}
     </>
   );
-
-
-
 };
 
-export default ChatRoom;
+export default ChatDetail;

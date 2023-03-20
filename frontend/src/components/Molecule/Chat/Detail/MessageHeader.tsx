@@ -2,6 +2,7 @@ import React from 'react';
 import { IconButton, Typography } from '@mui/material';
 import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from '@mui/icons-material';
 import { Room, User } from '@/types/chat';
+import { Link } from 'react-router-dom';
 
 interface Props {
   room: Room;
@@ -29,8 +30,8 @@ const MessageHeader: React.FC<Props> = ({ room, users, onMenuClick }) => {
   };
 
   return (
-    <div className="flex items-center p-2 border-b border-gray-200">
-      <IconButton edge="start" color="inherit" aria-label="back">
+    <div className="flex items-center">
+      <IconButton component={Link} to={"/rooms"}  edge="start" color="inherit" aria-label="back">
         <ArrowBack />
       </IconButton>
       <div className="flex-grow flex items-center justify-center">
