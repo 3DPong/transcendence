@@ -74,9 +74,11 @@ export class UserService {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
           throw new ConflictException('duplicate nickname');
+        } else {
+          throw new InternalServerErrorException('Database error');
         }
       } else {
-        throw new InternalServerErrorException('Database error');
+        throw new InternalServerErrorException('server error');
       }
     }
     return new UpdateUserResDto(
