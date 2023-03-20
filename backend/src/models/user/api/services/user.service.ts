@@ -6,7 +6,11 @@ import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, Up
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private dataSource: DataSource,
+    private sessionService: SessionService
+  ) {}
 
   async getUser(userId: number): Promise<GetUserResDto> {
     const user: User = await this.userRepository.findOne({
@@ -68,9 +72,11 @@ export class UserService {
     );
   }
 
-  async deleteUser(userId: number): Promise<string> {
+  async deleteUser(userId: number, req: Request): Promise<string> {
     try {
       await this.userRepository.delete({ user_id: userId });
+      await this.sessionService.destroySessionByUserId(userId, req);
+      return 'deleted';
     } catch (e) {
       throw new BadRequestException('can not delete it');
     }
