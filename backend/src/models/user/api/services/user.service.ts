@@ -37,6 +37,7 @@ export class UserService {
     try {
       savedUser = await runner.manager.save(newUser);
       this.sessionService.createSession(savedUser, req);
+      await runner.commitTransaction();
       return {
         user_id: savedUser.user_id,
       };
@@ -74,11 +75,9 @@ export class UserService {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
           throw new ConflictException('duplicate nickname');
-        } else {
-          throw new InternalServerErrorException('Database error');
         }
       } else {
-        throw new InternalServerErrorException('server error');
+        throw new InternalServerErrorException('Database error');
       }
     }
     return new UpdateUserResDto(
