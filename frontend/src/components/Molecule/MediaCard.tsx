@@ -15,6 +15,7 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { Box, Paper } from '@mui/material';
+import React from "react";
 
 // https://mui-treasury.com/components/card/
 
@@ -27,7 +28,7 @@ export interface mediaCardProps {
   body?: string,
 }
 
-export default function MediaCard(props: mediaCardProps) {
+function MediaCard(props: mediaCardProps) {
   return (
     <Card sx={{ maxWidth: 345 }}>
       <Box className=" relative">
@@ -57,3 +58,5 @@ export default function MediaCard(props: mediaCardProps) {
     </Card>
   );
 }
+
+export default React.memo(MediaCard);
