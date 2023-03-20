@@ -64,12 +64,35 @@ export const dummy_chatrooms:Room[] = [
     "owner" : 
             {"userId": 5, "profile": "https://cdn.intra.42.fr/users/60f2218ca091c4fdff3f596797747bc4/kbaek.jpg", "nickname": "kbaek"},
   },
-  { "channelId" : 7, "channelType" : "private", "channelName" : "kback님과의 DM",
+  { "channelId" : 7, "channelType" : "dm", "channelName" : "kback님과의 DM",
     "owner" : 
             {"userId": 5, "profile": "https://cdn.intra.42.fr/users/60f2218ca091c4fdff3f596797747bc4/kbaek.jpg", "nickname": "kbaek"},
   },
-  { "channelId" : 8, "channelType" : "private", "channelName" : "schoe님과의 DM",
+  { "channelId" : 8, "channelType" : "dm", "channelName" : "schoe님과의 DM",
     "owner" : 
             {"userId": 4, "profile": "https://cdn.intra.42.fr/users/22068839dcdec3e543cf9dfdec1fcf8e/schoe.jpg", "nickname": "schoe"},
+  },
+]
+
+export const dummy_globalchatrooms:Room[] = [
+  { "channelId" : 9, "channelType" : "private", "channelName" : "음 무슨방으로 하지",
+    "owner" : 
+            {"userId": 1, "profile": "https://cdn.intra.42.fr/users/438c44cacfdc69822c7ff066a0b7959d/dongkim.jpg", "nickname": "dongkim"	},
+  },
+  { "channelId" : 10, "channelType" : "public", "channelName" : "ㄴㅁ어ㅏㄹ",
+    "owner" : 
+            {"userId": 2, "profile": "https://cdn.intra.42.fr/users/3185bf6f53751f455e9b1f5833c23393/minkyeki.JPG", "nickname": "minkyeki" },
+  },
+  { "channelId" : 21, "channelType" : "protected", "channelName" : "aaa",
+    "owner" : 
+            {"userId": 1, "profile": "https://cdn.intra.42.fr/users/438c44cacfdc69822c7ff066a0b7959d/dongkim.jpg", "nickname": "dongkim" },
+  },
+  { "channelId" : 13, "channelType" : "public", "channelName" : "글로벌방입니다",
+    "owner" : 
+            {"userId": 1, "profile": "https://cdn.intra.42.fr/users/438c44cacfdc69822c7ff066a0b7959d/dongkim.jpg", "nickname": "dongkim" },
+  },
+  { "channelId" : 14, "channelType" : "protected", "channelName" : "아주긴이름의 채팅방입니다 과연글이 어떻게될지 테스트하는 용도예요",
+    "owner" : 
+            {"userId": 3, "profile": "https://cdn.intra.42.fr/users/e433fdfa3b130d737d084240f3e86371/sungjpar.jpg", "nickname": "sungjpar" },
   },
 ]

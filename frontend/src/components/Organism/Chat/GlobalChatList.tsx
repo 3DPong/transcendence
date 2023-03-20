@@ -1,28 +1,34 @@
-import React, {FC, useEffect, useState} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import MediaCard from "@/components/Molecule/MediaCard";
 
 import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
-import { Room } from "@/types/chat";
+import { ChatType, Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
+import EnterProtectedModal from "@/components/Molecule/Chat/EnterProtectedModal";
+
+import GlobalContext from "@/GlobalContext";
 
 
 interface ChatListProps {
-}
+};
 
 const GlobalChatList : FC<ChatListProps> = () => {
-
-  const [chats, setChats] = useState<Room[]>([]);
+  const [globalChats, setGlobalChats] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
  
-  //async function fetchGlobalChats() : Promise<Room[]> {
-    // isLocal? 에 따라 fetchURL 변경
-    //return [];
-  //}
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [selectChat, setSelectChat] = useState<Room>();
+
+  const {rooms, setRooms} = useContext(GlobalContext);
 
   function searchButtonClick() {
-    setChats(Dummy.dummy_chatrooms);
+    setIsLoading(true);
+    setTimeout(() => {
+      setGlobalChats(Dummy.dummy_globalchatrooms);
+      setIsLoading(false);
+    }, 2000);
   }
 
   function searchButtonKeyup(event: React.KeyboardEvent) {
@@ -30,10 +36,23 @@ const GlobalChatList : FC<ChatListProps> = () => {
       searchButtonClick();
   }
 
-  useEffect(() => {
-    async function fetchRooms() {
+  function joinChat(id:number) {
+    const chat = globalChats.find((chat)=>(chat.channelId) === id);
+    setGlobalChats(globalChats.filter((chat)=>(chat.channelId !== id)))
+    if (chat) {
+      console.log(chat.channelName);
+      setRooms([chat, ...rooms]);
     }
-  })
+  }
+
+  function handleCardClick(id: number, type: ChatType) {
+    if (type === "protected") {
+      setPasswordModalOpen(true);
+      setSelectChat(globalChats.find((chat) => (chat.channelId === id)));
+    } else {
+      joinChat(id);
+    }
+  }
   
   return (
     <>
@@ -53,7 +72,9 @@ const GlobalChatList : FC<ChatListProps> = () => {
         />
       </div>
 
-      <VirtualizedChatList rooms={chats} isLoading={isLoading} isLocal={false}/>
+      <VirtualizedChatList rooms={globalChats} isLoading={isLoading} handleCardClick={handleCardClick} />
+
+      <EnterProtectedModal room={selectChat} isModalOpen={passwordModalOpen} setIsModalOpen={setPasswordModalOpen} joinChat={joinChat} />
     </>
   );
 }

@@ -7,13 +7,12 @@ import {
 } from "@mui/material";
 import { ChatType, User } from "@/types/chat";
 import CreateChatTypeToggle from "@/components/Molecule/Chat/Create/ChatTypeToggle";
-import CreateChatPasswordField from "@/components/Molecule/Chat/Create/PasswordField";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import * as Dummy from "@/dummy/data";
 import CreateChatInviteList from "@/components/Molecule/Chat/Create/InviteList";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 
-import {TextFields as TextField} from "@/components/Molecule/TextFields_A";
+import {TextField} from "@/components/Molecule/Chat/TextField";
 
 
 interface CreateChatRoomProps {
@@ -42,16 +41,21 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
 
   return (
     <>
-    <Container sx={{pb:2, pt:2}} maxWidth="sm" >
+    <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
       <Typography variant="h4" component="h1" gutterBottom>
         채팅방 생성
       </Typography> 
       <ImageUpload thumbnail={thumbnail} setThumbnail={setThumbnail}/>
       <Box component="form" sx={{ mt: 1 }}>
-
-        <TextField state={title} label={"채팅방 제목"} placeholder={"제목을 입력하세요"} setState={setTitle}/>
+        <div className="mb-6" >
+          <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle}/>
+        </div>
         <CreateChatTypeToggle type={type} setType={setType}/>
-        <CreateChatPasswordField password={password} setPassword={setPassword} isVisible={"protected" === type}/>
+        { "protected" === type &&
+          <div className="mb-6" >
+            <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
+          </div>
+        }
 
         <div className=" m-0 p-0">
           <label className="inline-block mb-2 text-gray-700 form-label">

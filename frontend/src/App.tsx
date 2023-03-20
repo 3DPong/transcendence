@@ -37,6 +37,9 @@ import GlobalChatList from '@/components/Organism/Chat/GlobalChatList';
 import CreateChat from '@/components/Organism/Chat/CreateChat';
 import ChatDetail from '@/components/Organism/Chat/ChatDetail';
 import ChatTemplate from '@/components/ChatTemplate';
+import { useState } from 'react';
+import { Room, User } from '@/types/chat';
+import GlobalContext from '@/GlobalContext';
 
 const router = createBrowserRouter([ 
     { // 홈화면 (로그인 후)
@@ -110,11 +113,16 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+    const [user, setUser] = useState<User>();
+    const [rooms, setRooms] = useState<Room[]>([]);
+    const [friends, setFriends] = useState<User[]>([]);
 
-   return (
+    return (
         <div className="App">
             <header className="App-header">
-                <RouterProvider router={ router } />
+                <GlobalContext.Provider value={{user, setUser, rooms, setRooms, friends, setFriends}}>
+                    <RouterProvider router={ router } />
+                </GlobalContext.Provider>
             </header>
         </div>
     );

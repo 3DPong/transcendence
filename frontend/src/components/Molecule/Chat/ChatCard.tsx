@@ -1,24 +1,31 @@
 import React, { FC } from "react";
-import { Box, Skeleton } from "@mui/material";
+import { Box, ListItemButton, Skeleton } from "@mui/material";
 import { ChatType, Room } from "@/types/chat";
-import { Lock, LockOpen, Public } from "@mui/icons-material";
+import { Lock, LockOpen, Public, Sms } from "@mui/icons-material";
 
 interface ChatCardProps {
   room: Room;
-  isLoading?: boolean;
-  isLocal?: boolean;
+  isLoading: boolean;
+  handleCardClick: (id: number, type: ChatType) => void;
 };
+
+interface LoadedCardProps {
+  room: Room;
+}
 
 const SkeletonCard : React.FunctionComponent = () => {
   return (
     <>
       <Skeleton variant="circular" width={48} height={48} />
-      <Skeleton variant="text" width={200} height={24} />
+      <div className="flex flex-col pl-2">
+        <Skeleton variant="text" width={180} height={24} />
+        <Skeleton variant="text" width={80} height={20} />
+      </div>
     </>
   );
 };
 
-const LoadedCard : FC<ChatCardProps> = ({room}) => {
+const LoadedCard : FC<LoadedCardProps> = ({room}) => {
   function getIcon(type: ChatType) {
     switch(type){
     case "public":
@@ -27,6 +34,8 @@ const LoadedCard : FC<ChatCardProps> = ({room}) => {
       return <LockOpen />;
     case "private":
       return <Lock />;
+    case "dm":
+      return <Sms />;
     default:
       return;
     }
@@ -39,18 +48,30 @@ const LoadedCard : FC<ChatCardProps> = ({room}) => {
         alt="thumbnail"
         className="w-12 h-12 rounded-full"
       />
-      <div className="flex flex-col">
-        <span className="text-md font-medium">{room.channelName}</span>
-        <span className="text-gray-500">{getIcon(room.channelType)}  {room.channelType}</span>
+      <div className="flex flex-col pl-2">
+        <span
+          className="text-md font-medium overflow-hidden whitespace-nowrap text-ellipsis"
+          style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180}}>
+          {room.channelName}
+        </span>
+        <span className="text-gray-500">
+          {getIcon(room.channelType)}  {room.channelType}
+        </span>
       </div>
     </>
   );
 };
 
-const ChatCard : FC<ChatCardProps> = ({room, isLoading, isLocal}) => {
+const ChatCard : FC<ChatCardProps> = ({room, isLoading, handleCardClick}) => {
   return (
-    isLoading ? <SkeletonCard /> :
-    isLocal ? <LoadedCard room={room} /> : <LoadedCard room={room} />
+    isLoading ?
+    <ListItemButton disabled>
+      <SkeletonCard />
+    </ListItemButton>
+    :
+    <ListItemButton title={room.channelName} onClick={() => handleCardClick(room.channelId, room.channelType)}>
+      <LoadedCard room={room} />
+    </ListItemButton>
   );
 }
 
