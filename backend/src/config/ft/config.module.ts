@@ -11,9 +11,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.dev'],
+      envFilePath: process.env.NODE_ENV === 'prod' ? '.env.prod' : '.env.dev',
       load: [configuration],
       validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('dev', 'prod').required(),
         FT_CLIENT: Joi.string(),
         FT_SECRET: Joi.string(),
         FT_CALLBACK: Joi.string(),

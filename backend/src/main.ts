@@ -50,4 +50,25 @@ async function bootstrap() {
   );
   await app.listen(appConfig.port);
 }
+
+const logEnv = () => {
+  const MODE = process.env.NODE_ENV;
+  let STR;
+  switch (MODE) {
+    case 'prod': {
+      STR = 'PRODUCTION';
+      break;
+    }
+    case 'dev': {
+      STR = 'DEVELOPMENT';
+      break;
+    }
+    default: {
+      STR = 'UNKNOWN';
+    }
+  }
+  console.log('RUNNING ON : ' + STR);
+};
+
+logEnv();
 bootstrap();
