@@ -6,12 +6,12 @@ interface templateProps {
 }
 
 
-const ChatTemplate2: React.FC<templateProps> = ({organism}) => {
+const ChatTemplate: React.FC<templateProps> = ({organism}) => {
   return (
-    <div className=" absolute left-80 top-0 w-96 h-96 flex flex-col">
+    <div className=" absolute shadow-lg left-80 top-0 w-96 h-96 flex flex-col">
       {organism}
     </div>
   );
 };
 
-export default ChatTemplate2;
+export default ChatTemplate;
