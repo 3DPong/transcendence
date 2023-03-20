@@ -1,45 +1,32 @@
-/*                                                        :::      ::::::::   */
-/*   App.tsx                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/08 00:27:51 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/08 00:27:51 by minkyeki         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
-// https://mui.com/material-ui/react-typography/
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-
+import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { LogInForm } from "@/components/Organism/Form/LoginForm";
 import { SignInForm } from '@/components/Organism/Form/SigninForm';
 import { ErrorPage } from '@/components/ErrorPage'
 
-import Game from '@/components/Organism/Game/Game';
-
 import L0Template from "@/components/L0Template";
 import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
 import L3Template from "@/components/L2Template";
 
+import Game from '@/components/Organism/Game/Game';
 import Controller from "@/components/Organism/Controller/Controller";
 import Profile from "@/components/Organism/Profile/Profile";
-import LocalUserList from "@/components/Organism/LocalUserList/LocalUserList";
-import GlobalUserList from "@/components/Organism/GlobalUserList/GlobalUserList";
-
+import LocalUserList from "@/components/Organism/Friends/LocalUserList/LocalUserList";
+import GlobalUserList from "@/components/Organism/Friends/GlobalUserList/GlobalUserList";
 import LocalChatList from '@/components/Organism/Chat/LocalChatList';
 import GlobalChatList from '@/components/Organism/Chat/GlobalChatList';
 import CreateChat from '@/components/Organism/Chat/CreateChat';
 import ChatDetail from '@/components/Organism/Chat/ChatDetail';
 import ChatTemplate from '@/components/ChatTemplate';
-import { useState } from 'react';
+
+import GlobalContext from '@/context/GlobalContext';
+import useArray from '@/utils/CustomHooks/useArray';
 import { Room, User } from '@/types/chat';
-import GlobalContext from '@/GlobalContext';
+import { userListData_t } from "@/types/user";
+import { UserListDataDummy } from '@/dummy/data';
 
 const router = createBrowserRouter([ 
     { // 홈화면 (로그인 후)
@@ -49,7 +36,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "profile",
-                element: <L1Template organism={ <Profile /* UserId */ /> }/> // 파라미터로 userId 넣어줄 것. 
+                element: <L1Template organism={ <Profile /> }/> // 파라미터로 userId 넣어줄 것. 
             },
             {
                 path: "friends",
@@ -115,7 +102,7 @@ const router = createBrowserRouter([
 function App() {
     const [user, setUser] = useState<User>();
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [friends, setFriends] = useState<User[]>([]);
+    const [friends, setFriends] = useArray<userListData_t>(UserListDataDummy);
 
     return (
         <div className="App">
