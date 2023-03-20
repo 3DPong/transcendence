@@ -1,4 +1,4 @@
-import { Delete, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Delete, Get, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { User } from 'src/models/user/entities/user.entity';
 import { ChannelUser } from '../entities/channelUser.entity';
@@ -18,7 +18,7 @@ export class ChatController {
 	@Get()
 	async getMyChannels() : Promise<ChatChannel[]> {
 		//const user = await this.userService.getUserOne(3);
-		return this.chatService.getMyChannels(8);
+		return this.chatService.getMyChannels(48);
 	}
 
 	@Get('/add')
@@ -26,10 +26,10 @@ export class ChatController {
 		return this.chatService.getAllChannels();
 	}
 
-	// @Post('/new')
-	// createChanneluser() {
-	// 	return this.chatService.createChannelUser(8, 74);
-	// }
+	@Get('/new')
+	createChanneluser() {
+		return this.chatService.createChannelUser(74, 148);
+	}
 
 
 	@Post('/create')
@@ -37,7 +37,7 @@ export class ChatController {
 		@Body() channelDto: ChannelDto,
 	) : Promise<ChatChannel> {
 		console.log("create come")
-		const user = await this.userService.getUserOne(88);
+		const user = await this.userService.getUserOne(48);
 		return  this.chatService.creatChatRoom(channelDto, user);
 	}
 
@@ -51,6 +51,14 @@ export class ChatController {
 		return this.chatService.updateChatRoom(id, channelDto, user);
 	}
 	
+	@Put("/:id/out")
+	async leaveChannel(
+		@Param('id', ParseIntPipe) id: number
+	) {
+		const user = await this.userService.getUserOne(88);
+		return this.chatService.leaveChannel(user.user_id, id);
+	}
+
 	@Delete('/:id/del')
 	deleteChatRoom(
 		@Param('id', ParseIntPipe) id,

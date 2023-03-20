@@ -92,7 +92,16 @@ export class ChatService {
 			return channel;
 		}
 
+		// async getAllChannels(): Promise <ChatChannel[]> {
 
+		// 	const channel: ChatChannel[] = await this.channelRepository
+		// 	.createQueryBuilder("channel")
+		// 	.where('channel.type != :type', {type: ChannelType.PRIVATE})
+		// 	.orderBy("channel.channel_id", "DESC")
+		// 	.getMany();
+
+		// 	return channel;
+		// }
 		async getAllChannels(): Promise <ChatChannel[]> {
 
 			const channel: ChatChannel[] = await this.channelRepository
@@ -107,6 +116,7 @@ export class ChatService {
 				"owner.profile_url"
 			])
 			.where('channel.type != :type', {type: ChannelType.PRIVATE})
+			.orderBy("channel.channel_id", "DESC")
 			.getMany();
 
 			return channel;
@@ -174,11 +184,66 @@ export class ChatService {
 		}
 	}
 
-	async chaekUserAdmin(user_id: number, channel_id: number) : Promise <boolean> {
-		const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
-		if (!channelUser || channelUser.role == ChannelUserRoles.USER)
-			return false;
-		return true;
+	/*
+		1. 내가 owner 
+			해당 room 에 포함된 user 목록 가져옴
+				a. user 목록이 없으면 chatChannel 삭제
+				b. user 목록이 있고 admin이 있으면 랜덤하게 양도
+				c. user 목록이 있고 admin 이 없으면 랜덤하게 admin 지정후 양도
+			
+		2. 내가 admin or user
+			channelUser 데이터 삭제
+	
+	*/
+	async leaveChannel(user_id: number, channel_id: number){
+		try {
+			console.log(`${user_id} and ${channel_id}`)
+			const channel = await this.channelRepository.findOne({where :{channel_id}});
+			if (!channel)
+				throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
+			console.log("111111111111")
+			const channelUsers : ChannelUser[]  = await this.channelUserRepository.find({where: {channel_id}, order: { created_at: "asc" }},);
+			if (channel.owner_id === user_id) {
+				console.log("222222221")
+
+				if (channelUsers.length === 0) {
+					await this.channelRepository.softDelete(channel_id);
+					return ;
+				}
+				else {
+					console.log(channelUsers)
+					console.log(channelUsers[0].role)
+					var admin;
+					channelUsers.map((users) => {
+						if (users.role == ChannelUserRoles.ADMIN) {
+							admin = user_id;
+						}
+					});
+					if (admin === undefined)
+					{
+						channelUsers[0].role = ChannelUserRoles.ADMIN;
+						// await this.channelUserRepository.createQueryBuilder('cu')
+						// .where	
+
+						// await this.channelUserRepository.update({user_id, channel_id}, {channelUsers[0].role}});
+
+
+						// 	.update({
+						// 		where : {channel_id: channelUsers[0].channel_id, user_id: channelUsers[0].user_id},
+
+						// 	});
+						// channelUsers.values
+						// const role = ChannelUserRoles.ADMIN;
+						// await this.channelUserRepository.update()
+					}
+				}
+			}
+			else {
+				await this.channelUserRepository.softDelete({channel_id, user_id});
+			}
+		} catch (error) {
+			throw new InternalServerErrorException();
+		}
 	}
 
 	async deleteChatRoom(channel_id: number) : Promise <void> {
@@ -188,4 +253,10 @@ export class ChatService {
 	console.log('result', result);
 	}
 
+	async chaekUserAdmin(user_id: number, channel_id: number) : Promise <boolean> {
+		const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+		if (!channelUser || channelUser.role == ChannelUserRoles.USER)
+			return false;
+		return true;
+	}
 }

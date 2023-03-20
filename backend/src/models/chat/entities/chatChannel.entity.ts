@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Timestamp,
   Unique,
 } from 'typeorm';
 import { User } from '../../user/entities';
@@ -51,11 +52,11 @@ export class ChatChannel {
   password: string;
 
   @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
+  created_at: Timestamp;
 
   @Factory((faker) => faker.helpers.arrayElement([null, faker.date.future()]))
   @DeleteDateColumn({ type: 'timestamp' })
-  deleted_at: Date;
+  deleted_at: Timestamp;
 
   @OneToMany(() => ChannelUser, (cu) => cu.channel, { eager: true })
   users: ChannelUser[];
