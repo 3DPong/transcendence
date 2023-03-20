@@ -22,7 +22,7 @@ export class SessionService {
     for (const sessionId of Object.keys(sessions)) {
       const session = sessions[sessionId] as SessionData;
       if (session.user_id === userId) {
-        return { sid: sessionId, userSession: session };
+        return { sid: (session as any).id, userSession: session };
       }
     }
     return null;
@@ -44,7 +44,7 @@ export class SessionService {
     const session = await this.getUserSession(userId, req);
     if (!session) return;
     const { sid, userSession } = session;
-    if (sid && userSession) {
+    if (userSession) {
       await this.destroySessionBySid(sid, req);
     }
   }
@@ -54,13 +54,11 @@ export class SessionService {
     const session = await this.getUserSession(user.user_id, req);
     if (!session) return;
     const { sid, userSession } = session;
-    if (sid && userSession) {
+    if (userSession) {
       if (userSession.status === UserStatusEnum.ONLINE) {
-        this.logger.log(`conflict on ${user.user_id}
-        session : ${session.userSession}`);
+        this.logger.log(`conflict on session : ${session.userSession}`);
         throw new ConflictException('이미 다른 세션이 존재합니다.');
       } else {
-        console.log('err on session');
         await this.destroySessionBySid(sid, req); // offline 일 경우에는 이전 세션 삭제하도록 함.
       }
     }
