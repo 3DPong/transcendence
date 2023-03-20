@@ -8,7 +8,7 @@ import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
 import { Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
-import GlobalContext from "@/GlobalContext";
+import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 
 
