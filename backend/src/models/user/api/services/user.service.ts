@@ -80,6 +80,5 @@ export class UserService {
     } catch (e) {
       throw new BadRequestException('can not delete it');
     }
-    return 'success';
   }
 }

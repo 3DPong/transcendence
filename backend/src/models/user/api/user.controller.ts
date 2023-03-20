@@ -29,8 +29,8 @@ export class UserController {
   }
 
   @UseGuards(SessionGuard)
-  @Delete('/:userid')
-  async deleteUser(@Param('userid') userid: number): Promise<string> {
-    return this.userService.deleteUser(userid);
+  @Delete()
+  async deleteUser(@GetSessionData() data, @Req() request: Request): Promise<string> {
+    return this.userService.deleteUser(data.user_id, request);
   }
 }
