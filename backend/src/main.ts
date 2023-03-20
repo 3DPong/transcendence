@@ -10,6 +10,8 @@ import RedisStore from 'connect-redis';
 import { Redis } from 'ioredis';
 import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
+import * as process from 'process';
+import { colorist } from './common/logger/utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -30,7 +32,6 @@ async function bootstrap() {
     client: redisClient,
     prefix: 'ts:',
   } as any);
-
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
   app.use(LoggerMiddleware);
@@ -48,10 +49,14 @@ async function bootstrap() {
       },
     })
   );
-  await app.listen(appConfig.port);
-}
 
-const logEnv = () => {
+  await app.listen(appConfig.port);
+  startLogging();
+}
+bootstrap();
+
+// for logging
+const startLogging = () => {
   const MODE = process.env.NODE_ENV;
   let STR;
   switch (MODE) {
@@ -67,8 +72,6 @@ const logEnv = () => {
       STR = 'UNKNOWN';
     }
   }
-  console.log('RUNNING ON : ' + STR);
+  console.log(colorist('RUNNING', 'ON', STR));
+  console.log(colorist('LISTEN', 'ON', `${process.env.APP_HOST}:${process.env.APP_PORT}`));
 };
-
-logEnv();
-bootstrap();
