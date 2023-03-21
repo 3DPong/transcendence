@@ -1,5 +1,5 @@
-import { RelationStatus } from '../../entities';
 import { IsEnum, IsNumber } from 'class-validator';
+import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
 
 export class UserRelationDto {
   @IsNumber()

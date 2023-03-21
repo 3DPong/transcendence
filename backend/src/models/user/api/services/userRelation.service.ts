@@ -1,8 +1,9 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { RelationStatus, UserRelation } from '../../entities';
+import { UserRelation } from '../../entities';
 import { Not, Repository } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { GetUserRelationResDto, UpdateUserRelationReqDto, UpdateUserRelationResDto, UserRelationDto } from '../dtos';
+import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
 
 @Injectable()
 export class UserRelationService {

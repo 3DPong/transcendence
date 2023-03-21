@@ -1,12 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Factory } from 'nestjs-seeder';
-
-export enum RelationStatus {
-  FRIEND = 'friend',
-  BLOCK = 'block',
-  NONE = 'none',
-}
+import { RelationStatus } from '../../../common/enums/relationStatus.enum';
 
 @Entity()
 export class UserRelation {
