@@ -640,8 +640,9 @@ export class Main {
     }
   }
 }
+import "./tests/ts_Demo/gameEnv/GameEnv.js";
 import "./tests/ts_Demo/simul/GameSimulator.js";
-import "./tests/PingPongDemo.js";
+import "./tests/ts_Demo/simul/object/InGameObjectData.js";
 import "./tests/apply_force.js";
 import "./tests/body_types.js";
 import "./tests/box_stack.js";

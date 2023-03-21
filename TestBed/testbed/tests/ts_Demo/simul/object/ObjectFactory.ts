@@ -21,9 +21,9 @@ export class ObjectFactory {
   }
   
   public createPaddle(
-    world : Box2D.World, x: number, y:number
+    world : Box2D.World, x: number, y:number, id : string
   ) : Box2D.Body {
-    const paddleDef : PaddleDef = new PaddleDef(x,y);
+    const paddleDef : PaddleDef = new PaddleDef(x,y, id);
     const paddle : Box2D.Body = world.CreateBody(paddleDef.objectBodyDef);
     paddle.CreateFixture(paddleDef.objectFixtureDef);
     return paddle;
@@ -41,7 +41,7 @@ export class ObjectFactory {
     const pin1 : Box2D.Body = world.CreateBody(pindef1.objectBodyDef);
     pin1.CreateFixture(pindef1.objectFixtureDef);
 
-    const rectangleDef1 : RectangleDef = new RectangleDef(0,20);
+    const rectangleDef1 : RectangleDef = new RectangleDef(0,16);
     const rect1 : Box2D.Body = world.CreateBody(rectangleDef1.objectBodyDef);
     rect1.CreateFixture(rectangleDef1.objectFixtureDef);
 
@@ -55,7 +55,7 @@ export class ObjectFactory {
     const pin2 : Box2D.Body = world.CreateBody(pindef2.objectBodyDef);
     pin2.CreateFixture(pindef2.objectFixtureDef);
 
-    const rectangleDef2 : RectangleDef = new RectangleDef(0,-20);
+    const rectangleDef2 : RectangleDef = new RectangleDef(0,-16);
     const rect2 : Box2D.Body = world.CreateBody(rectangleDef2.objectBodyDef);
     rect2.CreateFixture(rectangleDef2.objectFixtureDef);
 
