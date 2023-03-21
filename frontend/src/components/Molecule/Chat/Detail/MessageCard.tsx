@@ -1,7 +1,8 @@
 import { Message, User, UserStatus } from "@/types/chat";
 import { Avatar, Badge } from "@mui/material";
 import { styled } from '@mui/material/styles';
-import { FC } from "react";
+import { FC, useState } from "react";
+import AvatarPopper from "./AvatarPopper";
 
 const getBadgeColor = (status: UserStatus = "none") => {
   switch (status) {
@@ -53,10 +54,21 @@ interface MessageCardProps {
   isMyMessage: boolean;
   isFirstMessage: boolean;
   isLastMessage: boolean;
+  isPopperOpen: boolean;
+  setIsPopperOpen: (tf: boolean) => void;
 };
 
-const MessageCard : FC<MessageCardProps> = ({message, sender, isMyMessage, isFirstMessage, isLastMessage}) => {
-  function onAvatarClick(s : string) {};
+const MessageCard : FC<MessageCardProps> = ({
+  message, sender,
+  isMyMessage, isFirstMessage, isLastMessage,
+  isPopperOpen, setIsPopperOpen
+}) => {
+  const [clickPosition, setClickPosition] = useState({ top: 0, left: 0 });
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setIsPopperOpen(true);
+    setClickPosition({ top: event.clientY, left: event.clientX });
+  };
 
   return (
     <div
@@ -80,7 +92,13 @@ const MessageCard : FC<MessageCardProps> = ({message, sender, isMyMessage, isFir
               src={sender.profile}
               alt={sender.nickname}
               className="cursor-pointer"
-              onClick={() => onAvatarClick(sender.nickname)}
+              onClick={handleAvatarClick}
+            />
+            <AvatarPopper
+              isOpen={isPopperOpen}
+              handleClose={()=>{setIsPopperOpen(false)}}
+              targetId={sender.userId}
+              position={clickPosition}
             />
           </StyledBadge>
         </div>
