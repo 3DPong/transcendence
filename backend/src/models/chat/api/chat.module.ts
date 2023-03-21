@@ -11,7 +11,14 @@ import { ChatUserService } from './services/chatUser.service';
 @Module({
   imports: [
     ChatSocketModule,
-    TypeOrmModule.forFeature([ChatChannel, User, ChannelUser, DmChannel, ChannelBanList, ChannelMuteList])],
+    TypeOrmModule.forFeature([
+      ChatChannel, 
+      User, 
+      ChannelUser, 
+      DmChannel, 
+      ChannelBanList, 
+      ChannelMuteList
+    ])],
   controllers: [ChatController],
   providers: [ChatService, ChatUserService],
 })

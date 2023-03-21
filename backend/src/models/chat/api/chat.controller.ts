@@ -54,7 +54,7 @@ export class ChatController {
 		return this.chatService.updateChatRoom(id, channelDto, user);
 	}
 	
-	@Post("/:id/new")
+	@Post("/:id/join")
 	async newChannelUser(
 		@Param('id', ParseIntPipe) id: number,
 		@Body() pass: PasswordDto,
@@ -73,7 +73,7 @@ export class ChatController {
 
 	@Delete('/:id/del')
 	deleteChatRoom(
-		@Param('id', ParseIntPipe) id,
+		@Param('id', ParseIntPipe) id
 	): Promise<void> {
 		return this.chatService.deleteChatRoom(id);
 	}
