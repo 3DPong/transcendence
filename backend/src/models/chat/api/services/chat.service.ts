@@ -1,8 +1,8 @@
-import { ConflictException, forwardRef, HttpStatus, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, HttpStatus, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import * as bcrypt from 'bcryptjs';
-import { ChannelDto } from '../dto/create-channel.dto';
+import { ChannelDto, PasswordDto } from '../dto/create-channel.dto';
 import { User } from 'src/models/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
@@ -34,7 +34,7 @@ export class ChatService {
 		private readonly userService: ChatUserService,
 	){}
 
-	async createChannelUser(res: Response, user_id: number, channel_id: number) {
+	async createChannelUser(user_id: number, channel_id: number) {
 	
 			const cu = this.channelUserRepository.create({
 				channel_id: channel_id,
@@ -44,7 +44,7 @@ export class ChatService {
 			return cu;
 	}
 
-	async getOneChannel(res: Response, id: number): Promise <ChatChannel> {
+	async getOneChannel(id: number): Promise <ChatChannel> {
 
 		const channel: ChatChannel = await this.channelRepository
 		.createQueryBuilder("channel")
@@ -64,7 +64,7 @@ export class ChatService {
 		return channel;
 	}
 
-	async getMyChannels(res: Response, user_id: number): Promise<ChatChannel[]> {
+	async getMyChannels(user_id: number): Promise<ChatChannel[]> {
 
 		const channelUserss : ChannelUser[]  = await this.channelUserRepository
 		.createQueryBuilder("cu")
@@ -93,7 +93,7 @@ export class ChatService {
 		return channel;
 	}
 
-	async getAllChannels(res: Response): Promise <ChatChannel[]> {
+	async getAllChannels(): Promise <ChatChannel[]> {
 
 		const channel: ChatChannel[] = await this.channelRepository
 		.createQueryBuilder("channel")
@@ -114,31 +114,29 @@ export class ChatService {
 		return channel;
 	}
 
-	async creatChatRoom(res: Response, channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
-		try {
-			const { name, password, type } = channelDto;
-			let hashedPassword = null;
-
-			if (type == ChannelType.PROTECTED){
-				if (password == undefined) {
-					throw new NotFoundException(`Can't find password`);
-				}
-				const salt = await bcrypt.genSalt();
-				hashedPassword = await bcrypt.hash(password, salt);
+	async creatChatRoom(channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
+		const { name, password, type } = channelDto;
+		let hashedPassword = null;
+		
+		if (type == ChannelType.PROTECTED){
+			if (password == undefined) {
+				throw new NotFoundException(`Can't find password`);
 			}
-
-			const channel = this.channelRepository.create({
-				name,
-				password: hashedPassword,
-				type,
-				owner: user,
-				owner_id: user.user_id
-			})
-
+			const salt = await bcrypt.genSalt();
+			hashedPassword = await bcrypt.hash(password, salt);
+		}
+		const channel = this.channelRepository.create({
+			name,
+			password: hashedPassword,
+			type,
+			owner: user,
+			owner_id: user.user_id
+		})
+		try {
 			await this.channelRepository.save(channel);
 			return channel;
 		} catch (error) {
-
+			console.log(error)
 			if (error.code === '23505')
 				throw new ConflictException('Existing Title');
 			else
@@ -146,8 +144,8 @@ export class ChatService {
 		}
 	}
 
-	async updateChatRoom(res: Response, channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
-		try {
+	async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
+
 			const { name, password, type } = channelDto;
 			const channel = await this.channelRepository.findOne({where :{channel_id}});
 			if (!channel)
@@ -167,7 +165,7 @@ export class ChatService {
 			channel.name = name;
 			channel.type = type;
 			channel.password = hashedPassword;
-
+		try {
 			await this.channelRepository.save(channel);
 		} catch (error) {
 			if (error.code === '23505')
@@ -176,6 +174,31 @@ export class ChatService {
 				throw new InternalServerErrorException();
 		}
 	}
+
+	async newChannelUser(channel_id: number, pd: PasswordDto, user_id: number) {
+
+		console.log(`${user_id} and ${channel_id}`)
+		const channel = await this.channelRepository.findOne({where :{channel_id}});
+		if (!channel)
+			throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
+		
+		switch (channel.type) {
+			case ChannelType.PRIVATE:
+				throw new UnauthorizedException('No permission!');
+			case ChannelType.DM:
+				throw new UnauthorizedException('No permission!');
+			case ChannelType.PROTECTED:
+				if (!(await bcrypt.compare(pd.password, channel.password))) {
+					throw new UnauthorizedException('Wrong password!');
+				}
+			default:
+				const cu = this.channelUserRepository.create({ channel_id, user_id })
+				await this.channelUserRepository.save(cu);
+				console.log(cu)
+				return cu;
+			}
+	}
+
 
 	/*
 		**leaveChannel**
@@ -189,7 +212,7 @@ export class ChatService {
 			channelUser 데이터 삭제
 	
 	*/
-	async leaveChannel(res: Response, user_id: number, channel_id: number){
+	async leaveChannel(user_id: number, channel_id: number){
 		try {
 			console.log(`${user_id} and ${channel_id}`)
 			const channel = await this.channelRepository.findOne({where :{channel_id}});
@@ -224,7 +247,7 @@ export class ChatService {
 		}
 	}
 
-	async getSerchChannels(res: Response, str: string) : Promise <ChatChannel[]> {
+	async getSerchChannels(str: string) : Promise <ChatChannel[]> {
 
 		const channels: ChatChannel[] = await this.channelRepository
 		.createQueryBuilder("channel")
@@ -245,7 +268,7 @@ export class ChatService {
 		return channels;
 	}
 
-	async deleteChatRoom(res: Response, channel_id: number) : Promise <void> {
+	async deleteChatRoom(channel_id: number) : Promise <void> {
 		const result = await this.channelRepository.delete({channel_id});
 		if (result.affected === 0)
 			throw new NotFoundException(`Cant't find id ${channel_id}`)

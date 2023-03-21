@@ -23,3 +23,14 @@ export class ChannelDto {
 
 	type: ChannelType;
 }
+
+export class PasswordDto {
+	@IsString()
+	@ValidateIf((object, value) => value !== null)
+	@MinLength(1)
+	@MaxLength(25)
+	@Matches(/^[a-zA-Z0-9]+$/, {
+		message: 'Title only accepts Englich and number'
+	})
+	password!: string | null;
+}
