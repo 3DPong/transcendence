@@ -1,2 +1,3 @@
-import { GetUserResDto } from './getUserResDto';
-export class CreateUserResDto extends GetUserResDto {}
+export class CreateUserResDto {
+  user_id: number;
+}

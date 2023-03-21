@@ -10,6 +10,8 @@ import RedisStore from 'connect-redis';
 import { Redis } from 'ioredis';
 import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
+import * as process from 'process';
+import { colorist } from './common/logger/utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -30,7 +32,6 @@ async function bootstrap() {
     client: redisClient,
     prefix: 'ts:',
   } as any);
-
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
   app.use(LoggerMiddleware);
@@ -42,12 +43,34 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        maxAge: 30000,
         sameSite: 'lax',
         // secure: true, // https 아니라서 사용 못함.
       },
     })
   );
+
   await app.listen(appConfig.port);
+  startLogging();
 }
 bootstrap();
+
+// for logging
+const startLogging = () => {
+  const MODE = process.env.NODE_ENV;
+  let STR;
+  switch (MODE) {
+    case 'prod': {
+      STR = 'PRODUCTION';
+      break;
+    }
+    case 'dev': {
+      STR = 'DEVELOPMENT';
+      break;
+    }
+    default: {
+      STR = 'UNKNOWN';
+    }
+  }
+  console.log(colorist('RUNNING', 'ON', STR));
+  console.log(colorist('LISTEN', 'ON', `${process.env.APP_HOST}:${process.env.APP_PORT}`));
+};
