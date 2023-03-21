@@ -73,7 +73,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       <div className=" p-2 pl-4 pr-4 border border-gray-200">
         <MessageHeader room={room} users={users} />
       </div>
-      <div className=" pl-2 pr-2 border-l border-r border-gray-200 flex-1 overflow-y-auto">
+      <div className=" pl-2 pr-4 border-l border-r border-gray-200 flex-1 overflow-y-auto
+                      scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200">
         <MessageList myId={userId} users={users} messages={messages} />
       </div>
       <div className=" p-2 border border-gray-200">

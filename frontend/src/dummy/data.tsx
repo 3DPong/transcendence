@@ -48,7 +48,7 @@ export const dummy_chatrooms:Room[] = [
     "owner" : 
             {"userId": 2, "profile": "https://cdn.intra.42.fr/users/3185bf6f53751f455e9b1f5833c23393/minkyeki.JPG", "nickname": "minkyeki" },
   },
-  { "channelId" : 3, "channelType" : "public", "channelName" : "1:1 PONG 초보만",
+  { "channelId" : 3, "channelType" : "public", "channelName" : "1:1 PONG 초보만sanfjkasnfjkasnfjkasdnfjkasndfjkansfjka",
     "owner" : 
             {"userId": 1, "profile": "https://cdn.intra.42.fr/users/438c44cacfdc69822c7ff066a0b7959d/dongkim.jpg", "nickname": "dongkim" },
   },

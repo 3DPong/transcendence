@@ -27,8 +27,7 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
   }, [messages]);
 
   return (
-    <Box
-    >
+    <Box>
       {messages.map((message, index) => {
         const isMyMessage = message.userId === myId;
         const sender = users[message.userId];
