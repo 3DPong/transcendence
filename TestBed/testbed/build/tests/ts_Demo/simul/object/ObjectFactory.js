@@ -23,8 +23,8 @@ System.register(["@box2d", "./ObjectDef.js"], function (exports_1, context_1) {
                     const groundDef = new ObjectDef_js_1.GroundDef();
                     world.CreateBody(groundDef.objectBodyDef).CreateFixture(groundDef.objectFixtureDef);
                 }
-                createPaddle(world, x, y) {
-                    const paddleDef = new ObjectDef_js_1.PaddleDef(x, y);
+                createPaddle(world, x, y, id) {
+                    const paddleDef = new ObjectDef_js_1.PaddleDef(x, y, id);
                     const paddle = world.CreateBody(paddleDef.objectBodyDef);
                     paddle.CreateFixture(paddleDef.objectFixtureDef);
                     return paddle;
@@ -39,7 +39,7 @@ System.register(["@box2d", "./ObjectDef.js"], function (exports_1, context_1) {
                     const pindef1 = new ObjectDef_js_1.PinDef(0, 10);
                     const pin1 = world.CreateBody(pindef1.objectBodyDef);
                     pin1.CreateFixture(pindef1.objectFixtureDef);
-                    const rectangleDef1 = new ObjectDef_js_1.RectangleDef(0, 20);
+                    const rectangleDef1 = new ObjectDef_js_1.RectangleDef(0, 16);
                     const rect1 = world.CreateBody(rectangleDef1.objectBodyDef);
                     rect1.CreateFixture(rectangleDef1.objectFixtureDef);
                     const jd1 = new Box2D.DistanceJointDef();
@@ -49,7 +49,7 @@ System.register(["@box2d", "./ObjectDef.js"], function (exports_1, context_1) {
                     const pindef2 = new ObjectDef_js_1.PinDef(0, -10);
                     const pin2 = world.CreateBody(pindef2.objectBodyDef);
                     pin2.CreateFixture(pindef2.objectFixtureDef);
-                    const rectangleDef2 = new ObjectDef_js_1.RectangleDef(0, -20);
+                    const rectangleDef2 = new ObjectDef_js_1.RectangleDef(0, -16);
                     const rect2 = world.CreateBody(rectangleDef2.objectBodyDef);
                     rect2.CreateFixture(rectangleDef2.objectFixtureDef);
                     const jd2 = new Box2D.DistanceJointDef();
