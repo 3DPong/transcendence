@@ -42,7 +42,10 @@ export class UserRelationService {
   }
 
   async updateUserRelation(userId: number, payload: UpdateUserRelationReqDto): Promise<UpdateUserRelationResDto> {
-    const update: UserRelation = await this.userRelationRepository.save({
+    if (payload.target_id === userId) {
+      throw new BadRequestException('본인과의 관계는 설정 불가능합니다.');
+    }
+    return await this.userRelationRepository.save({
       user_id: userId,
       target_id: payload.target_id,
       status: payload.status,
