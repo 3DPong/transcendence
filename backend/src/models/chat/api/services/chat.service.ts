@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, HttpStatus, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import * as bcrypt from 'bcryptjs';
@@ -10,7 +10,7 @@ import { ChannelUser, ChannelUserRoles } from '../../entities/channelUser.entity
 import { DmChannel } from '../../entities/dmChannel.entity';
 import { ChannelBanList } from '../../entities/channelBanList.entity';
 import { ChannelMuteList } from '../../entities/channeMuteList.entity';
-
+import { Response } from "express";
 
 @Injectable()
 export class ChatService {
@@ -34,96 +34,87 @@ export class ChatService {
 		private readonly userService: ChatUserService,
 	){}
 
-	async createChannelUser(user_id: number, channel_id: number) {
+	async createChannelUser(res: Response, user_id: number, channel_id: number) {
 	
 			const cu = this.channelUserRepository.create({
 				channel_id: channel_id,
 				user_id : user_id
 			})
 			await this.channelUserRepository.save(cu);
-		}
+			return cu;
+	}
 
-		async getOneChannel(id: number): Promise <ChatChannel> {
+	async getOneChannel(res: Response, id: number): Promise <ChatChannel> {
 
-			const channel: ChatChannel = await this.channelRepository
-			.createQueryBuilder("channel")
-			.innerJoin("channel.owner", "owner")
-			.select([
-				"channel.channel_id",
-				"channel.name",
-				"channel.type",
-				"owner.user_id",
-				"owner.nickname",
-				"owner.profile_url"
-			])
-			.where("channel.channel_id = :id", {id})
-			.getOne();
+		const channel: ChatChannel = await this.channelRepository
+		.createQueryBuilder("channel")
+		.innerJoin("channel.owner", "owner")
+		.select([
+			"channel.channel_id",
+			"channel.name",
+			"channel.type",
+			"owner.user_id",
+			"owner.nickname",
+			"owner.profile_url"
+		])
+		.where("channel.channel_id = :id", {id})
+		.getOne();
 
-			console.log(channel)
-			return channel;
-		}
-	
-		async getMyChannels(user_id: number): Promise<ChatChannel[]> {
+		console.log(channel)
+		return channel;
+	}
 
-			const channelUserss : ChannelUser[]  = await this.channelUserRepository
-			.createQueryBuilder("cu")
-			.select("cu.channel_id")
-			.where('cu.user_id = :user_id', {user_id})
-			.getMany();
+	async getMyChannels(res: Response, user_id: number): Promise<ChatChannel[]> {
 
-			var arr = [];
-			channelUserss.map((cu) =>arr.push(cu.channel_id));
+		const channelUserss : ChannelUser[]  = await this.channelUserRepository
+		.createQueryBuilder("cu")
+		.select("cu.channel_id")
+		.where('cu.user_id = :user_id', {user_id})
+		.getMany();
 
-			const channel: ChatChannel[] = await this.channelRepository
-			.createQueryBuilder("channel")
-			.innerJoin("channel.owner", "owner")
-			.select([
-				"channel.channel_id",
-				"channel.name",
-				"channel.type",
-				"owner.user_id",
-				"owner.nickname",
-				"owner.profile_url"
-			])
-			.whereInIds(arr)
-			.orWhere("channel.owner_id = :id", {id: user_id})
-			.getMany();
+		var arr = [];
+		channelUserss.map((cu) =>arr.push(cu.channel_id));
 
-			return channel;
-		}
+		const channel: ChatChannel[] = await this.channelRepository
+		.createQueryBuilder("channel")
+		.innerJoin("channel.owner", "owner")
+		.select([
+			"channel.channel_id",
+			"channel.name",
+			"channel.type",
+			"owner.user_id",
+			"owner.nickname",
+			"owner.profile_url"
+		])
+		.whereInIds(arr)
+		.orWhere("channel.owner_id = :id", {id: user_id})
+		.getMany();
 
-		// async getAllChannels(): Promise <ChatChannel[]> {
+		return channel;
+	}
 
-		// 	const channel: ChatChannel[] = await this.channelRepository
-		// 	.createQueryBuilder("channel")
-		// 	.where('channel.type != :type', {type: ChannelType.PRIVATE})
-		// 	.orderBy("channel.channel_id", "DESC")
-		// 	.getMany();
+	async getAllChannels(res: Response): Promise <ChatChannel[]> {
 
-		// 	return channel;
-		// }
-		
-		async getAllChannels(): Promise <ChatChannel[]> {
+		const channel: ChatChannel[] = await this.channelRepository
+		.createQueryBuilder("channel")
+		.innerJoin("channel.owner", "owner")
+		.select([
+			"channel.channel_id",
+			"channel.name",
+			"channel.type",
+			"owner.user_id",
+			"owner.nickname",
+			"owner.profile_url"
+		])
+		.where('channel.type != :type', {type: ChannelType.PRIVATE})
+		// .andWhere('title = "*:str*"')
+		.orderBy("channel.channel_id", "DESC")
+		.getMany();
 
-			const channel: ChatChannel[] = await this.channelRepository
-			.createQueryBuilder("channel")
-			.innerJoin("channel.owner", "owner")
-			.select([
-				"channel.channel_id",
-				"channel.name",
-				"channel.type",
-				"owner.user_id",
-				"owner.nickname",
-				"owner.profile_url"
-			])
-			.where('channel.type != :type', {type: ChannelType.PRIVATE})
-			.orderBy("channel.channel_id", "DESC")
-			.getMany();
+		return channel;
+	}
 
-			return channel;
-		}
-
-	async creatChatRoom(channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
+	async creatChatRoom(res: Response, channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
 		try {
 			const { name, password, type } = channelDto;
 			let hashedPassword = null;
@@ -143,6 +134,7 @@ export class ChatService {
 				owner: user,
 				owner_id: user.user_id
 			})
+
 			await this.channelRepository.save(channel);
 			return channel;
 		} catch (error) {
@@ -154,7 +146,7 @@ export class ChatService {
 		}
 	}
 
-	async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
+	async updateChatRoom(res: Response, channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
 		try {
 			const { name, password, type } = channelDto;
 			const channel = await this.channelRepository.findOne({where :{channel_id}});
@@ -186,6 +178,7 @@ export class ChatService {
 	}
 
 	/*
+		**leaveChannel**
 		1. 내가 owner 
 			해당 room 에 포함된 user 목록 가져옴
 				a. user 목록이 없으면 chatChannel 삭제
@@ -196,7 +189,7 @@ export class ChatService {
 			channelUser 데이터 삭제
 	
 	*/
-	async leaveChannel(user_id: number, channel_id: number){
+	async leaveChannel(res: Response, user_id: number, channel_id: number){
 		try {
 			console.log(`${user_id} and ${channel_id}`)
 			const channel = await this.channelRepository.findOne({where :{channel_id}});
@@ -204,34 +197,55 @@ export class ChatService {
 				throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
 
 			if (channel.owner_id === user_id) {
-				const channelUsers : ChannelUser[]  = await this.channelUserRepository.find({where: {channel_id}, order: { created_at: "desc" }},);
-
+				const channelUsers : ChannelUser[]  = await this.channelUserRepository.find({where: {channel_id}, order: { created_at: "asc" }},);
+				console.log(channelUsers)
 				if (channelUsers.length === 0) {
 					await this.channelRepository.softDelete(channel_id);
 				}
 				else {
-					var admin;
-					channelUsers.map((users) => {
-						if (users.role == ChannelUserRoles.ADMIN) { admin = user_id	}
-					});
-
+					var admin = channelUsers.find((users) => (users.role == ChannelUserRoles.ADMIN)) 
+		
 					if (admin === undefined) {
-						admin = channelUsers[channelUsers.length - 1].user_id;
-						console.log("nobody")
+						admin = channelUsers[0];
 					}
-					await this.channelUserRepository.delete({channel_id, user_id: admin});
-					await this.channelRepository.update(channel_id, {owner_id : admin});
+					await this.channelUserRepository.delete({channel_id, user_id: admin.user_id});
+					await this.channelRepository.update(channel_id, {owner_id : admin.user_id});
 				}
 			}
 			else {
+				const delUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
+				if (!delUser)
+					throw new NotFoundException(`can't find ${ channel_id}'s user ${user_id}`);
 				await this.channelUserRepository.softDelete({channel_id, user_id});
 			}
 		} catch (error) {
+			console.log(error)
 			throw new InternalServerErrorException();
 		}
 	}
 
-	async deleteChatRoom(channel_id: number) : Promise <void> {
+	async getSerchChannels(res: Response, str: string) : Promise <ChatChannel[]> {
+
+		const channels: ChatChannel[] = await this.channelRepository
+		.createQueryBuilder("channel")
+		.innerJoin("channel.owner", "owner")
+		.select([
+			"channel.channel_id",
+			"channel.name",
+			"channel.type",
+			"owner.user_id",
+			"owner.nickname",
+			"owner.profile_url"
+		])
+		.where('channel.type != :type', {type: ChannelType.PRIVATE})
+		.andWhere('channel.name LIKE :name', {name: `%${str}%`})
+		.orderBy("channel.channel_id", "DESC")
+		.getMany();
+
+		return channels;
+	}
+
+	async deleteChatRoom(res: Response, channel_id: number) : Promise <void> {
 		const result = await this.channelRepository.delete({channel_id});
 		if (result.affected === 0)
 			throw new NotFoundException(`Cant't find id ${channel_id}`)
