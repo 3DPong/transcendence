@@ -54,20 +54,18 @@ interface MessageCardProps {
   isMyMessage: boolean;
   isFirstMessage: boolean;
   isLastMessage: boolean;
-  isPopperOpen: boolean;
-  setIsPopperOpen: (tf: boolean) => void;
+  scrollY: number;
 };
 
 const MessageCard : FC<MessageCardProps> = ({
   message, sender,
   isMyMessage, isFirstMessage, isLastMessage,
-  isPopperOpen, setIsPopperOpen
+  scrollY
 }) => {
-  const [clickPosition, setClickPosition] = useState({ top: 0, left: 0 });
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
-    setIsPopperOpen(true);
-    setClickPosition({ top: event.clientY, left: event.clientX });
+    setAnchorEl(event.currentTarget);
   };
 
   return (
@@ -95,10 +93,10 @@ const MessageCard : FC<MessageCardProps> = ({
               onClick={handleAvatarClick}
             />
             <AvatarPopper
-              isOpen={isPopperOpen}
-              handleClose={()=>{setIsPopperOpen(false)}}
+              anchorEl={anchorEl}
+              handleClose={()=>{setAnchorEl(null);}}
               targetId={sender.userId}
-              position={clickPosition}
+              scrollY={scrollY}
             />
           </StyledBadge>
         </div>

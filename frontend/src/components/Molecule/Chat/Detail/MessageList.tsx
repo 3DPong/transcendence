@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Message, User } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
-import { Box } from '@mui/material';
 
 interface MessageListProps {
   myId: number;
@@ -14,8 +13,8 @@ interface MessageListProps {
 };
 
 const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
-  const [isPopperOpen, setIsPopperOpen] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [scrollY, setScrollY] = useState<number>(0);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -30,7 +29,7 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
   return (
     <div className=" pl-2 pr-4 border-l border-r border-gray-200 flex-1 overflow-y-auto
                     scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
-         onScroll={()=>{ isPopperOpen && setIsPopperOpen(false); }}>
+        onScroll={(event)=>setScrollY(event.currentTarget.scrollTop)}>
       {messages.map((message, index) => {
         const isMyMessage = message.userId === myId;
         const sender = users[message.userId];
@@ -45,8 +44,7 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
             isMyMessage={isMyMessage}
             isFirstMessage={isFirstMessage}
             isLastMessage={isLastMessage}
-            isPopperOpen={isPopperOpen}
-            setIsPopperOpen={setIsPopperOpen}
+            scrollY={scrollY}
           />
         );
       })}
