@@ -18,7 +18,7 @@ export class ChatController {
 	@Get()
 	async getMyChannels() : Promise<ChatChannel[]> {
 		//const user = await this.userService.getUserOne(3);
-		return this.chatService.getMyChannels(48);
+		return this.chatService.getMyChannels(88);
 	}
 
 	@Get('/add')
@@ -28,7 +28,7 @@ export class ChatController {
 
 	@Get('/new')
 	createChanneluser() {
-		return this.chatService.createChannelUser(74, 148);
+		return this.chatService.createChannelUser(48, 151);
 	}
 
 

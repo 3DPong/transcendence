@@ -102,6 +102,7 @@ export class ChatService {
 
 		// 	return channel;
 		// }
+		
 		async getAllChannels(): Promise <ChatChannel[]> {
 
 			const channel: ChatChannel[] = await this.channelRepository
@@ -164,7 +165,7 @@ export class ChatService {
 				throw new NotFoundException(`Channel [ ${channel_id} ]'s User :${ user.user_id} has no Permission`);
 
 			let hashedPassword = channel.password;
-			if (type == ChannelType.PROTECTED){
+			if (channel.type != ChannelType.PROTECTED && type == ChannelType.PROTECTED){
 				if (password == undefined) {
 					throw new NotFoundException(`Can't find password`);
 				}
@@ -188,7 +189,7 @@ export class ChatService {
 		1. 내가 owner 
 			해당 room 에 포함된 user 목록 가져옴
 				a. user 목록이 없으면 chatChannel 삭제
-				b. user 목록이 있고 admin이 있으면 랜덤하게 양도
+				b. user 목록이 있고 admin이 있으면 랜덤하게 양도 
 				c. user 목록이 있고 admin 이 없으면 랜덤하게 admin 지정후 양도
 			
 		2. 내가 admin or user
@@ -201,41 +202,25 @@ export class ChatService {
 			const channel = await this.channelRepository.findOne({where :{channel_id}});
 			if (!channel)
 				throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
-			console.log("111111111111")
-			const channelUsers : ChannelUser[]  = await this.channelUserRepository.find({where: {channel_id}, order: { created_at: "asc" }},);
+
 			if (channel.owner_id === user_id) {
-				console.log("222222221")
+				const channelUsers : ChannelUser[]  = await this.channelUserRepository.find({where: {channel_id}, order: { created_at: "desc" }},);
 
 				if (channelUsers.length === 0) {
 					await this.channelRepository.softDelete(channel_id);
-					return ;
 				}
 				else {
-					console.log(channelUsers)
-					console.log(channelUsers[0].role)
 					var admin;
 					channelUsers.map((users) => {
-						if (users.role == ChannelUserRoles.ADMIN) {
-							admin = user_id;
-						}
+						if (users.role == ChannelUserRoles.ADMIN) { admin = user_id	}
 					});
-					if (admin === undefined)
-					{
-						channelUsers[0].role = ChannelUserRoles.ADMIN;
-						// await this.channelUserRepository.createQueryBuilder('cu')
-						// .where	
 
-						// await this.channelUserRepository.update({user_id, channel_id}, {channelUsers[0].role}});
-
-
-						// 	.update({
-						// 		where : {channel_id: channelUsers[0].channel_id, user_id: channelUsers[0].user_id},
-
-						// 	});
-						// channelUsers.values
-						// const role = ChannelUserRoles.ADMIN;
-						// await this.channelUserRepository.update()
+					if (admin === undefined) {
+						admin = channelUsers[channelUsers.length - 1].user_id;
+						console.log("nobody")
 					}
+					await this.channelUserRepository.delete({channel_id, user_id: admin});
+					await this.channelRepository.update(channel_id, {owner_id : admin});
 				}
 			}
 			else {
@@ -250,7 +235,7 @@ export class ChatService {
 		const result = await this.channelRepository.delete({channel_id});
 		if (result.affected === 0)
 			throw new NotFoundException(`Cant't find id ${channel_id}`)
-	console.log('result', result);
+		console.log('result', result);
 	}
 
 	async chaekUserAdmin(user_id: number, channel_id: number) : Promise <boolean> {
