@@ -1,8 +1,8 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { RelationStatus, UserRelation } from '../../entities';
-import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { GetUserRelationResDto, UserRelationDto, UpdateUserRelationResDto, UpdateUserRelationReqDto } from '../dtos';
+import { Not, Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { GetUserRelationResDto, UpdateUserRelationReqDto, UpdateUserRelationResDto, UserRelationDto } from '../dtos';
 
 @Injectable()
 export class UserRelationService {
@@ -12,6 +12,7 @@ export class UserRelationService {
     const relations: UserRelationDto[] = await this.userRelationRepository.find({
       where: {
         user_id: userId,
+        status: Not(RelationStatus.NONE),
       },
       select: ['target_id', 'status'],
     });
@@ -46,9 +47,5 @@ export class UserRelationService {
       target_id: payload.target_id,
       status: payload.status,
     });
-    return {
-      target_id: update.user_id,
-      status: update.status,
-    };
   }
 }
