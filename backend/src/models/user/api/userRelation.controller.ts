@@ -16,6 +16,12 @@ export class UserRelationController {
   ): Promise<GetUserRelationResDto> {
     switch (relation) {
       case 'friend': {
+        return await this.userRelationService.getUserFriendRelation(sessionData.user_id);
+      }
+      case 'block': {
+        return await this.userRelationService.getUserBlockRelation(sessionData.user_id);
+      }
+      default: {
         return await this.userRelationService.getUserAllRelation(sessionData.user_id);
       }
     }
