@@ -9,10 +9,19 @@ import { UserCreationGuard } from '../../../common/guards/signup.guard.ts/userCr
 import { UserCreationStrategy } from '../../../common/guards/signup.guard.ts/userCreation.strategy';
 import { UserRelationController } from './userRelation.controller';
 import { UserRelationService } from './services/userRelation.service';
+import { SessionService } from '../../../common/session/session.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, UserRelation])],
   controllers: [UserController, UserRelationController],
-  providers: [UserService, UserRelationService, SessionGuard, SessionStrategy, UserCreationGuard, UserCreationStrategy],
+  providers: [
+    UserService,
+    UserRelationService,
+    SessionService,
+    SessionGuard,
+    SessionStrategy,
+    UserCreationGuard,
+    UserCreationStrategy,
+  ],
 })
 export class UserModule {}
