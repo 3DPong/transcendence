@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
 
 import { LogInForm } from "@/components/Organism/Form/LoginForm";
 import { SignInForm } from '@/components/Organism/Form/SigninForm';
@@ -25,18 +25,39 @@ import ChatTemplate from '@/components/ChatTemplate';
 import GlobalContext from '@/context/GlobalContext';
 import useArray from '@/utils/CustomHooks/useArray';
 import { Room, User } from '@/types/chat';
-import { userListData_t } from "@/types/user";
-import { UserListDataDummy } from '@/dummy/data';
+import { friendData_t } from './types/user';
+import { UserFriendRelationsDummyData } from '@/dummy/data';
 
 const router = createBrowserRouter([ 
-    { // 홈화면 (로그인 후)
+    // ----------------------------------------------------
+    // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
+    // ----------------------------------------------------
+    { // home. 버튼은 login 42 button 하나만 넣어주면 됨.
         path: "/",
-        element: <L0Template organism={ <Controller/>} />,
+        element: <LogInForm />,
+        errorElement: <ErrorPage />
+    },
+    { // 회원 가입 (프로필 설정)
+        path: "/signin",
+        element: <SignInForm />,
+        errorElement: <ErrorPage />
+    }, 
+    // ----------------------------------------------------
+    // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
+    // ----------------------------------------------------
+    { // Game Debug 화면
+        path: "/game",
+        element: <Game />,
+        errorElement: <ErrorPage />
+    },
+    { // 홈화면 (로그인 후)
+        path: "/home",
+        element: <L0Template organism={ <Controller /> } />,
         errorElement: <ErrorPage />,
         children: [
             {
                 path: "profile",
-                element: <L1Template organism={ <Profile /> }/> // 파라미터로 userId 넣어줄 것. 
+                element: <L1Template organism={ <Profile /> }/>
             },
             {
                 path: "friends",
@@ -48,13 +69,13 @@ const router = createBrowserRouter([
                         children: [
                             {
                                 path: ":userId", // Global User List에서 클릭시 L3 위치에서 프로필이 뜨도록.
-                                element: <L3Template organism={ <Profile /* UserId */ /> } /> // 파라미터로 userId 넣어줄 것. 
-                            }
+                                element: <L3Template organism={ <Profile /> } />
+                            },
                         ]
                     },
                     {
                         path: ":userId",
-                        element: <L2Template organism={ <Profile /* UserId */ /> } /> // 파라미터로 userId 넣어줄 것. 
+                        element: <L2Template organism={ <Profile /> } /> 
                     },
                 ]
             },
@@ -81,33 +102,26 @@ const router = createBrowserRouter([
                 element: <L1Template organism={<div>settings</div>}/>
             }
         ]
-    },
-    { // 로그인
-        path: "/login",
-        element: <LogInForm />,
-        errorElement: <ErrorPage />
-    },
-    { // 회원 가입
-        path: "/signin",
-        element: <SignInForm />,
-        errorElement: <ErrorPage />
     }, 
-    { // Game Debug 화면
-        path: "/game",
-        element: <Game />,
-        errorElement: <ErrorPage />
-    }
 ]);
 
 function App() {
-    const [user, setUser] = useState<User>();
-    const [rooms, setRooms] = useState<Room[]>([]);
-    const [friends, setFriends] = useArray<userListData_t>(UserListDataDummy);
+
+    // GLOBAL CONTEXTS
+    // ---------------------------------------------------------------------------
+    // Logged User Id (on Login)
+    const [ loggedUserId, setLoggedUserId ] = useState<number>(0);
+    // Chat Rooms
+    const [ user, setUser ] = useState<User>();
+    const [ rooms, setRooms ] = useState<Room[]>([]);
+    // Friend List
+    const [ friends, setFriends ] = useArray<friendData_t>();
+    // ---------------------------------------------------------------------------
 
     return (
         <div className="App">
             <header className="App-header">
-                <GlobalContext.Provider value={{user, setUser, rooms, setRooms, friends, setFriends}}>
+                <GlobalContext.Provider value={{ user, setUser, rooms, setRooms, friends, setFriends, loggedUserId, setLoggedUserId }}>
                     <RouterProvider router={ router } />
                 </GlobalContext.Provider>
             </header>
