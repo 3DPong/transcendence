@@ -33,7 +33,7 @@ export class ChannelUser {
   @JoinColumn({ name: 'channel_id' })
   channel: ChatChannel;
 
-  @ManyToOne(() => User, (user) => user.joinChannels)
+  @ManyToOne(() => User, (user) => user.joinChannels, { eager: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

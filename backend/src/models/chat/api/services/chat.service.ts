@@ -11,6 +11,8 @@ import { DmChannel } from '../../entities/dmChannel.entity';
 import { ChannelBanList } from '../../entities/channelBanList.entity';
 import { ChannelMuteList } from '../../entities/channeMuteList.entity';
 import { Response } from "express";
+import { MessageLog } from '../../entities/messageLog.entity';
+import { from } from 'rxjs';
 
 @Injectable()
 export class ChatService {
@@ -21,6 +23,9 @@ export class ChatService {
 		@InjectRepository(ChannelUser)
 		private channelUserRepository: Repository<ChannelUser>,
 		
+		@InjectRepository(MessageLog)
+		private messageLogRepository: Repository<MessageLog>,
+
 		@InjectRepository(DmChannel)
 		private dmRepository: Repository<DmChannel>,
 
@@ -114,6 +119,49 @@ export class ChatService {
 		return channel;
 	}
 
+	/*
+		id : number;               // MessageId
+		sender : number;       // Sender UserId 
+		content: string;          // 메시지 내용
+		createdAt: ???;           // 메시지 생성 시각. 타입을 어떻게 넣을지 협의 필요.
+		type : ChatType; 
+
+	*/
+	async getMessageLog(take: number = 10, skip : number = 0, channel_id : number, user_id: number) {
+		
+		const channel = await this.channelRepository.findOne({where :{channel_id}});
+		if (!channel)
+			throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
+		
+		if (await this.chaekBanUser(channel_id, user_id))
+			throw new UnauthorizedException('Baned User!');
+
+		const messages : MessageLog[] = await this.messageLogRepository
+		.createQueryBuilder("log")
+		.innerJoin("log.channel", "channel")
+		.select([
+			"log.message_id",
+			"log.user_id",
+			"log.content",
+			"log.created_at",
+			"channel.type"
+		])
+		.where('log.channel_id = :channel_id', {channel_id})
+		.orderBy("log.created_at", "DESC")
+		.take(take)
+		.skip(skip)
+		.getMany()
+
+		return messages;
+		// const User : User[] = await 
+
+		// return from(
+		// 	this.messageLogRepository.findAndCount({ take, skip }).then(([data]) => {
+		// 		return <MessageLog[]>data;
+		// 	}),
+		// );
+	}
+
 	async creatChatRoom(channelDto: ChannelDto, user: User) : Promise<ChatChannel> {		
 		const { name, password, type } = channelDto;
 		let hashedPassword = null;
@@ -180,8 +228,15 @@ export class ChatService {
 		console.log(`${user_id} and ${channel_id}`)
 		const channel = await this.channelRepository.findOne({where :{channel_id}});
 		if (!channel)
-			throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
-		
+			throw new NotFoundException(`can't find chat Channel ${ channel_id}`);``
+
+		const baned = await this.banRepository.findOne({where: {channel_id, user_id}});
+		console.log(baned)
+		if (baned) {
+			const time = new Date();
+			if (baned.end_at > time)
+				throw new UnauthorizedException('Baned User!');
+		}
 		switch (channel.type) {
 			case ChannelType.PRIVATE:
 				throw new UnauthorizedException('No permission!');
@@ -280,5 +335,15 @@ export class ChatService {
 		if (!channelUser || channelUser.role == ChannelUserRoles.USER)
 			return false;
 		return true;
+	}
+
+	async chaekBanUser(channel_id: number, user_id: number) : Promise <boolean> {
+		const baned = await this.banRepository.findOne({where: {channel_id, user_id}});
+		if (baned) {
+			const time = new Date();
+			if (baned.end_at > time)
+				return true;
+		}
+		return false;
 	}
 }

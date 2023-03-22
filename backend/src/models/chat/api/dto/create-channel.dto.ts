@@ -34,3 +34,11 @@ export class PasswordDto {
 	})
 	password!: string | null;
 }
+
+export class LogDto {
+
+	@IsNotEmpty()
+    @IsString()
+    @MaxLength(80)
+    content: string;
+}

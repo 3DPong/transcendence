@@ -1,10 +1,11 @@
-import { Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Req, Res } from '@nestjs/common';
+import { Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Req, Res, Query } from '@nestjs/common';
 import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ChatChannel } from '../entities/chatChannel.entity';
-import { ChannelDto, PasswordDto} from './dto/create-channel.dto';
+import { ChannelDto, LogDto, PasswordDto} from './dto/create-channel.dto';
 import { ChatService } from './services/chat.service';
 import { ChatUserService } from './services/chatUser.service';
 import { Request, Response } from "express";
+
 
 @Controller('chat')
 export class ChatController {
@@ -33,8 +34,30 @@ export class ChatController {
 
 	@Get('/new')
 	createChanneluser() {
-		return this.chatService.createChannelUser(72, 60);
+		return this.chatService.createChannelUser(88, 33);
 	}
+
+	@Get('/:id/log')
+	async getMessageLog(
+		@Query('take') take : number = 1,
+		@Query('skip') skip : number = 1,
+		@Param('id', ParseIntPipe) id: number
+	) {
+		take = take > 20 ? 20 : take;
+		const user = await this.userService.getUserOne(1);
+		const messages = await this.chatService.getMessageLog(take, skip, id, user.user_id);
+		const users = await this.userService.getUsersFromChannel(id);
+		//const newObj = Object.assign(users, messages);
+		return messages;
+	}
+
+	// @Post('/:id/logAdd')
+	// logAdd(
+	// 	@Param('id', ParseIntPipe) id: number,
+	// 	@Body() logDto: LogDto,
+	// ) {
+
+	// }
 
 	@Post('/create')
 	async creatChatRoom(
@@ -59,7 +82,7 @@ export class ChatController {
 		@Param('id', ParseIntPipe) id: number,
 		@Body() pass: PasswordDto,
 	) {
-		const user = await this.userService.getUserOne(78);
+		const user = await this.userService.getUserOne(11);
 		return this.chatService.newChannelUser(id, pass, user.user_id);
 	}
 
