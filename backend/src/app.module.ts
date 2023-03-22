@@ -12,6 +12,10 @@ import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
 import { GameModule } from './models/game/socket';
+import { SessionConfigModule } from './config/session/config.module';
+import { FtConfigModule } from './config/ft/config.module';
+import { RedisConfigModule } from './config/redis/config.module';
+import { DevModule, EmptyModule } from './models/dev/dev.module';
 
 @Module({
   imports: [
@@ -24,6 +28,10 @@ import { GameModule } from './models/game/socket';
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
+    SessionConfigModule,
+    FtConfigModule,
+    RedisConfigModule,
+    process.env.NODE_ENV !== 'prod' ? DevModule : EmptyModule, // 개발용으로 사용하는 PATH 를 PRODUCTION MODE 에서 제외
   ],
   controllers: [AppController],
   providers: [
