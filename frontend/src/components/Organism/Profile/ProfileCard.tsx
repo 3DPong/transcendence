@@ -15,24 +15,26 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import { Skeleton } from '@mui/material';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import type { user_t } from '@/types/user';
+// import type { user_t } from '@/types/user';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import * as API from "@/api/API";
+import React from "react";
 
 interface profileProps {
-    profile? : user_t
+    userData? : API.GET_UserDataResponseFormat;
 }
 
 /**
  *  주의사항! 모든 사진은 1:1 비율되어야 한다. 
  */
-function ProfileMedia( { profile }: profileProps ) {
+const ProfileMedia = React.memo(( { userData }: profileProps ) => {
     return (
         <div className=" max-w-full h-72 p-5">
-            {profile ? (
+            {userData ? (
                 <LazyLoadImage
-                    src={profile.imgSrc}
-                    alt={profile.name}
-                    placeholderSrc={profile.imgSrc}
+                    src={userData.profile_url}
+                    alt={userData.nickname}
+                    placeholderSrc={userData.profile_url}
                     effect="blur"
                 />
             ) : (
@@ -45,14 +47,14 @@ function ProfileMedia( { profile }: profileProps ) {
             )}
         </div>
     );
-}
+});
 
-function ProfileInfo( { profile }: profileProps ) {
+function ProfileInfo( { userData }: profileProps ) {
     return (
         <div className=" max-w-full h-14 pl-5">
-            {profile ? (
+            {userData ? (
                 <Typography display="block" variant="h5" color="text.primary">
-                    {profile.name}
+                    {userData.nickname}
                 </Typography>
             ) : (
                 <Box sx={{ pt: 0.5 }}>
@@ -63,12 +65,12 @@ function ProfileInfo( { profile }: profileProps ) {
     );
 }
 
-export default function ProfileCard( { profile }: profileProps ) {
+export default function ProfileCard( { userData }: profileProps ) {
 
     return (
         <div className=" bg-slate-100">
-            <ProfileMedia profile={profile} />
-            <ProfileInfo profile={profile} />
+            <ProfileMedia userData={userData} />
+            <ProfileInfo userData={userData} />
         </div>
     );
 }

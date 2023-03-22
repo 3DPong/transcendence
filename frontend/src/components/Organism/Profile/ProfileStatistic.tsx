@@ -10,26 +10,23 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import type { userStatistic_t } from '@/types/user';
-import type { recentGames_t } from '@/types/user';
+// import type { userStatistic_t } from '@/types/user';
+// import type { recentGames_t } from '@/types/user';
 import { Skeleton } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import { FixedSizeList } from 'react-window';
 import { ListItem } from '@mui/material';
+import * as API from "@/api/API";
 
-interface profileStatisticProps {
-    statistic? : userStatistic_t,
-}
-
-const Row = ( props: { index: number, style: React.CSSProperties, data?: recentGames_t } ) => {
+const Row = ( props: { index: number, style: React.CSSProperties, data?: any } ) => {
 
     const { index, style, data } = props;
 
     return (
         <ListItem style={style} key={index} divider={true} sx={{display: "inline" /* flex 끄기 위함. */}}> 
             {data ? (
-                "test text here"
+                "Recent game result"
             ) : (
                 <Box sx={{ pt: 0.5 }}>
                     <Skeleton width="100%"/>
@@ -40,10 +37,10 @@ const Row = ( props: { index: number, style: React.CSSProperties, data?: recentG
 }
 
 interface statisticsListProps {
-    recentGames? : recentGames_t,
+    userData? : API.GET_UserDataResponseFormat,
 }
 
-function StatisticsList({ recentGames }: statisticsListProps ) {
+function StatisticsList({ userData }: statisticsListProps ) {
 
     const HEIGHT = 250;
 
@@ -63,7 +60,7 @@ function StatisticsList({ recentGames }: statisticsListProps ) {
                 itemSize={60}
                 itemCount={ 10 }
                 overscanCount={ 5 }
-                itemData={ recentGames }
+                itemData={ userData }
                 // Scrollbar css
                 className=" scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
             >
@@ -73,14 +70,25 @@ function StatisticsList({ recentGames }: statisticsListProps ) {
     );
 }
 
-export default function ProfileStatistic( { statistic }: profileStatisticProps ) {
+interface profileStatisticProps {
+    userData? : API.GET_UserDataResponseFormat,
+}
+
+export default function ProfileStatistic( { userData }: profileStatisticProps ) {
 
     return (
         <div className=" max-w-full">
-            <Box className=" p-5 bg-slate-50 border">
-                Total / Win / Lose
-            </Box>
-            <StatisticsList recentGames={ statistic?.recentGames } />
+            {userData ? (
+                <Box className=" p-5 bg-slate-50 border">
+                    {`total: ${userData.total} win: ${userData.wins} lose: ${userData.losses}`}
+                    {`level: ${userData.level}`}
+                </Box>
+            ) : (
+                <Box sx={{ pt: 0.5 }}>
+                    <Skeleton width="100%"/>
+                </Box>
+            )}
+            <StatisticsList userData={ userData } />
         </div>
     );
 }
