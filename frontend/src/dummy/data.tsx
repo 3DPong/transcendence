@@ -97,63 +97,44 @@ export const dummy_globalchatrooms:Room[] = [
   },
 ]
 
-import { userListData_t, eUserStatus } from '@/types/user';
 
+type status = 'friend' | 'block' | 'none';
+const statusArr: status[] = ['friend', 'block', 'none'];
 const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
-export const UserListDataDummy: userListData_t[] = [
-  {
-    profile: {
-      id: 0,
-      imgSrc: DUMMY_IMG,
-      name: "userA",
-    },
-    isBlocked: false,
-    status: eUserStatus.online,
-  },
-  {
-    profile: {
-      id: 1,
-      imgSrc: DUMMY_IMG,
-      name: "userB",
-    },
-    isBlocked: false,
-    status: eUserStatus.offline,
-  },
-  {
-    profile: {
-      id: 2,
-      imgSrc: DUMMY_IMG,
-      name: "userC",
-    },
-    isBlocked: true,
-    status: eUserStatus.offline,
-  },
-  {
-    profile: {
-      id: 3,
-      imgSrc: DUMMY_IMG,
-      name: "userD",
-    },
-    isBlocked: false,
-    status: eUserStatus.online,
-  },
-];
-
-// Create Dummy Data
-export const createDummyUserListData = (initialCount: number) => {
-  const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
-  let users = new Array<userListData_t>();
-  while (initialCount > 0) {
-    users.push({
-      profile: {
-        id: initialCount + 500,
-        imgSrc: DUMMY_IMG,
-        name: "user" + initialCount.toString(),
-      },
-      isBlocked: false,
-      status: initialCount % 2,
-    });
-    --initialCount;
-  }
-  return users;
+function staticFunc() {
+  let static_num = 0;
+  return function num(_searchString: string) {
+    ++static_num;
+    return {
+      user_id: _searchString.charCodeAt(0) + static_num,
+      nickname: _searchString + static_num.toString(),
+      profile_url: DUMMY_IMG,
+      status: statusArr[static_num % 3],
+    };
+  };
 };
+const createUserDummyDataByNickname = staticFunc();
+
+export const createUsersDummyByString = (str: string, size: number) => {
+  let arr = [];
+  while (size > 0) {
+    arr.push(createUserDummyDataByNickname(str));
+    --size;
+  }
+  return arr;
+}
+
+import { GET_RelationResponseFormat } from '@/api/API';
+
+export const UserFriendRelationsDummyData: GET_RelationResponseFormat = {
+  relations: [
+    {target_id: 0, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 1, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 2, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 3, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 4, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 5, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 6, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+    {target_id: 7, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
+  ]
+}
