@@ -1,8 +1,7 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4} from 'uuid';
-import { GameModEnum } from '../enum/gameModEnum';
-import { GameRoomTypeEnum } from '../enum/gameRoomTypeEnum';
+import { GameModEnum, GameRoomTypeEnum } from '../simul/enum/GameEnum';
 import { GameRoom } from '../gameRoom';
 import { createMatchDto } from '../game_dto/createMatch.dto';
 import { Player } from '../player';

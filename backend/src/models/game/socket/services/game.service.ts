@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io'
-import { GameModEnum } from '../../enum/gameModEnum';
-import { GameRoomTypeEnum } from '../../enum/gameRoomTypeEnum';
+import { GameModEnum,GameRoomTypeEnum } from '../../simul/enum/GameEnum';
 import { v4 as uuidv4} from 'uuid';
 import { GameRoom } from '../../gameRoom';
 import { Player } from '../../player';

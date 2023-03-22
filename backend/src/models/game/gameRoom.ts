@@ -1,5 +1,5 @@
-import { GameModEnum } from "./enum/gameModEnum";
-import { GameRoomTypeEnum } from "./enum/gameRoomTypeEnum";
+import { GameModEnum } from "./simul/enum/GameEnum";
+import { GameRoomTypeEnum } from "./simul/enum/GameEnum";
 import { Player } from "./player";
 
 export class GameRoom {
