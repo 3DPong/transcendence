@@ -1,11 +1,13 @@
 import * as Box2D from "@box2d";
 import * as testbed from "@testbed";
 import { MAP_HEIGHT, MAP_WIDTH} from "../gameEnv/GameEnv.js";
+import { PaddleState } from "./GameEnum.js";
+import { GameUser } from "./GameUser.js";
 import { ObjectFactory } from "./object/ObjectFactory.js";
 
 
-function BallSpeedCorrection(ball : Box2D.Body){
-  const afterVelocity : number = 6000;
+function BallSpeedCorrection(ball : Box2D.Body, speed: number){
+  const afterVelocity : number = speed;
   const beforeVelocity : number = ball.GetLinearVelocity().LengthSquared();
   const vel : Box2D.Vec2 = ball.GetLinearVelocity().Clone();
   const coefficient : number = Math.sqrt(afterVelocity/ beforeVelocity);
@@ -43,33 +45,25 @@ function ContactListenerInit(world: Box2D.World){
       const Ashape : Box2D.Fixture = contact.GetFixtureA();
       const Bshape : Box2D.Fixture = contact.GetFixtureB();
       const ball : Box2D.Body = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
-      BallSpeedCorrection(ball);
+      BallSpeedCorrection(ball, 5000);
       //console.log('call contactListener postsolve');
     }
-
-    
-}
-export enum PaddleState{
-  UP,
-  DOWN,
-  STOP,
 }
 
 
-function MovePeddle(paddle : Box2D.Body, paddleState :PaddleState){
-  const pos : Box2D.Vec2 = paddle.GetPosition();
-  if (paddleState === PaddleState.UP){
-    if (pos.y > 23){
-      return;
-    }
-    paddle.SetPositionXY(pos.x, pos.y + 1);
-  } else if (paddleState === PaddleState.DOWN){
-    if (pos.y < -23){
-      return;
-    }
-    paddle.SetPositionXY(pos.x, pos.y - 1);
-  } else {
-    return ;
+function MovePeddle(user : GameUser){
+  if (user.directionButton === PaddleState.STOP) {
+    return;
+  }
+  const pos : Box2D.Vec2 = user.paddle.GetPosition();
+  let dir : PaddleState = user.directionButton;
+  if (user.directionReverse){
+    dir = user.directionButton === PaddleState.UP ? PaddleState.DOWN : PaddleState.UP;
+  }
+  if (dir === PaddleState.UP && pos.y <= 23){
+    user.paddle.SetPositionXY(pos.x, pos.y + 1);
+  } else if (dir === PaddleState.DOWN && pos.y >= -23){
+    user.paddle.SetPositionXY(pos.x, pos.y - 1);
   }
 }
 
@@ -77,10 +71,8 @@ export class GameSimulator extends testbed.Test {
   //public world : Box2D.World = new Box2D.World(new Box2D.Vec2());
   public objectFactory : ObjectFactory = new ObjectFactory();
   private ball : Box2D.Body;
-  private leftPaddle : Box2D.Body;
-  private rightPaddle : Box2D.Body;
-  private leftButton : PaddleState = PaddleState.STOP;
-  private rightButton : PaddleState = PaddleState.STOP;
+  private user1: GameUser;
+  private user2: GameUser;
 
   constructor(){
     super();
@@ -88,9 +80,10 @@ export class GameSimulator extends testbed.Test {
       this.m_world.SetGravity(new Box2D.Vec2(0,0));//무중력
       this.ball = this.objectFactory.createBall(this.m_world);
       this.objectFactory.createGround(this.m_world);
-      this.leftPaddle = this.objectFactory.createPaddle(this.m_world, -43, 0, "player1");//left
-      this.rightPaddle =  this.objectFactory.createPaddle(this.m_world, 43, 0, "player2");//right
+      this.user1 = new GameUser(this.objectFactory.createPaddle(this.m_world, -43, 0, "player1"));
+      this.user2 = new GameUser(this.objectFactory.createPaddle(this.m_world, 43, 0, "player2"))
       this.objectFactory.createObstacle(this.m_world);
+      BallSpeedCorrection(this.ball, 2000);
       ContactListenerInit(this.m_world);
       //start : ball velocity init
       this.ball.SetLinearVelocity(new Box2D.Vec2(50,40));
@@ -99,16 +92,22 @@ export class GameSimulator extends testbed.Test {
   public Keyboard(key: string) {
     switch (key) {
       case 'w':
-        this.leftButton = PaddleState.UP;
+        this.user1.directionButton = PaddleState.UP;
       break;
       case 's':
-        this.leftButton = PaddleState.DOWN;
+        this.user1.directionButton = PaddleState.DOWN;
+      break;
+      case 'q':
+        this.user1.skill.ReverseEnemyPaddleDirection(this.user2);
       break;
       case 'u':
-        this.rightButton = PaddleState.UP;
+        this.user2.directionButton = PaddleState.UP;
       break;
       case 'j':
-        this.rightButton = PaddleState.DOWN;
+        this.user2.directionButton = PaddleState.DOWN;
+      break;
+      case 'y':
+        this.user2.skill.ReverseEnemyPaddleDirection(this.user1);
       break;
     }
   }
@@ -116,16 +115,16 @@ export class GameSimulator extends testbed.Test {
   public KeyboardUp(key: string) {
     switch (key) {
       case 'w':
-        this.leftButton = PaddleState.STOP;
+        this.user1.directionButton = PaddleState.STOP;
       break;
       case 's':
-        this.leftButton = PaddleState.STOP;
+        this.user1.directionButton = PaddleState.STOP;
       break;
       case 'u':
-        this.rightButton = PaddleState.STOP;
+        this.user2.directionButton = PaddleState.STOP;
       break;
       case 'j':
-        this.rightButton = PaddleState.STOP;
+        this.user2.directionButton = PaddleState.STOP;
       break;
     }
   }
@@ -134,15 +133,11 @@ export class GameSimulator extends testbed.Test {
     if (this.ball.GetUserData().pause){
       this.ball.SetPositionXY(0,0);
       this.ball.GetUserData().pause = false;
+      BallSpeedCorrection(this.ball, 2000);
       //Todo : MatchScore 확인 하고 종료
     }
-    //console.log('ball AngularVelocity : ', this.ball.GetAngularVelocity(), 'ball Velocity', this.ball.GetLinearVelocity());
-    //BallSpeedCorrection(this.ball);
-    if (this.leftButton !== PaddleState.STOP){
-      MovePeddle(this.leftPaddle, this.leftButton);
-    } else if (this.rightButton !== PaddleState.STOP) {
-      MovePeddle(this.rightPaddle, this.rightButton);
-    }
+    MovePeddle(this.user1);
+    MovePeddle(this.user2);
     testbed.g_debugDraw.DrawString(
       5, this.m_textLine, "Keys: (w) p1_up, (s) p1_down, (u) p2_up, (j) p2_down"
     );
