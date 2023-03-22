@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { CreateUserResDto, GetUserResDto, CreateUserReqDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
 import { UserService } from './services';
-import { UserCreationGuard } from '../../../common/guards/signup.guard.ts/userCreation.guard';
+import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
 import { SessionGuard } from '../../../common/guards/session/session.guard';
 import { GetSessionData } from '../../../common/decorators';
 import { Request } from 'express';
