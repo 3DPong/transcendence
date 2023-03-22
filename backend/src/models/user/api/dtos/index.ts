@@ -3,3 +3,7 @@ export * from './createUserResDto';
 export * from './createUserReqDto';
 export * from './updateUserReqDto';
 export * from './updateUserResDto';
+export * from './getUserRelationResDto';
+export * from './updateUserRelationResDto';
+export * from './updateUserRelationReqDto';
+export * from './userRelationDto';
