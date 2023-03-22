@@ -48,6 +48,8 @@ export declare class Main {
     ToggleDemo(): void;
     SimulationLoop(time: number): void;
 }
+import "./tests/ts_Demo/simul/GameEnum.js";
+import "./tests/ts_Demo/simul/GameSkill.js";
 import "./tests/ts_Demo/gameEnv/GameEnv.js";
 import "./tests/ts_Demo/simul/GameSimulator.js";
 import "./tests/ts_Demo/simul/object/InGameObjectData.js";

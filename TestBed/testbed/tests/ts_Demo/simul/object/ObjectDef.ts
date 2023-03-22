@@ -21,7 +21,7 @@ export class BallDef extends ObjectDefBase{
     super();
     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
     this.objectBodyDef.userData = new InGameData("ball", ObjectType.BALL);
-    this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0,0),2);
+    this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0,0),1);
     this.objectFixtureDef.density = 1000;
     this.objectFixtureDef.friction = 0 // temp
     this.objectFixtureDef.restitution = 1;
@@ -71,7 +71,7 @@ export class PinDef extends ObjectDefBase {
     this.objectBodyDef.position.Set(posX, posY); //temp
     this.objectFixtureDef.shape = new Box2D.CircleShape();
     this.objectFixtureDef.density = 1000;
-    this.objectFixtureDef.friction = 0 // temp
+    this.objectFixtureDef.friction = 0; // temp
     this.objectFixtureDef.isSensor = true;
   }
 }
@@ -81,7 +81,6 @@ export class RectangleDef extends ObjectDefBase {
     super();
     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
     this.objectBodyDef.position.Set(posX, posY);//temp
-
     this.objectFixtureDef.shape = new Box2D.PolygonShape().SetAsBox(2,1);
     this.objectFixtureDef.friction = 0;
     this.objectFixtureDef.restitution = 1;

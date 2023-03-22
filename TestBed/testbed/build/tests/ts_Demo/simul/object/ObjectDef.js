@@ -33,7 +33,7 @@ System.register(["@box2d", "../../gameEnv/GameEnv.js", "./InGameObjectData.js"],
                     super();
                     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
                     this.objectBodyDef.userData = new InGameObjectData_js_1.InGameData("ball", ObjectType.BALL);
-                    this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0, 0), 2);
+                    this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0, 0), 1);
                     this.objectFixtureDef.density = 1000;
                     this.objectFixtureDef.friction = 0; // temp
                     this.objectFixtureDef.restitution = 1;

@@ -41,6 +41,7 @@ System.register(["@box2d", "./ObjectDef.js"], function (exports_1, context_1) {
                     pin1.CreateFixture(pindef1.objectFixtureDef);
                     const rectangleDef1 = new ObjectDef_js_1.RectangleDef(0, 16);
                     const rect1 = world.CreateBody(rectangleDef1.objectBodyDef);
+                    rect1.SetLinearVelocity(new Box2D.Vec2(100, 80));
                     rect1.CreateFixture(rectangleDef1.objectFixtureDef);
                     const jd1 = new Box2D.DistanceJointDef();
                     jd1.Initialize(pin1, rect1, pin1.GetPosition(), rect1.GetPosition());
@@ -52,6 +53,7 @@ System.register(["@box2d", "./ObjectDef.js"], function (exports_1, context_1) {
                     const rectangleDef2 = new ObjectDef_js_1.RectangleDef(0, -16);
                     const rect2 = world.CreateBody(rectangleDef2.objectBodyDef);
                     rect2.CreateFixture(rectangleDef2.objectFixtureDef);
+                    rect2.SetLinearVelocity(new Box2D.Vec2(-100, -80));
                     const jd2 = new Box2D.DistanceJointDef();
                     jd2.Initialize(pin2, rect2, pin2.GetPosition(), rect2.GetPosition());
                     jd2.collideConnected = true;

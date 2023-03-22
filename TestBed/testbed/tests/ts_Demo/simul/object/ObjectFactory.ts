@@ -43,6 +43,7 @@ export class ObjectFactory {
 
     const rectangleDef1 : RectangleDef = new RectangleDef(0,16);
     const rect1 : Box2D.Body = world.CreateBody(rectangleDef1.objectBodyDef);
+    rect1.SetLinearVelocity(new Box2D.Vec2(100,80));
     rect1.CreateFixture(rectangleDef1.objectFixtureDef);
 
     const jd1 = new Box2D.DistanceJointDef();
@@ -58,7 +59,7 @@ export class ObjectFactory {
     const rectangleDef2 : RectangleDef = new RectangleDef(0,-16);
     const rect2 : Box2D.Body = world.CreateBody(rectangleDef2.objectBodyDef);
     rect2.CreateFixture(rectangleDef2.objectFixtureDef);
-
+    rect2.SetLinearVelocity(new Box2D.Vec2(-100,-80));
     const jd2 = new Box2D.DistanceJointDef();
     jd2.Initialize(pin2, rect2, pin2.GetPosition(), rect2.GetPosition());
     jd2.collideConnected = true;
