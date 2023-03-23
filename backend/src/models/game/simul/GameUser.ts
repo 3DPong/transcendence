@@ -1,5 +1,5 @@
-import { PaddleState } from "./GameEnum.js";
-import * as Box2D from "@box2d";
+import { PaddleState } from "./enum/GameEnum";
+import * as Box2D from "../Box2D";
 import { GameSkill } from "./GameSkill.js";
 
 export class GameUser{

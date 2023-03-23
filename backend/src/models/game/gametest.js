@@ -31,8 +31,8 @@ const onKeyUp = (event) => {
   switch(event.key)
   {
   case "q":
-      socket.emit('test', { test: 'test'});  
-      socket.emit('test', socket.id);
+      //socket.emit('broadcast', { test: 'test'});  
+      socket.emit('broadcast', socket.id);
       break;
   case "a":
       //...
@@ -103,4 +103,7 @@ socket.on('gameStart', (data)=>{
 })
 socket.on('gameExit', (data)=>{
     console.log('player is exit game!',data);
+})
+socket.on('broadcast', (data)=>{
+    console.log('socket recvie other data : ',data);
 })

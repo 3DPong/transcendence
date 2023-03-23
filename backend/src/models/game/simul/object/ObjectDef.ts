@@ -1,5 +1,5 @@
-import * as Box2D from "@box2d";
-import { MAP_HEIGHT, MAP_WIDTH } from "../../gameEnv/GameEnv.js";
+import * as Box2D from "../../Box2D";
+import { MAP_HEIGHT, MAP_WIDTH } from "../enum/GameEnv";
 import {InGameData } from "./InGameObjectData.js";
 
 export enum ObjectType{

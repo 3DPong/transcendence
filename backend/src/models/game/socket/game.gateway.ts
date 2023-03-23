@@ -29,10 +29,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('socket disconnet');
   }
 
-  @SubscribeMessage('test')
+  @SubscribeMessage('broadcast')
   async socketStats(@MessageBody() data: any,) : Promise<any> {
     console.log(data);
-    this.server.emit('test', data);
     return data;
   }
 
@@ -90,12 +89,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
       const gameSimulator : GameSimulator = new GameSimulator();
-      async () => {
-        console.log("simul start");
-        while (true){
-          await gameSimulator.step();
-        }
-      }
+      console.log("simul start");
+      gameSimulator.step();
   }
 /*
   @SubscribeMessage('inChatMatch')

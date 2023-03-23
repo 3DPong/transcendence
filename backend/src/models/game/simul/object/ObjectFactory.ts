@@ -1,4 +1,4 @@
-import * as Box2D from "@box2d";
+import * as Box2D from "../../Box2D";
 import { BallDef, GroundDef, ItemDef, PaddleDef, PinDef, RectangleDef } from "./ObjectDef.js";
 
 export class ObjectFactory {
