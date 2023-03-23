@@ -6,6 +6,7 @@ import { Factory } from 'nestjs-seeder';
 export enum ChannelUserRoles {
   USER = 'user',
   ADMIN = 'admin',
+  OWNER = 'owner',
 }
 
 @Entity()
