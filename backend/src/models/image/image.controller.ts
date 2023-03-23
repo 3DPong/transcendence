@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Post,
-  Res,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ImageServeService, ImageUploadService } from './services';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionGuard } from '../../common/guards/session/session.guard';
@@ -16,16 +6,10 @@ import { CreateFileValidationPipe } from '../../common/pipes';
 import { diskStorage } from 'multer';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { Response } from 'express';
-import { ImageConfigService } from '../../config/image/config.service';
-import * as fs from 'fs';
 
 @Controller('image')
 export class ImageController {
-  constructor(
-    private imageServeService: ImageServeService,
-    private imageUploadService: ImageUploadService,
-    private imageConfigService: ImageConfigService
-  ) {}
+  constructor(private imageServeService: ImageServeService, private imageUploadService: ImageUploadService) {}
 
   @Post('/')
   @UseGuards(SessionGuard)
@@ -52,14 +36,7 @@ export class ImageController {
    */
   @Get('/:filename')
   @UseGuards(SessionGuard)
-  async serveImage(@Param('filename') filename: string, @Res() res: Response) {
-    const filePath = __dirname + '/../../../' + this.imageConfigService.StoragePath + '/' + filename;
-    const fileExists = fs.existsSync(filePath);
-
-    if (fileExists) {
-      res.sendFile(filePath, { root: '/' });
-    } else {
-      throw new NotFoundException('not exists');
-    }
+  serveImage(@Param('filename') filename: string, @Res() res: Response): void {
+    return this.imageServeService.serveImage(filename, res);
   }
 }
