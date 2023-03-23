@@ -6,7 +6,7 @@ import * as API from "@/api/API";
 
 interface GlobalContextProps {
 // user id (Logged User)
-    loggedUserId: number;
+    loggedUserId?: number;
     setLoggedUserId: (id: number) => void;
 // chat list
     user: User | undefined;

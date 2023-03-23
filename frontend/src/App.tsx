@@ -27,19 +27,21 @@ import useArray from '@/utils/CustomHooks/useArray';
 import { Room, User } from '@/types/chat';
 import { friendData_t } from './types/user';
 import { UserFriendRelationsDummyData } from '@/dummy/data';
+import { SignIn } from './components/Organism/Start/SignIn';
+import { SignUp } from './components/Organism/Start/SignUp';
 
 const router = createBrowserRouter([ 
     // ----------------------------------------------------
     // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
     // ----------------------------------------------------
     { // home. 버튼은 login 42 button 하나만 넣어주면 됨.
-        path: "/",
-        element: <LogInForm />,
+        path: "/signin",
+        element: <SignIn />,
         errorElement: <ErrorPage />
     },
     { // 회원 가입 (프로필 설정)
-        path: "/signin",
-        element: <SignInForm />,
+        path: "/signup",
+        element: <SignUp />,
         errorElement: <ErrorPage />
     }, 
     // ----------------------------------------------------
@@ -51,7 +53,7 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />
     },
     { // 홈화면 (로그인 후)
-        path: "/home",
+        path: "/",
         element: <L0Template organism={ <Controller /> } />,
         errorElement: <ErrorPage />,
         children: [
@@ -110,7 +112,7 @@ function App() {
     // GLOBAL CONTEXTS
     // ---------------------------------------------------------------------------
     // Logged User Id (on Login) --> should we store this to Session Storage? Should we encripten this data?
-    const [ loggedUserId, setLoggedUserId ] = useState<number>(0);
+    const [ loggedUserId, setLoggedUserId ] = useState<number>();
     // Chat Rooms
     const [ user, setUser ] = useState<User>();
     const [ rooms, setRooms ] = useState<Room[]>([]);
