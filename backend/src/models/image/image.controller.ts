@@ -34,12 +34,16 @@ export class ImageController {
       storage: diskStorage({
         destination: process.env.IMAGE_STORAGE_PATH, // fixme: 쿨하지는 않은데 어쩔 수 없는듯...
         filename: (req, file, callback) => {
-          callback(null, randomStringGenerator() + '.jpg');
+          const extension = file.originalname.split('.').pop();
+          const extensionResult = extension === 'jpg' || extension === 'jpeg' ? '.jpg' : '.png';
+          callback(null, randomStringGenerator() + extensionResult);
         },
       }),
     })
   )
-  async uploadImage(@UploadedFile(CreateFileValidationPipe(5000, 'image/jpeg')) file: Express.Multer.File) {
+  async uploadImage(
+    @UploadedFile(CreateFileValidationPipe(5000, RegExp('^image\\/(jpeg|png)$'))) file: Express.Multer.File
+  ) {
     return await this.imageUploadService.getSavedFileURL(file);
   }
 
