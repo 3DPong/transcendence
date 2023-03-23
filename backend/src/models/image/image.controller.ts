@@ -1,4 +1,14 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ImageServeService, ImageUploadService } from './services';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionGuard } from '../../common/guards/session/session.guard';
@@ -7,6 +17,7 @@ import { diskStorage } from 'multer';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { Response } from 'express';
 import { ImageConfigService } from '../../config/image/config.service';
+import * as fs from 'fs';
 
 @Controller('image')
 export class ImageController {
@@ -38,6 +49,13 @@ export class ImageController {
   @Get('/:filename')
   @UseGuards(SessionGuard)
   async serveImage(@Param('filename') filename: string, @Res() res: Response) {
-    res.sendFile(this.imageConfigService.StoragePath + filename, { root: __dirname + '/../../../' }); // fixme: 조금 더 쿨한 방법으로 해결할 수 있을까?
+    const filePath = __dirname + '/../../../' + this.imageConfigService.StoragePath + '/' + filename;
+    const fileExists = fs.existsSync(filePath);
+
+    if (fileExists) {
+      res.sendFile(filePath, { root: '/' });
+    } else {
+      throw new NotFoundException('not exists');
+    }
   }
 }
