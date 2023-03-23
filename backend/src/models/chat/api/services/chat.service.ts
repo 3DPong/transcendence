@@ -5,7 +5,7 @@ import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { User } from 'src/models/user/entities/user.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { ChannelDto, PasswordDto } from '../dto/create-channel.dto';
+import { ChannelDto, JoinDto } from '../dto/create-channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
 
@@ -221,8 +221,9 @@ export class ChatService {
 		3. 일반 유저 권한으로 해탕 채널에 참여하기 위해 channelUser DB 에 삽입 
 	
 	*/
-	async joinChannelUser(channel_id: number, pd: PasswordDto, user_id: number) : Promise <ChannelUser> {
+	async joinChannelUser(joinDto: JoinDto, user_id: number) : Promise <ChannelUser> {
 
+		const { channel_id, password } = joinDto;
 		const channel = await this.channelRepository.findOne({where :{channel_id}});
 		if (!channel)
 			throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
@@ -241,7 +242,7 @@ export class ChatService {
 			case ChannelType.DM:
 				throw new UnauthorizedException('No permission!');
 			case ChannelType.PROTECTED:
-				if (!(await bcrypt.compare(pd.password, channel.password))) {
+				if (!(await bcrypt.compare(password, channel.password))) {
 					throw new UnauthorizedException('Wrong password!');
 				}
 			default:

@@ -1,6 +1,6 @@
 import { Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query,Body, Controller, Post} from '@nestjs/common';
 import { ChatChannel } from '../entities/chatChannel.entity';
-import { ChannelDto, PasswordDto} from './dto/create-channel.dto';
+import { ChannelDto, JoinDto} from './dto/create-channel.dto';
 import { Request, Response } from "express";
 import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services/chat.service';
@@ -74,10 +74,10 @@ export class ChatController {
 		return this.chatService.updateChatRoom(id, channelDto, user);
 	}
 	
-	@Post("/:id/join")
-	async joinChannelUser(@Param('id', ParseIntPipe) id: number, @Body() pass: PasswordDto) : Promise <ChannelUser> {
+	@Post("/join")
+	async joinChannelUser(@Body() joinDto: JoinDto) : Promise <ChannelUser> {
 		const user = await this.userService.getUser(76);
-		return this.chatService.joinChannelUser(id, pass, user.user_id);
+		return this.chatService.joinChannelUser(joinDto, user.user_id);
 	}
 
 	@Put("/:id/out")
