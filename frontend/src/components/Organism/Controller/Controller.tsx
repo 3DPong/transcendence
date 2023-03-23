@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 21:34:04 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 17:01:33 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ export default function Controller() {
                 <List sx={{padding:0, margin:0}}>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.PROFILE) ? "/profile" : "/"}
+                            to={ (clickState !== eClickedBtn.PROFILE) ? "./profile" : "/home"}
                             tooltipTitle="Profile"
                             children={<AccountBox fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.PROFILE)}
@@ -68,7 +68,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.FRIENDS) ? "/friends" : "/"}
+                            to={ (clickState !== eClickedBtn.FRIENDS) ? "./friends" : "/home"}
                             tooltipTitle="Friends"
                             children={<Group fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
@@ -77,7 +77,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.ROOMS) ? "/rooms" : "/"}
+                            to={ (clickState !== eClickedBtn.ROOMS) ? "./rooms" : "/home"}
                             tooltipTitle="Rooms"
                             children={<Chat fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.ROOMS)}
@@ -86,7 +86,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.SETTINGS) ? "/settings" : "/"}
+                            to={ (clickState !== eClickedBtn.SETTINGS) ? "./settings" : "/home"}
                             tooltipTitle="Settings"
                             children={<Settings fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.SETTINGS)}

@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/18 15:28:53 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/21 06:07:14 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 16:56:48 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Divider from "@mui/material/Divider";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import GlobalContext from "@/context/GlobalContext";
 import { friendData_t, globalUserData_t } from "@/types/user";
 import { Assert } from "@/utils/Assert";
@@ -33,14 +33,25 @@ export default function UserActionMenu({user}: userActionMenuProps) {
   const { setFriends } = useContext(GlobalContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const currentUrl = useLocation().pathname;
 
   // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const navigate = useNavigate();
 
   // 프로필 보기 버튼
-  const handleProfileRoute = () => {
+  const handleProfileRoute = (currentUrl: string) => {
     setAnchorEl(null);
-    navigate(`/friends/${user.user_id}`);
+    // curr URL 1 = /home/friends
+    // curr URL 2 = /home/friends/add
+    const index = currentUrl.lastIndexOf("/")
+    const substr = currentUrl.substring(index + 1);
+    let urlTo;
+    if (substr === "friends") {
+      urlTo = "../";
+    } else {
+      urlTo = "./";
+    }
+    navigate(urlTo + `${user.user_id}`);
   };
 
   // DM 보내기 버튼
@@ -76,6 +87,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
 
   return (
     <div>
@@ -130,7 +142,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         {/* show profile route */}
-        <MenuItem onClick={handleProfileRoute} children={"See profile"} disableRipple />
+        <MenuItem onClick={ () => handleProfileRoute(currentUrl) } children={"See profile"} disableRipple />
 
         <Divider sx={{ my: 0.5 }} />
 

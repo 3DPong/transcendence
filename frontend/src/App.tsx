@@ -109,7 +109,7 @@ function App() {
 
     // GLOBAL CONTEXTS
     // ---------------------------------------------------------------------------
-    // Logged User Id (on Login)
+    // Logged User Id (on Login) --> should we store this to Session Storage? Should we encripten this data?
     const [ loggedUserId, setLoggedUserId ] = useState<number>(0);
     // Chat Rooms
     const [ user, setUser ] = useState<User>();
