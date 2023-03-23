@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/23 17:01:33 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 22:11:09 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import ListItemButtonLink from "@/components/Molecule/Link/ListItemButtonLink";
 import { AccountBox, Group, Chat, Settings } from "@mui/icons-material";
+import GlobalContext from "@/context/GlobalContext";
+import { useNavigate } from "react-router";
 
 export enum eClickedBtn {
     NONE,
@@ -31,6 +33,19 @@ export enum eClickedBtn {
 export default function Controller() {
 
     const [clickState, setClickState] = React.useState<eClickedBtn>(0);
+    const { loggedUserId } = React.useContext(GlobalContext);
+
+    // ---------------------------------------------------------------
+    // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
+    // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
+    const navigate = useNavigate();
+    React.useEffect(() => {
+        if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
+            alert("no login info. redirecting to signin page...");
+            navigate("/signin");
+        }
+    }, []);
+    // ---------------------------------------------------------------
 
     const toggleClickState = (srcState: eClickedBtn) => {
         setClickState( (clickState !== srcState) ? srcState : eClickedBtn.NONE);
