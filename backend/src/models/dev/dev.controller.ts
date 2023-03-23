@@ -13,8 +13,13 @@ export class DevController {
    * 로그인이 되어있는 세션을 획득함.
    */
   @Get('/session/signin')
-  async getSignInSession(@Req() req: Request, @Query('email') email: string, @Query('nickname') nickname: string) {
-    return this.devService.getSignInSession(req, email, nickname);
+  async getSignInSession(
+    @Req() req: Request,
+    @Query('email') email: string,
+    @Query('nickname') nickname: string,
+    @Query('userid') userId: number
+  ) {
+    return this.devService.getSignInSession(req, email, nickname, userId);
   }
 
   /**
