@@ -29,4 +29,12 @@ export class DevController {
   async getSignUpSession(@Req() req: Request, @Query('email') email: string) {
     return this.devService.getSignUpSession(req, email);
   }
+
+  /**
+   * 2FA 가능한 세션을 획득함.
+   */
+  @Get('/session/2fa')
+  async getTwoFactorSession(@Req() req: Request) {
+    return this.devService.getTwoFactorSession(req);
+  }
 }
