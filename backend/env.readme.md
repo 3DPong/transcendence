@@ -59,3 +59,10 @@
     - **FT_CALLBACK**
         - api redirection uri
         - `/auth/redirect/42`
+
+### IMAGE
+**image 저장 디렉토리 지정을 위함**
+- **IMAGE_STORAGE_PATH**
+  - `storage/images`
+  - `{저장하고싶은 경로}`
+  - 실제 저장 경로 `/backend/{해당 경로}`
