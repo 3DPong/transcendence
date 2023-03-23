@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 19:51:23 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/14 21:47:50 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 16:58:57 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,8 +80,7 @@ export default function ProfileStatistic( { userData }: profileStatisticProps ) 
         <div className=" max-w-full">
             {userData ? (
                 <Box className=" p-5 bg-slate-50 border">
-                    {`total: ${userData.total} win: ${userData.wins} lose: ${userData.losses}`}
-                    {`level: ${userData.level}`}
+                    {`Total:${userData.total} Win:${userData.wins} Lose:${userData.losses} Level:${userData.level}`}
                 </Box>
             ) : (
                 <Box sx={{ pt: 0.5 }}>

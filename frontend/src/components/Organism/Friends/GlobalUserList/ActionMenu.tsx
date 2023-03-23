@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/18 15:28:53 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/21 06:05:30 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 16:57:47 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
   // 프로필 보기 버튼
   const handleProfileRoute = () => {
     setAnchorEl(null);
-    navigate(`/friends/add/${user.user_id}`); // L3 Template
+    navigate(`./${user.user_id}`); // L3 Template
   };
 
   // DM 보내기 버튼
