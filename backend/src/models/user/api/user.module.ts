@@ -10,6 +10,7 @@ import { UserCreationStrategy } from '../../../common/guards/userCreation/userCr
 import { UserRelationController } from './userRelation.controller';
 import { UserRelationService } from './services/userRelation.service';
 import { SessionService } from '../../../common/session/session.service';
+import { TwoFactorService } from './services/twoFactor.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, UserRelation])],
@@ -22,6 +23,7 @@ import { SessionService } from '../../../common/session/session.service';
     SessionStrategy,
     UserCreationGuard,
     UserCreationStrategy,
+    TwoFactorService,
   ],
 })
 export class UserModule {}
