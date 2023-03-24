@@ -15,9 +15,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       load: [configuration],
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'prod').required(),
-        FT_CLIENT: Joi.string(),
-        FT_SECRET: Joi.string(),
-        FT_CALLBACK: Joi.string(),
+        FT_CLIENT: Joi.string().required(),
+        FT_SECRET: Joi.string().required(),
+        FT_CALLBACK: Joi.string().required(),
       }),
     }),
   ],
