@@ -9,6 +9,8 @@
  *    이것만 상태 지우고 강제 refresh(window.reload())하면 된다.
  */
 
+// https://mui.com/material-ui/react-dialog/
+
 export function Setting() {
     return (
         <div>

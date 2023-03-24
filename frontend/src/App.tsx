@@ -54,6 +54,7 @@ const router = createBrowserRouter([
     { // 홈화면 (로그인 후)
         path: "/",
         element: <L0Template organism={ <Controller /> }/>,
+        // element: <L0Template organism={<div>test</div>}/>,
         errorElement: <ErrorPage />,
         children: [
             {

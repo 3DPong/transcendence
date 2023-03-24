@@ -39,8 +39,8 @@ export default function LocalUserList() {
             </div> 
 
             {/*  */}
-            <div className=" border m-0 p-4">
-                <SearchTextField state={searchString} setState={setSearchString} placeholder={"친구 찾기"}/>
+            <div className=" border m-0 p-4 pr-8 pb-6">
+                <SearchTextField state={searchString} setState={setSearchString} label={"친구 찾기"}/>
             </div>
 
             {/*  */}
