@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/23 22:11:09 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 16:36:22 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ import ListItemButtonLink from "@/components/Molecule/Link/ListItemButtonLink";
 import { AccountBox, Group, Chat, Settings } from "@mui/icons-material";
 import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router";
+import * as API from "@/api/API";
+import { Assert } from "@/utils/Assert";
 
 export enum eClickedBtn {
     NONE,
@@ -40,10 +42,23 @@ export default function Controller() {
     // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
     const navigate = useNavigate();
     React.useEffect(() => {
+
+        // 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
+
+
         if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
             alert("no login info. redirecting to signin page...");
             navigate("/signin");
+            return;
         }
+        Assert.NonNullish(loggedUserId);
+        (async () => {
+            const response = await API.getUserDataById(loggedUserId);
+            // 400 Bad request : 대부분 dto. API call이 잘못된 거임.
+            // 401은 무조건 세션비전상.
+            // 409는 로그인 후 다른 창에서 또 접속할 경우 --> 내가 "이미 접속된 유저입니다." 라고 띄워줘야함
+        })(/* IIFE */);
+
     }, []);
     // ---------------------------------------------------------------
 

@@ -1,9 +1,7 @@
 
 import { useState } from 'react';
-import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { LogInForm } from "@/components/Organism/Form/LoginForm";
-import { SignInForm } from '@/components/Organism/Form/SigninForm';
 import { ErrorPage } from '@/components/ErrorPage'
 
 import L0Template from "@/components/L0Template";
@@ -27,8 +25,9 @@ import useArray from '@/utils/CustomHooks/useArray';
 import { Room, User } from '@/types/chat';
 import { friendData_t } from './types/user';
 import { UserFriendRelationsDummyData } from '@/dummy/data';
-import { SignIn } from './components/Organism/Start/SignIn';
-import { SignUp } from './components/Organism/Start/SignUp';
+import { SignIn } from './components/Organism/Login/SignIn';
+import { SignUp } from './components/Organism/Login/SignUp';
+import { Setting } from './components/Organism/Setting/Setting';
 
 const router = createBrowserRouter([ 
     // ----------------------------------------------------
@@ -54,7 +53,7 @@ const router = createBrowserRouter([
     },
     { // 홈화면 (로그인 후)
         path: "/",
-        element: <L0Template organism={ <Controller /> } />,
+        element: <L0Template organism={ <Controller /> }/>,
         errorElement: <ErrorPage />,
         children: [
             {
@@ -67,17 +66,17 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: "add", // nested routes. => /friends/add
-                        element: <L2Template organism={ <GlobalUserList /> } />,
+                        element: <L2Template organism={ <GlobalUserList /> }/>,
                         children: [
                             {
                                 path: ":userId", // Global User List에서 클릭시 L3 위치에서 프로필이 뜨도록.
-                                element: <L3Template organism={ <Profile /> } />
+                                element: <L3Template organism={ <Profile /> }/>
                             },
                         ]
                     },
                     {
                         path: ":userId",
-                        element: <L2Template organism={ <Profile /> } /> 
+                        element: <L2Template organism={ <Profile /> }/> 
                     },
                 ]
             },
@@ -87,21 +86,21 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: "create",
-                        element: <L2Template organism={ <CreateChat /> } /> 
+                        element: <L2Template organism={ <CreateChat /> }/> 
                     },
                     {
                         path: "add",
-                        element: <L2Template organism={ <GlobalChatList /> } />
+                        element: <L2Template organism={ <GlobalChatList /> }/>
                     },
                     {
                         path: ":roomId",
-                        element: <ChatTemplate organism={<ChatDetail />} />
+                        element: <ChatTemplate organism={ <ChatDetail /> }/>
                     },
                 ]
             },
             {
                 path: "settings", // settings
-                element: <L1Template organism={<div>settings</div>}/>
+                element: <L1Template organism={ <Setting/> }/>
             }
         ]
     }, 
@@ -109,6 +108,7 @@ const router = createBrowserRouter([
 
 function App() {
 
+    // 근데 전역 이 부분 데이터는 로그인 후에만 필요한 데이터이다. 로그인 화정에서부터 세팅할 필요가 없음...
     // GLOBAL CONTEXTS
     // ---------------------------------------------------------------------------
     // Logged User Id (on Login) --> should we store this to Session Storage? Should we encripten this data?
@@ -123,6 +123,7 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
+                
                 <GlobalContext.Provider value={{ user, setUser, rooms, setRooms, friends, setFriends, loggedUserId, setLoggedUserId }}>
                     <RouterProvider router={ router } />
                 </GlobalContext.Provider>
