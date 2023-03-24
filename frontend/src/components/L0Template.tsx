@@ -13,13 +13,16 @@
 import { Outlet } from "react-router-dom";
 import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
+
 export interface templateProps {
     organism: ReactJSXElement
 }
 
+
 export default function L0Template({organism}: templateProps) {
+
     return (
-        <div>
+        <div> 
             {organism}
             <Outlet />
         </div>

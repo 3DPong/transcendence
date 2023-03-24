@@ -11,83 +11,127 @@
 /* ************************************************************************** */
 
 
+import ImageUpload from "@/components/Molecule/ImageUpload";
+import { useState, useEffect, useContext, useMemo } from "react";
+import Box from '@mui/material/Box';
+import Button from "@mui/material/Button";
+import { LoadingButton } from "@mui/lab";
+import TextField from '@mui/material/TextField';
+import * as API from '@/api/API';
+import GlobalContext from "@/context/GlobalContext";
+import { useNavigate } from "react-router";
+import * as Utils from "@/utils/Validator";
 
-/** [ Avater editor library ]
- * --------------------------------------------------------
- * @link1  https://github.com/mosch/react-avatar-editor
- * @link2  https://github.com/react-dropzone/react-dropzone
- * @link3  https://velog.io/@mjhyp88/ReactTypscript-%ED%8C%8C%EC%9D%BC%EC%97%85%EB%A1%9C%EB%93%9C-%EA%B8%B0%EB%8A%A5-%EA%B5%AC%ED%98%84With.-Springboot
- * --------------------------------------------------------
- */
+export interface TextFieldWrapperProps {
+  value: string;
+  onChange: (arg: string) => void;
+  type?: string; // text or password... etc
+  label?: string; // 이건 입력은 아니고, 단순 표시용 제목 (필드 제목)
+  placeholder?: string; // 미입력시 기본으로 입력되는 내용 (초기값)
+  disabled?: boolean; // Search 버튼 활성화 여부
+  disabledHelperText?: string; // 오류시 표기할 내용.
+}
 
-import AvatarEditor from 'react-avatar-editor';
-import ImageUpload from "./ImageUpload";
-import { useState, useRef, useEffect } from "react";
-import { height } from '@mui/system';
-import { Box } from '@mui/material';
+
+function TextFieldWrapper(props: TextFieldWrapperProps) {
+  {/* https://mui.com/material-ui/react-text-field/ */}
+  return (
+      <TextField
+          sx={{ flex: 1 }} // 가득 채우기
+          id="standard-basic"
+          variant="standard"
+          type={props.type}
+          label={props.label}
+          onChange={(event) => {
+            props.onChange(event.target.value);
+          }}
+          placeholder={props.placeholder}
+          error={props.disabled}
+          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+          required={true}
+        />
+  );
+}
 
 export function SignUp() {
-  const [imageFile, setImageFile] = useState<string>("");
-  const editor = useRef<AvatarEditor>(null);
-  const [scale, setScale] = useState<number>(1);
 
-  const onClickSave = () => {
-    if (editor.current) {
-      // This returns a HTMLCanvasElement, it can be made into a data URL or a blob,
-      // drawn on another canvas, or added to the DOM.
-      const canvas = editor.current.getImage();
-      const url = canvas.toDataURL();
-      setImageFile(url);
-      // If you want the image resized to the canvas size (also a HTMLCanvasElement)
-      // const canvasScaled = editor.current.getImageScaledToCanvas();
-    }
-  };
+  const { setLoggedUserId } = useContext(GlobalContext);
+  const [ imageFile, setImageFile ] = useState<string>("");
+  const [ nickname, setNickname ] = useState<string>("");
+  const [ submitDisabled, setSubmitDisabled ] = useState<boolean>(false);
+  const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
-  const onWheelMove = (event: React.WheelEvent) => {
-    const delta = Math.sign(event.deltaY);
-    console.log(delta);
-    if (delta > 0) {
-      setScale(scale + 0.1);
-    } else {
-      setScale(scale - 0.1);
-    }
-  }
-
+  const navigate = useNavigate();
+  
   const WIDTH = 250;
   const HEIGHT = WIDTH;
 
+  const handleSubmit = () => {
+    if (submitDisabled) return;
+    (async () => {
+      console.log("handle submit");
+      // 1. 서버에 가입 요청.
+      setIsLoading(true);
+      const response = await API.requestSignUp( nickname, imageFile );
+      setIsLoading(false);
+      // 2. 만약 요청 status가 정상이 아니라면...?
+          // ...??
+
+      // 3. Success 201 : 받은 데이터로 전역 state 설정.
+      setLoggedUserId(response.user_id);
+
+      // 4. 이제 userId 세팅이 됬으니 "home" 으로 이동.
+      navigate("/", {
+        state: { // 만약 signUp을 통해 처음 들어온 User라면, Home 화면에서 Welcome 안내문이나 사용 방법 튜토리얼등을 렌더하기 위함.
+          nickname: response.nickname, // useLocation을 통해 해당 props를 받을 수 있음.
+        }
+      });
+
+    })(/* IIFE */);
+  }
+
+  // Validator instance with useMemo. V-dom update랑 관계없이 항상 보유.
+  const _validator = useMemo(() => { 
+    console.log("setting validator...");
+    return new Utils.Validator();
+  }, []) // calculate only on first render.
+
+  // nickname이 바뀔 때 마다 검증 시도 --> 통과시 submit 버튼 활성화
+  useEffect(() => {
+    if (_validator.isAcceptable("@Nickname", nickname) /* && imageFile*/) {
+      setSubmitDisabled(false);
+    } else {
+      setSubmitDisabled(true);
+    }
+  }, [nickname])
 
   return (
-    <div>
-     <Box
-      sx={{
-        position: 'relative',
-        width: (WIDTH),
-        height: (HEIGHT),
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        mx: 'auto',
-        mb: 2,
-      }}
-    >
-      {imageFile && (
-        // <div onWheel={onWheelMove}>
-        <div onWheel={onWheelMove}>
-          <AvatarEditor
-            borderRadius={WIDTH / 2} // ROUND
-            ref={editor}
-            image={imageFile}
-            width={WIDTH}
-            height={HEIGHT}
-            border={50}
-            scale={scale}
-          />
-          <button onClick={onClickSave}>Save</button>
-        </div>
-      )}
-    </Box>
-    <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile}/>
+    <div className=" w-screen h-screen flex justify-center items-center">
+      <div
+        className=" border border-green-400
+                    p-5
+                    max-w-sm bg-white rounded-lg shadow-lg 
+                    flex flex-col"
+      >
+        {/* Profile Setting */}
+        {/* TODO: 기본 제공 이미지 선택창이 있는게 좋지 않을까? */}
+        <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} width={WIDTH} height={HEIGHT} />
+
+        {/* Set Nickname */}
+        <TextFieldWrapper
+          value={nickname}
+          onChange={setNickname}
+          type={"text"}
+          label={"nickname"}
+          disabled={submitDisabled}
+          disabledHelperText={"[DEV] 닉네임 조건을 여기에 입력할 예정입니다."}
+        />
+
+        {/* Submit Button */}
+        <LoadingButton loading={isLoading} disabled={submitDisabled} sx={{marginTop: 2}} variant="outlined" onClick={handleSubmit}>
+          Sign Up
+        </LoadingButton>
+      </div>
     </div>
   );
 }

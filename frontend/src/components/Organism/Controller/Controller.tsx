@@ -20,9 +20,57 @@ import Divider from "@mui/material/Divider";
 import ListItemButtonLink from "@/components/Molecule/Link/ListItemButtonLink";
 import { AccountBox, Group, Chat, Settings } from "@mui/icons-material";
 import GlobalContext from "@/context/GlobalContext";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import * as API from "@/api/API";
 import { Assert } from "@/utils/Assert";
+import { Alert } from "@mui/material";
+
+import { useEffect, useState } from "react";
+import { Button } from "@mui/material";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+
+interface welcomeDialogProps {
+    state: { nickname: string };
+}
+
+function WelcomeDialog({state}: welcomeDialogProps) {
+
+    const [open, setOpen] = useState<boolean>(false);
+
+    const handleClickOpen = () => {
+        setOpen(true);
+      };
+    
+      const handleClose = () => {
+        setOpen(false);
+      };
+
+    return (
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">welcome {state.nickname}!</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            저희 게임에 처음 오셨군요! <br/>
+            게임 진행에 관한 튜토리얼을 진행하시겠어요?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>네</Button>
+          <Button onClick={handleClose} autoFocus>아니요</Button>
+        </DialogActions>
+      </Dialog>
+    );
+}
+
 
 export enum eClickedBtn {
     NONE,
@@ -34,26 +82,27 @@ export enum eClickedBtn {
 
 export default function Controller() {
 
-    const [clickState, setClickState] = React.useState<eClickedBtn>(0);
+    const [ clickState, setClickState ] = React.useState<eClickedBtn>(0);
     const { loggedUserId } = React.useContext(GlobalContext);
 
     // ---------------------------------------------------------------
     // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
     // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
+    const location = useLocation();
+
     const navigate = useNavigate();
     React.useEffect(() => {
 
         // 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
-
-
         if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
-            alert("no login info. redirecting to signin page...");
+            <Alert severity="info">no login info. redirecting to signin page...</Alert>
             navigate("/signin");
             return;
         }
+
+
         Assert.NonNullish(loggedUserId);
         (async () => {
-            const response = await API.getUserDataById(loggedUserId);
             // 400 Bad request : 대부분 dto. API call이 잘못된 거임.
             // 401은 무조건 세션비전상.
             // 409는 로그인 후 다른 창에서 또 접속할 경우 --> 내가 "이미 접속된 유저입니다." 라고 띄워줘야함
@@ -70,6 +119,9 @@ export default function Controller() {
 
     return (
         // <Box sx={{ display: "flex" }}>
+
+        <>
+        {/* { s && <WelcomeDialog state={s}/>} */}
         <Box>
             <CssBaseline />
             <Drawer
@@ -126,5 +178,6 @@ export default function Controller() {
                 </List>
             </Drawer>
         </Box>
+        </>
     );
 }
