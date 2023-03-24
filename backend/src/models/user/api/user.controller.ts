@@ -7,6 +7,7 @@ import { GetSessionData } from '../../../common/decorators';
 import { Request, Response } from 'express';
 import { GuardData } from '../../../common/decorators/guardData.decorator';
 import { TwoFactorService } from './services/twoFactor.service';
+import { TokenDto } from '../../../common/otp/token.dto';
 
 @Controller('user')
 export class UserController {
@@ -42,12 +43,17 @@ export class UserController {
 
   @UseGuards(SessionGuard)
   @Get('/2fa/activate')
-  async activateTwoFactor(@GuardData() data, @Res() res: Response) {
-    return this.twoFactorService.activateTwoFactor(data.user_id, res);
+  async activateTwoFactor(@GuardData() data, @Req() req: Request, @Res() res: Response): Promise<void> {
+    return this.twoFactorService.activateUserTwoFactor(data.user_id, req, res);
   }
   @UseGuards(SessionGuard)
-  @Get('/2fa/deactivate')
-  async deactivateTwoFactor(@GuardData() data) {
-    return this.twoFactorService.deactivateTwoFactor(data.user_id);
+  @Post('/2fa/deactivate')
+  async deactivateTwoFactor(
+    @GuardData() data,
+    @Body() tokenDto: TokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<void> {
+    return this.twoFactorService.deactivateUserTwoFactor(data.user_id, tokenDto.token, req, res);
   }
 }

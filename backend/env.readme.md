@@ -66,3 +66,8 @@
   - `storage/images`
   - `{저장하고싶은 경로}`
   - 실제 저장 경로 `/backend/{해당 경로}`
+
+### OTP
+**OTP 암호화를 위한 키**
+- **OTP_SECRET**
+  - 32byte string 

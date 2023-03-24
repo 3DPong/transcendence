@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import { User } from '../../models/user/entities';
 import { UserStatusEnum } from '../enums';
@@ -70,5 +70,13 @@ export class SessionService {
     req.session.userStatus = UserStatusEnum.ONLINE; // fixme : alarm socket 연결 시에?
     req.session.sessionStatus = SessionStatusEnum.SUCCESS;
     req.session.email = null;
+  }
+
+  clearSession(req: Request, res: Response) {
+    // clear session.
+    res.clearCookie('connect.sid');
+    req.session.destroy((err) => {
+      if (err) console.log(err);
+    });
   }
 }
