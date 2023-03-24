@@ -26,7 +26,7 @@ export class ChatUserService {
 		id: number;
 		name: string;
 		profileURL: string;
-		role: RoleType;          // 현재 유저가 관리자인지 아닌지에 따라 메뉴 모양이 달라지기 때문에 필요
+		role: RoleType;         
 		status: UserStatus; 
 
 	*/
@@ -34,7 +34,7 @@ export class ChatUserService {
 
 		const channelUserss = await this.channelUserRepository
       .createQueryBuilder("channel")
-      .leftJoin("channel.user", "us") //innerjoin 으로 수정
+      .innerJoin("channel.user", "us") //innerjoin 으로 수정
       .select([
         "channel.user_id",
         "us.nickname",
@@ -46,5 +46,7 @@ export class ChatUserService {
 
 		return channelUserss;
 	}
+
+
 
 }

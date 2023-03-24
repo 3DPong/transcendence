@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { ChannelUserRoles } from "../../entities";
 import { ChannelType } from "../../entities/chatChannel.entity";
 
 export class ChannelDto {
@@ -46,4 +47,16 @@ export class LogDto {
 	@IsString()
 	@MaxLength(80)
 	content: string;
+}
+
+export class UserIdDto {
+
+	@IsNotEmpty()
+	@IsNumber()
+	@MinLength(1)
+	user_id: number;
+
+	@IsNotEmpty()
+	@IsString()
+	role: ChannelUserRoles;
 }

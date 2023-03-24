@@ -5,9 +5,10 @@ import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { User } from 'src/models/user/entities/user.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { ChannelDto, JoinDto } from '../dto/create-channel.dto';
+import { ChannelDto, JoinDto, UserIdDto } from '../dto/create-channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
+import { ChatSocketGateway } from '../../socket/chatSocket.gateway';
 
 @Injectable()
 export class ChatService {
@@ -32,6 +33,8 @@ export class ChatService {
 		
 		@Inject(forwardRef(() => ChatUserService))
 		private readonly userService: ChatUserService,
+
+		private chatGateway: ChatSocketGateway
 	) {}
 
 
@@ -177,7 +180,7 @@ export class ChatService {
     if (!channel)
       throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
 
-    if (channel.owner_id != user.user_id && !(await this.checkUserAdmin(user.user_id, channel_id)))
+    if (channel.owner_id != user.user_id && !(await this.checkAdminUser(user.user_id, channel_id)))
       throw new NotFoundException(`Channel [ ${channel_id} ]'s User :${ user.user_id} has no Permission`);
 
     let hashedPassword = channel.password;
@@ -335,6 +338,70 @@ export class ChatService {
 		return channels;
 	}
 
+	async changeRole(channel_id : number, admin_id : number, userIdDto: UserIdDto) {
+		
+		if(!this.checkAdminUser(admin_id, channel_id)) {
+			throw new UnauthorizedException('No permission!');
+		}
+
+		const role =  await this.getUserRole(channel_id, userIdDto.user_id);
+		
+		if (!role) {
+			throw new NotFoundException(`can't find ${channel_id}'s user`);
+		} else if(role === "owner") {
+			throw new UnauthorizedException('No permission!');
+		} else if (role === userIdDto.role) {
+			throw new UnauthorizedException(`Already ${role}!`);
+		}
+
+		const changed =  await this.channelUserRepository
+			.update({channel_id, user_id: userIdDto.user_id}, {role: userIdDto.role});
+
+		return changed;
+	}
+
+	async getMutelist(channel_id : number, user_id : number):Promise <ChannelMuteList[]> {
+
+		if(!this.checkAdminUser(user_id, channel_id)) {
+			throw new UnauthorizedException('No permission!');
+		}
+
+		const muteList = await this.muteRepository
+      .createQueryBuilder("mute")
+      .innerJoin("mute.user", "us") //innerjoin 으로 수정
+      .select([
+        "us.user_id",
+        "us.nickname",
+        "us.profile_url",
+        "mute.end_at"
+      ])
+      .where('mute.channel_id = :channel_id', {channel_id})
+      .getMany();
+
+		return muteList;
+	}
+
+	async getBanlist(channel_id : number, user_id : number):Promise <ChannelBanList[]> {
+		
+		if(!this.checkAdminUser(user_id, channel_id)) {
+			throw new UnauthorizedException('No permission!');
+		}
+
+		const banList = await this.banRepository
+      .createQueryBuilder("ban")
+      .leftJoin("ban.user", "us") //innerjoin 으로 수정
+      .select([
+        "us.user_id",
+        "us.nickname",
+        "us.profile_url",
+        "ban.end_at"
+      ])
+      .where('ban.channel_id = :channel_id', {channel_id})
+      .getMany();
+
+		return banList;
+	}
+
 	async deleteChatRoom(channel_id: number) : Promise <void> {
 		const result = await this.channelRepository.delete({channel_id});
 		if (result.affected === 0)
@@ -342,7 +409,28 @@ export class ChatService {
 		console.log('deleteChatRoom : ', result);
 	}
 
-	async checkUserAdmin(user_id: number, channel_id: number) : Promise <boolean> {
+	async getUserRole(channel_id: number,user_id: number) {
+		const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+		if (!channelUser)
+			return null;
+
+		var result;
+		switch (channelUser.role) {
+			case ChannelUserRoles.USER:
+				result = ChannelUserRoles.USER;
+				break;
+			case ChannelUserRoles.ADMIN:
+				result = ChannelUserRoles.ADMIN;
+				break;
+			case ChannelUserRoles.OWNER:
+				result = ChannelUserRoles.OWNER;
+				break;
+		}
+		return result;
+	}
+
+
+	async checkAdminUser(user_id: number, channel_id: number) : Promise <boolean> {
 		const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
 		if (!channelUser || channelUser.role == ChannelUserRoles.USER)
 			return false;
