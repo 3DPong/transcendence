@@ -6,13 +6,14 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:06:17 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/22 20:06:17 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 19:12:35 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import GlobalContext from "@/context/GlobalContext";
+import { Assert } from "@/utils/Assert";
 import { useContext } from "react";
-
+import { fetchAndHandleResponseError } from "@/api/error/error";
 
 
 /*----------------------------------*
@@ -48,10 +49,20 @@ const createUserDummyDataById = (userId: number) => {
 };
 
 // 단일 사용자 데이터 요청
-export const getUserDataById = (userId: number) => {
-  return new Promise<GET_UserDataResponseFormat>((resolve, reject) => {
+export async function getUserDataById(userId: number) {
+  return new Promise<GET_UserDataResponseFormat>(async (resolve, reject) => {
 
-    const GET_URL = `/user/${userId}`;
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
 
     setTimeout(() => {
       // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
@@ -85,15 +96,29 @@ export interface POST_UserDataResponseFormat {
 }
 
 // POST, 내 정보 수정하기
-export const updateUserData = (
+export async function updateUserData(
   nickname?: string,
   profile_url?: string,
   twofactor?: boolean,
-) => {
+) {
   return new Promise<POST_UserDataResponseFormat>((response, resolve) => {
     
     const {loggedUserId} = useContext(GlobalContext);
     const POST_URL = "/user";
+
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
+
+
 
     setTimeout(() => {
       // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.

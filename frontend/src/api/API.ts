@@ -1,37 +1,22 @@
 
 // 여기서 API 리스트들 묶어서 내보내기.
 
-// (1) User Data
-export {
+// User Data
+export { getUserDataById, type GET_UserDataResponseFormat } from "@/api/user/userData";
+export { updateUserData } from "@/api/user/userData";
+ 
 
-    // GET
-    type GET_UserDataResponseFormat,
-    getUserDataById,
+// User Relation
+export { getUsersListBySearchString } from "@/api/user/userRelation";
+export { getUserRelationsList, GET_RelationType } from "@/api/user/userRelation";
+export { changeUserRelation, PUT_RelationActionType } from "@/api/user/userRelation";
 
-    // POST
-    type POST_UserDataRequestFormat,
-    type POST_UserDataResponseFormat,
-    updateUserData,
+// SignIn
+export { requestSignIn } from "@/api/login/signIn";
 
-} from "@/api/user/userData";
+// SignUp
+export { requestSignUp } from "@/api/login/signUp";
 
-// (2) User Relation
-export {
-    type Relation,
+// Error
+export { fetchAndHandleResponseError, ResponseError, ResponseErrorType } from "@/api/error/error";
 
-    // GET /user/search/{string}
-    type GET_GlobalSearchResponseFormat,
-    getUsersListBySearchString,
-
-    // GET /user_relation?query
-    GET_RelationType, 
-    type GET_RelationResponseFormat,
-    getUserRelationsList,
-
-    // PUT /user_relation
-    type PUT_RelationRequestFormat,
-    type PUT_RelationResponseFormat,
-    PUT_RelationActionType,
-    changeUserRelation,
-
-} from "@/api/user/userRelation";

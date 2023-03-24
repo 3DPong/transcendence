@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 19:38:02 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/14 21:40:08 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 19:31:21 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ import ProfileStatistic from "./ProfileStatistic";
 import { useLocation, useParams } from "react-router";
 import * as API from "@/api/API";
 import GlobalContext from "@/context/GlobalContext";
+import { Assert } from "@/utils/Assert";
 
 export default function Profile() {
   const [ profileState, setProfileState ] = useState<API.GET_UserDataResponseFormat>();
@@ -28,7 +29,9 @@ export default function Profile() {
   useEffect(() => {
     (async () => {
 
-      // (1) parse :user_id
+      Assert.NonNullish(loggedUserId, "UserId is null")
+
+      // (1) parse :user_id to get user_id
       let user_id: number;
       const lastIdx = pathname.lastIndexOf("/");
       const subUrl = pathname.slice(lastIdx + 1);

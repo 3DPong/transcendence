@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 19:25:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/22 19:25:57 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 18:37:08 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 import { Assert } from "@/utils/Assert";
 import { globalUserData_t } from "@/types/user";
 import { UserFriendRelationsDummyData, createUsersDummyByString } from "@/dummy/data";
+import { TryRounded } from "@mui/icons-material";
+import { fetchAndHandleResponseError } from "@/api/error/error";
+import { useNavigate } from "react-router";
 
 /*----------------------------------*
  *             GET API              *
@@ -29,17 +32,32 @@ export interface GET_GlobalSearchResponseFormat {
   relations: globalUserData_t[];
 }
 
-export const getUsersListBySearchString = (searchString: string) => {
-  return new Promise<GET_GlobalSearchResponseFormat>((resolve, reject) => {
-    const GET_URL = `/user/search/${searchString}`;
+
+
+
+export async function getUsersListBySearchString(searchString: string) {
+  return new Promise<GET_GlobalSearchResponseFormat>(async (resolve, reject) => {
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
 
     setTimeout(() => {
       // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
       const randomTestUsers = createUsersDummyByString(searchString, 50);
       console.dir(randomTestUsers);
-      resolve({relations: randomTestUsers});
+      resolve({ relations: randomTestUsers });
     }, 50);
   });
+
+
 };
 
 
@@ -83,6 +101,17 @@ export const getUserRelationsList = (type: GET_RelationType) => {
         GET_URL = `/user_relation?relation=block`;
         break;
     }
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
 
     // API MOCKUP (추후 바꿔야 함.)
     setTimeout(() => {
@@ -131,6 +160,17 @@ export const changeUserRelation = (targetId: number, action: PUT_RelationActionT
       default:
         Assert.MustBeTrue(false, "No matching relation action");
     }
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
 
     // API MOCKUP (추후 바꿔야 함.)
     setTimeout(() => {
