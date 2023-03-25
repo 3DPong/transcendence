@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IconButton, Typography } from '@mui/material';
 import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from '@mui/icons-material';
 import { Room, User } from '@/types/chat';
@@ -7,10 +7,10 @@ import { Link } from 'react-router-dom';
 interface Props {
   room: Room;
   users: {[k: string]: User};
-  onMenuClick?: () => void;
+  handleMenuButton: () => void;
 }
 
-const MessageHeader: React.FC<Props> = ({ room, users, onMenuClick }) => {
+const MessageHeader: React.FC<Props> = ({ room, users, handleMenuButton }) => {
 
   const memberCount = Object.keys(users).length;
 
@@ -30,7 +30,7 @@ const MessageHeader: React.FC<Props> = ({ room, users, onMenuClick }) => {
   };
 
   return (
-    <div className=" p-2 pl-4 pr-4 border border-gray-200 flex items-center">
+    <div className=" flex-shrink-0 p-2 pl-4 pr-4 border border-gray-200 flex items-center">
       <IconButton component={Link} to={"/rooms"} edge="start" color="inherit" aria-label="back">
         <ArrowBack />
       </IconButton>
@@ -52,7 +52,7 @@ const MessageHeader: React.FC<Props> = ({ room, users, onMenuClick }) => {
           {memberCount > 99 ? '99+' : memberCount}
         </Typography>
       </div>
-      <IconButton edge="end" color="inherit" aria-label="menu" onClick={onMenuClick}>
+      <IconButton edge="end" color="inherit" aria-label="menu" onClick={handleMenuButton}>
         <Menu />
       </IconButton>
     </div>

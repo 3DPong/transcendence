@@ -11,12 +11,14 @@ import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
 import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
 import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
+import ChannelDrawer from '@/components/Molecule/Chat/Detail/ChannelDrawer';
 
 interface ChatDetailProps {
 }
 
 const ChatDetail: FC<ChatDetailProps> = () => {
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [battleModalOpen, setBattleModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
@@ -54,6 +56,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   // roomId가 변경될때마다 fetch 이후 리렌더링
   useEffect(() => {
     setShowNotification(false);
+    setDrawerOpen(false);
     if (!isNaN(roomIdNumber)) {
       setMessages(fetchMessagesByRoomId(roomIdNumber));
       //fetchMessagesByRoomId(roomIdNumber).then((fetchedMessages) => {
@@ -69,10 +72,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   return (
-    <>
-      <MessageHeader room={room} users={users} />
+    <div className="flex flex-col h-full">
+      <MessageHeader room={room} users={users} handleMenuButton={()=>{setDrawerOpen(true)}}/>
       <MessageList myId={userId} users={users} messages={messages} />
-      <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true);}} />
+      <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
+      <ChannelDrawer open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} />
 
       <BattleRequestModal
         open={battleModalOpen}
@@ -84,7 +88,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           <BattleNotification onClose={() => setShowNotification(false)} />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

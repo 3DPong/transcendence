@@ -23,7 +23,7 @@ const MessageSender: FC<ChatDetailSenderProps> = ({sendMessage, handleBattleButt
   };
 
   return (
-    <div className=" p-2 border border-gray-200 flex items-center">
+    <div className=" flex-shrink-0 p-2 border border-gray-200 flex items-center">
       <textarea
         value={inputMessage}
         onChange={(event) => setInputMessage(event.target.value)}
