@@ -27,7 +27,6 @@ import { friendData_t } from './types/user';
 import { UserFriendRelationsDummyData } from '@/dummy/data';
 import { SignIn } from './components/Organism/Login/SignIn';
 import { SignUp } from './components/Organism/Login/SignUp';
-import { Setting } from './components/Organism/Setting/Setting';
 
 const router = createBrowserRouter([ 
     // ----------------------------------------------------
@@ -99,10 +98,12 @@ const router = createBrowserRouter([
                     },
                 ]
             },
+            /*
             {
                 path: "settings", // settings
                 element: <L1Template organism={ <Setting/> }/>
             }
+            */
         ]
     }, 
 ]);

@@ -5,10 +5,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import DialogContentText from '@mui/material/DialogContentText';
 import Button from "@mui/material/Button";
 import AvatarEditor from "react-avatar-editor";
-import DialogContentText from '@mui/material/DialogContentText';
-import Alert from '@mui/material/Alert';
 
 
 /** [ Avater editor library ]

@@ -34,13 +34,14 @@ export interface GET_UserDataResponseFormat {
     level       : number;
 }
 
+import MyDummyProfile from "@/dummy/dummy.png";
+
 // Create Dummy Data
 const createUserDummyDataById = (userId: number) => {
-  const DUMMY_IMG = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
     return {
       user_id     : userId,
-      nickname    : "User" + userId.toString(),
-      profile_url : DUMMY_IMG,
+      nickname    : "Dummy User" + userId.toString(),
+      profile_url : MyDummyProfile,
       wins        : 0, // no use
       losses      : 0, // no use
       total       : 0, // no use
