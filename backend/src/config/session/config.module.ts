@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import configuration from './configuration';
 import { SessionConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ENV_FILE } from '../envFile.constant';
 /**
  * Import and provide app configuration related classes.
  *
@@ -11,10 +12,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: process.env.NODE_ENV === 'prod' ? '.env.prod' : '.env.dev',
+      envFilePath: ENV_FILE[process.env.NODE_ENV],
       load: [configuration],
       validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('dev', 'prod').required(),
+        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
         SESSION_SECRET: Joi.string(),
       }),
     }),

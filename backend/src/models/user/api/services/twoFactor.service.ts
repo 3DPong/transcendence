@@ -21,8 +21,10 @@ export class TwoFactorService {
    * 따라서, DB에 저장이 되어야하며, 동시에 암호화된 키는 다시 복호화 할 수 있어야 한다.
    * Key rotation 을 통해서 보안을 더 강화할 수 있으나, 이는 일단은 미적용하는 것으로...
    * https://cryptojs.gitbook.io/docs/
+   *
+   * stream?: test 용으로 stream이 정상적으로 생성되는지 테스트하고자 함.
    */
-  async activateUserTwoFactor(userId: number, req: Request, res: Response): Promise<void> {
+  async activateUserTwoFactor(userId: number, req: Request, res: Response, stream: any = res): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
       throw new BadRequestException('invalid user (session is not valid)');
@@ -34,7 +36,7 @@ export class TwoFactorService {
       const { encrypted, otpURI } = this.otpService.generate(user.email, 'transcendence');
       await runner.manager.update(User, { user_id: userId }, { two_factor: true, two_factor_secret: encrypted });
       this.sessionService.clearSession(req, res);
-      QRCode.toFileStream(res, otpURI);
+      QRCode.toFileStream(stream, otpURI);
       await runner.commitTransaction();
     } catch (error) {
       await runner.rollbackTransaction();

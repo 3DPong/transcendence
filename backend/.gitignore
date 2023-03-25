@@ -121,3 +121,4 @@ dist
 # docker
 docker-volume/
 /storage/
+/src/models/user/api/services/test.png
