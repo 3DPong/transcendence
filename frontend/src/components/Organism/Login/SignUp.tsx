@@ -11,16 +11,15 @@
 /* ************************************************************************** */
 
 
-import ImageUpload from "@/components/Molecule/ImageUpload";
 import { useState, useEffect, useContext, useMemo, useLayoutEffect } from "react";
-import Box from '@mui/material/Box';
-import Button from "@mui/material/Button";
 import { LoadingButton } from "@mui/lab";
 import TextField from '@mui/material/TextField';
-import * as API from '@/api/API';
-import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router";
+
+import GlobalContext from "@/context/GlobalContext";
+import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
+import * as API from '@/api/API';
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -144,7 +143,7 @@ export function SignUp() {
             type={"text"}
             label={"nickname"}
             disabled={submitDisabled}
-            disabledHelperText={"[DEV] 닉네임 조건을 여기에 입력할 예정입니다."}
+            disabledHelperText={ _validator.getRuleHint("@Nickname") }
           />
 
           {/* Submit Button */}

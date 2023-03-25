@@ -23,7 +23,8 @@ import GlobalContext from "@/context/GlobalContext";
 import { useNavigate, useLocation } from "react-router";
 import * as API from "@/api/API";
 import { Assert } from "@/utils/Assert";
-import { Alert } from "@mui/material";
+import { Alert, SxProps } from "@mui/material";
+import ListItemButton from "@mui/material/ListItemButton";
 
 import { useEffect, useState } from "react";
 import { Button } from "@mui/material";
@@ -33,9 +34,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 
+import SettingDialog from "@/components/Organism/Setting/SettingDialog";
+
 interface welcomeDialogProps {
     state: { nickname: string };
 }
+
 
 function WelcomeDialog({state}: welcomeDialogProps) {
 
@@ -85,6 +89,8 @@ export default function Controller() {
     const [ clickState, setClickState ] = React.useState<eClickedBtn>(0);
     const { loggedUserId, setLoggedUserId } = React.useContext(GlobalContext);
 
+    const [openSetting, setOpenSetting] = React.useState<boolean>(false);
+
     // ---------------------------------------------------------------
     // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
     // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
@@ -98,6 +104,7 @@ export default function Controller() {
             const saved_user_id = sessionStorage.getItem("user_id");
             if (saved_user_id) {
                 setLoggedUserId(parseInt(saved_user_id));
+                console.log("setting up user_id from sessionStorage");
             } else {
                 alert("[DEV] Null user_id. redirecting to /signin");
                 navigate("/signin");
@@ -111,6 +118,8 @@ export default function Controller() {
     }
 
     const BUTTON_STYLE = ""
+    const sx: SxProps = {width: "100%", aspectRatio:"1/1", border:0.5, borderColor:"gray"};
+
 
     return (
         // <Box sx={{ display: "flex" }}>
@@ -136,6 +145,7 @@ export default function Controller() {
                 <List sx={{padding:0, margin:0}}>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
+                            sx={sx}
                             to={ (clickState !== eClickedBtn.PROFILE) ? "./profile" : "/"}
                             tooltipTitle="Profile"
                             children={<AccountBox fontSize="large" />}
@@ -145,6 +155,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
+                            sx={sx}
                             to={ (clickState !== eClickedBtn.FRIENDS) ? "./friends" : "/"}
                             tooltipTitle="Friends"
                             children={<Group fontSize="large" />}
@@ -154,6 +165,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
+                            sx={sx}
                             to={ (clickState !== eClickedBtn.ROOMS) ? "./rooms" : "/"}
                             tooltipTitle="Rooms"
                             children={<Chat fontSize="large" />}
@@ -162,13 +174,16 @@ export default function Controller() {
                         />
                     </div>
                     <div className={BUTTON_STYLE}>
-                        <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.SETTINGS) ? "./settings" : "/"}
-                            tooltipTitle="Settings"
+                        <ListItemButton 
+                            sx={sx}
+                            onClick={() => setOpenSetting(true)}
                             children={<Settings fontSize="large" />}
-                            onClick={() => toggleClickState(eClickedBtn.SETTINGS)}
-                            badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
                         />
+                        <SettingDialog open={openSetting} setOpen={setOpenSetting} />
+                            {/* tooltipTitle="Settings"
+                            children={<Settings fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.SETTINGS)} */}
+
                     </div>
                 </List>
             </Drawer>
