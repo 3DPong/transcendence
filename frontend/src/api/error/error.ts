@@ -1,6 +1,8 @@
 
 import { useNavigate } from "react-router";
 import { Assert } from "@/utils/Assert";
+import { useContext } from "react";
+import GlobalContext from "@/context/GlobalContext";
 
 export class ResponseError extends Error {
     public errorStatus: ResponseErrorType;
@@ -34,6 +36,7 @@ function validateResponseStatus(response: Response) {
 
 export async function fetchAndHandleResponseError(url: string, requestObject?: RequestInit) {
   const navigate = useNavigate();
+  const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
 
   try 
   {
@@ -54,11 +57,15 @@ export async function fetchAndHandleResponseError(url: string, requestObject?: R
           // ... 이건 백엔드와 규정이 되지 않은 error code. 
           break;
         case ResponseErrorType.ABNORMAL_SESSION:
-          // ... alert 때리고 홈으로 이동, state 초기화
+          // ... alert 때리고 로그인으로 이동, state 초기화
+          sessionStorage.clear();
+          setLoggedUserId(null);
           navigate("/login");
           break; 
         case ResponseErrorType.USER_ALREADY_LOGGED_IN:
           // ... alert 때리고 로그인 페이지로 이동, state 초기화
+          sessionStorage.clear();
+          setLoggedUserId(null);
           navigate("/login");
           break; 
         default:

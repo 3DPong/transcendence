@@ -83,7 +83,7 @@ export enum eClickedBtn {
 export default function Controller() {
 
     const [ clickState, setClickState ] = React.useState<eClickedBtn>(0);
-    const { loggedUserId } = React.useContext(GlobalContext);
+    const { loggedUserId, setLoggedUserId } = React.useContext(GlobalContext);
 
     // ---------------------------------------------------------------
     // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
@@ -92,22 +92,17 @@ export default function Controller() {
 
     const navigate = useNavigate();
     React.useEffect(() => {
-
-        // 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
+        // TODO: 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
         if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
-            <Alert severity="info">no login info. redirecting to signin page...</Alert>
-            navigate("/signin");
-            return;
+
+            const saved_user_id = sessionStorage.getItem("user_id");
+            if (saved_user_id) {
+                setLoggedUserId(parseInt(saved_user_id));
+            } else {
+                alert("[DEV] Null user_id. redirecting to /signin");
+                navigate("/signin");
+            }
         }
-
-
-        Assert.NonNullish(loggedUserId);
-        (async () => {
-            // 400 Bad request : 대부분 dto. API call이 잘못된 거임.
-            // 401은 무조건 세션비전상.
-            // 409는 로그인 후 다른 창에서 또 접속할 경우 --> 내가 "이미 접속된 유저입니다." 라고 띄워줘야함
-        })(/* IIFE */);
-
     }, []);
     // ---------------------------------------------------------------
 
@@ -141,7 +136,7 @@ export default function Controller() {
                 <List sx={{padding:0, margin:0}}>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.PROFILE) ? "./profile" : "/home"}
+                            to={ (clickState !== eClickedBtn.PROFILE) ? "./profile" : "/"}
                             tooltipTitle="Profile"
                             children={<AccountBox fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.PROFILE)}
@@ -150,7 +145,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.FRIENDS) ? "./friends" : "/home"}
+                            to={ (clickState !== eClickedBtn.FRIENDS) ? "./friends" : "/"}
                             tooltipTitle="Friends"
                             children={<Group fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
@@ -159,7 +154,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.ROOMS) ? "./rooms" : "/home"}
+                            to={ (clickState !== eClickedBtn.ROOMS) ? "./rooms" : "/"}
                             tooltipTitle="Rooms"
                             children={<Chat fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.ROOMS)}
@@ -168,7 +163,7 @@ export default function Controller() {
                     </div>
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
-                            to={ (clickState !== eClickedBtn.SETTINGS) ? "./settings" : "/home"}
+                            to={ (clickState !== eClickedBtn.SETTINGS) ? "./settings" : "/"}
                             tooltipTitle="Settings"
                             children={<Settings fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.SETTINGS)}

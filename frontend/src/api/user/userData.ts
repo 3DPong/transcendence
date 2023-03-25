@@ -104,6 +104,7 @@ export async function updateUserData(
   return new Promise<POST_UserDataResponseFormat>((response, resolve) => {
     
     const {loggedUserId} = useContext(GlobalContext);
+    Assert.NonNullish(loggedUserId, "로그인이 안된 유저가 정보를 수정하려 함.");
     const POST_URL = "/user";
 
 
