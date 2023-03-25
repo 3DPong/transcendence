@@ -14,6 +14,7 @@ import GlobalContext from "@/context/GlobalContext";
 import { Assert } from "@/utils/Assert";
 import { useContext } from "react";
 import { fetchAndHandleResponseError } from "@/api/error/error";
+import { uploadImageToServer } from "@/api/upload/upload";
 
 
 /*----------------------------------*
@@ -35,6 +36,7 @@ export interface GET_UserDataResponseFormat {
 }
 
 import MyDummyProfile from "@/dummy/dummy.png";
+import { json } from "react-router";
 
 // Create Dummy Data
 const createUserDummyDataById = (userId: number) => {
@@ -98,38 +100,53 @@ export interface POST_UserDataResponseFormat {
 
 // POST, 내 정보 수정하기
 export async function updateUserData(
+  user_id: number, // TODO: delete later!!
   nickname?: string,
-  profile_url?: string,
+  clientSideImageUrl?: string,
   twofactor?: boolean,
 ) {
-  return new Promise<POST_UserDataResponseFormat>((response, resolve) => {
-    
-    const {loggedUserId} = useContext(GlobalContext);
-    Assert.NonNullish(loggedUserId, "로그인이 안된 유저가 정보를 수정하려 함.");
-    const POST_URL = "/user";
+  return new Promise<POST_UserDataResponseFormat>(async (resolve, reject) => {
 
+    // 1. 서버에 프로필 이미지부터 전송.
+    let serverSideImageUrl: string | undefined;
+    if (clientSideImageUrl) {
+      const response_1 = await uploadImageToServer(clientSideImageUrl);
+      serverSideImageUrl = response_1.body; // 서버에 업로드된 이미지의 url
+    }
 
+    // 2. 정보 수정 Request 생성.
+    const request: POST_UserDataRequestFormat = {};
+    if (nickname) { request.nickname = nickname; }
+    if (serverSideImageUrl) { request.profile_url = serverSideImageUrl; }
+    if (twofactor) { request.twofactor = twofactor; }
+
+    // 3. 서버에 Request 전송
     // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
     /*
-    const URL = `/user/search/${searchString}`;
-    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    const POST_URL = "/user";
+    const response = await fetchAndHandleResponseError(POST_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request)
+    });
     if (response) {
-      const jsonObjcet = response.json();
-      console.log("Response data JSON :"); console.dir(jsonObjcet);
-      resolve (jsonObjcet);
+      const responseData: POST_UserDataResponseFormat = await response.json();
+      console.log("Response data from JSON :");
+      console.dir(responseData);
+      resolve(responseData);
     }
     */
 
-
-
     setTimeout(() => {
       // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      const resultMockUp = createUserDummyDataById(loggedUserId);
+      const resultMockUp = createUserDummyDataById(user_id);
       nickname && (resultMockUp.nickname = nickname);
-      profile_url && (resultMockUp.profile_url = profile_url);
+      serverSideImageUrl && (resultMockUp.profile_url = serverSideImageUrl);
       // resultMockUp.twofactor = twofactor;
       resolve(resultMockUp);
-    }, 50);
+    }, 1000);
 
 
   })

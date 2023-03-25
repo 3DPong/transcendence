@@ -21,9 +21,12 @@ import Button from "@mui/material/Button";
 import TextField from '@mui/material/TextField';
 import { LoadingButton } from "@mui/lab";
 
-import { alpha, styled } from '@mui/material/styles';
+import { alpha, styled, SxProps } from '@mui/material/styles';
 import { pink } from '@mui/material/colors';
 import Switch from '@mui/material/Switch';
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from '@mui/icons-material/Close';
+
 
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
@@ -31,8 +34,9 @@ import { Assert } from "@/utils/Assert";
 import * as API from '@/api/API';
 import GlobalContext from "@/context/GlobalContext";
 import { RepeatOneSharp } from "@mui/icons-material";
-import { Stack } from "@mui/material";
+import { Container, Stack } from "@mui/material";
 import { Typography } from "@mui/material";
+import { useNavigate } from "react-router";
 
 /**
  * 1. [ How to Re-fresh ]
@@ -51,11 +55,14 @@ import { Typography } from "@mui/material";
 export interface TextFieldWrapperProps {
   value: string;
   onChange: (arg: string) => void;
+  fontSize?: number; // font size of input text
+  labelSize?: number; // font size of input label
   type?: string; // text or password... etc
   label?: string; // 이건 입력은 아니고, 단순 표시용 제목 (필드 제목)
   placeholder?: string; // 미입력시 기본으로 입력되는 내용 (초기값)
   disabled?: boolean; // Search 버튼 활성화 여부
   disabledHelperText?: string; // 오류시 표기할 내용.
+  sx?: SxProps;
 }
 
 
@@ -63,7 +70,8 @@ function TextFieldWrapper(props: TextFieldWrapperProps) {
   {/* https://mui.com/material-ui/react-text-field/ */}
   return (
       <TextField
-          sx={{ flex: 1 }} // 가득 채우기
+          sx={props.sx}
+          value={ props.value }
           id="standard-basic"
           variant="standard"
           type={props.type}
@@ -71,6 +79,8 @@ function TextFieldWrapper(props: TextFieldWrapperProps) {
           onChange={(event) => {
             props.onChange(event.target.value);
           }}
+          inputProps={{style: {fontSize: props.fontSize}}} // font size of input text
+          InputLabelProps={{style: {fontSize: props.labelSize}}} // font size of input label
           placeholder={props.placeholder}
           error={props.disabled}
           helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
@@ -101,59 +111,32 @@ interface settingDialogProps {
 
 export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
-  const WIDTH = 250;
-  const HEIGHT = WIDTH;
+  const navigate = useNavigate();
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
   // Preload. 세팅을 누르는 순간 현재 User정보를 서버로부터 load 해야 한다. (input 기본값으로 기존 데이터를 사용하기 위함)
   // ---------------------------------------------------------------------
 
-  const [ prevUserData, setPrevUserData ] = useState<API.GET_UserDataResponseFormat>();
-
   const [ imageFile, setImageFile ] = useState<string>("");
-  const [ isImageFileChanged, setImageFileChanged ] = useState<boolean>(false);
-
   const [ nickname, setNickname ] = useState<string>("");
   const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
-
-  // useLayoutEffect(() => { // layout effect를 사용한 이유 = DOM Paint 이전 단계에서 내용이 확정되야 함. 
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
 
-  useEffect(() => { // layout effect를 사용한 이유 = DOM Paint 이전 단계에서 내용이 확정되야 함. 
+  useEffect(() => {
+    if (!loggedUserId) return;
     // 1. 페이지 첫 렌더링 전에 세션 검증하고 user_id 받아올것.
     // Assert.NonNullish(loggedUserId, "이건 테스트용 코드입니다. 추후 서버에게 받는걸로 바꿀 예정입니다.");
     // 2. 검증된 user_id를 이용해서 user_data 재요청.
-    if (!loggedUserId) return;
-
     (async () => {
       setIsLoading(true);
       const response = await API.getUserDataById(loggedUserId);
       console.log(response.profile_url);
-
       setIsLoading(false);
-      setPrevUserData(response);
+
       setImageFile(response.profile_url);
       setNickname(response.nickname);
-      console.log("here");
-
     })(/* IIFE */);
   }, [loggedUserId]);
-  // ---------------------------------------------------------------------
-
-  const [ twoFactorAuth, setTwoFactorAuth ] = useState<boolean>(false);
-
-  const [ settingChangeDisabled, setSettingChangeDisabled ] = useState<boolean>(false);
-
-
-  // Image File Change Handle
-  // ---------------------------------------------------------------------
-  useEffect(() => {
-    if (!prevUserData) return;
-    if (imageFile !== prevUserData?.profile_url) {
-      console.log("imageFile changed");
-      setImageFileChanged(true);
-    }
-  }, [imageFile]);
   // ---------------------------------------------------------------------
 
  
@@ -165,9 +148,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   }, []) // calculate only on first render.
 
   useEffect(() => {
-
     if (!nickname) return;
-    console.log("nickname changed");
     if (_validator.isAcceptable("@Nickname", nickname)) {
       setIsNicknameOk(true);
     }
@@ -176,8 +157,11 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
 
 
+
   // 2FactorAuto change Handle
   // ---------------------------------------------------------------------
+  const [ twoFactorAuth, setTwoFactorAuth ] = useState<boolean>(false);
+
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTwoFactorAuth(event.target.checked);
   };
@@ -187,17 +171,17 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
-    if (settingChangeDisabled) return;
     (async () => {
-      console.log("서버에 변경사항을 전달하였습니다.");
       // 1. 서버에 변경 요청
-      // setIsLoading(true);
-      // const response = await API.updateUserData( nickname, imageFile, twoFactorAuth );
-      // setIsLoading(false);
+      setIsLoading(true);
+      const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
+      setIsLoading(false);
       // 2. 만약 요청 status가 정상이 아니라면...?
           // ...??
       // 3. Success 201 : 받은 데이터로 전역 state 설정.
       // setLoggedUserId(response.user_id);
+      console.log("서버에 변경사항을 전달하였습니다.");
+      setOpen(false); // close dialog
     })(/* IIFE */);
   };
 
@@ -205,76 +189,75 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // ---------------------------------------------------------------------
 
   // Log-out
-  const handleClickLogout = () => {};
+  const handleClickLogout = () => {
+    console.log("Logging out...");
+    // 1. send server API logout call (delete session)
+    // 2. delete user_id (option).
+    // 3. go to /login page
+
+    setOpen(false); // close dialog
+  };
 
   // Dialog cloas
   const handleClose = () => {
-    setOpen(false);
+    setOpen(false); // close dialog
   }; 
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    // https://mui.com/material-ui/api/container/
+    <Container maxWidth="sm">
+      <Dialog open={open} onClose={handleClose}>
+        {/* 제목 */}
+        <DialogTitle>Settings</DialogTitle>
+        {/* X 버튼 */}
+        <IconButton
+          sx={{ position: "absolute", right: 0, paddingRight: "24px", paddingTop: "16px" }}
+          onClick={handleClose}
+        >
+          <CloseIcon fontSize="medium" />
+        </IconButton>
 
-      <DialogTitle>Settings</DialogTitle>
+        {/* 프로필 변경 */}
+        <DialogContent sx={{ paddingBottom: 2 }}>
+            {/* 이미지 변경 */}
+            <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
+            {/* 이름 변경 */}
+            <TextFieldWrapper
+              sx={{ maxWidth: "300px" }}
+              fontSize={24}
+              value={nickname}
+              onChange={setNickname}
+              type={"text"}
+              label={"Nickname"}
+              labelSize={18}
+              disabled={!isNicknameOk}
+              disabledHelperText={_validator.getRuleHint("@Nickname")}
+            />
+        </DialogContent>
 
-      {/* 프로필 변경 */}
-      <DialogContent sx={{ paddingBottom: 0 }}>
+        {/* 2차 인증 */}
+        <DialogContent sx={{ paddingBottom: 2 }}>
+            <DialogContentText>2-Factor Auth</DialogContentText>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography>Off</Typography>
+              <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
+              <Typography>On</Typography>
+            </Stack>
+        </DialogContent>
 
-        <DialogContentText>
-          Change profile
-        </DialogContentText>
+        <DialogContent sx={{ paddingBottom: 4, display:"flex", justifyContent:"space-between" }}>
+            {/* 설정 저장 버튼 */}
+            <LoadingButton color="info" variant="outlined" loading={isLoading} disabled={!isNicknameOk} onClick={handleClickSave}>
+              Save Settings
+            </LoadingButton>
+            {/* 로그아웃 버튼 */}
+            <Button color="error" variant="contained" onClick={handleClickLogout}>
+              Logout
+            </Button>
+        </DialogContent>
 
-          {/* 이미지 변경 */}
-          <ImageUpload 
-            thumbnail={ imageFile ? imageFile : "" } 
-            setThumbnail={ setImageFile } 
-            width={WIDTH} height={HEIGHT} 
-          />
-          {/* 이름 변경 */}
-          <TextFieldWrapper
-            value={ nickname ? nickname : "" }
-            onChange={ setNickname }
-            type={ "text" }
-            label={ "nickname" }
-            placeholder={ nickname ? nickname : "" }
-            disabled={ !isNicknameOk }
-            disabledHelperText={ _validator.getRuleHint("@Nickname") }
-          /> 
-
-      </DialogContent>
-
-      {/* 2차 인증 */}
-      <DialogContent sx={{ paddingBottom: 0 }}>
-        <DialogContentText>
-          2-Factor Auth
-        </DialogContentText>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography>Off</Typography>
-            <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
-          <Typography>On</Typography>
-        </Stack>
-      </DialogContent>
-
-      {/* 설정 저장 버튼 */}
-      <DialogActions>
-        <Button disabled={settingChangeDisabled} onClick={handleClickSave}>
-          Save Settings
-        </Button>
-      </DialogActions>
-
-
-     <DialogContent sx={{ paddingBottom: 0 }}>
-        <DialogContentText>
-        </DialogContentText>
-        {/* <DialogActions> */}
-
-          {/* <Button onClick={handleClickLogout}>Logout</Button> */}
-          <LoadingButton loading={isLoading} sx={{marginTop: 2}} variant="outlined" onClick={handleClickLogout}>
-            Logout
-          </LoadingButton>
-
-        {/* </DialogActions> */}
-      </DialogContent>
-    </Dialog>
+      
+      </Dialog>
+    </Container>
   );
 }
