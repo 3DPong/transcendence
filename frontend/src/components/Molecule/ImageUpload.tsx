@@ -8,7 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from '@mui/material/DialogContentText';
 import Button from "@mui/material/Button";
 import AvatarEditor from "react-avatar-editor";
-
+import CloseIcon from '@mui/icons-material/Close';
 
 /** [ Avater editor library ]
  * --------------------------------------------------------
@@ -26,14 +26,17 @@ interface ImageUploadProps {
   setThumbnail: (path: string) => void;
   width?: number;
   height?: number;
+  // 아래 props를 추가한 이유는, 이미 설정된 프로필이 있을 때 그 데이터를 보여줌 + 이미지 Editor를 띄우지 않기 위함.
+  initialThumbnail?: string; // 이 값은 처음에 세팅될 이미지. (editor open 관계없는 이미지)
 }
 
-const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 120, height = 120 }) => {
+const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThumbnail, width, height }) => {
 
   const editor = useRef<AvatarEditor>(null);
   const [openEditor, setOpenEditor] = useState<boolean>(false);
   const [isEditDone, setIsEditDone] = useState<boolean>(false);
   const [scale, setScale] = useState<number>(1);
+  // const [ isInputBtnClicked, setIsInputBtnClicked ]
 
   const handleClickSave = () => {
     if (editor.current) {
@@ -69,6 +72,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
   }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleImageChange");
     if (event.target.files && event.target.files[0]) {
       setIsEditDone(false);
       const file = event.target.files[0];
@@ -88,10 +92,12 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
       reader.onload = (e) => {
         setThumbnail(e.target?.result as string);
       };
+      setOpenEditor(true); // 업로드 후 editor 열기
       reader.readAsDataURL(file);
       event.target.value = "";
     }
   };
+
 
   const handleEditorClose = () => {
     setOpenEditor(false);
@@ -99,12 +105,13 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
   }
 
   // if thumnail data set, then open modal (이미지 편집)
+  /*
   useEffect(() => {
     if (thumbnail && !isEditDone) { // if editor is closed + thumnail exist (need edit)
       console.log("Open editor");
-      setOpenEditor(true);
     }
   }, [thumbnail, isEditDone]);
+  */
 
   return (
     <>
@@ -118,6 +125,8 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
           alignItems: "center",
           mx: "auto",
           mb: 2,
+          maxWidth: "250px",
+          maxHeight: "250px",
         }}
       >
         <Avatar
@@ -132,7 +141,8 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
         />
         <input
           accept="image/*"
-          // accept=".jpg, .jpeg, .png" 
+          // value={ thumbnail }
+          // accept=".jpg, .jpeg, .png"
           id="image-upload"
           type="file"
           style={{ display: "none" }}
@@ -140,6 +150,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
         />
         <label htmlFor="image-upload">
           <IconButton
+            // onClick={}
             component="span"
             sx={{
               position: "absolute",
@@ -160,9 +171,9 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
       {/* Image Editor */}
       <Dialog open={openEditor} onClose={handleEditorClose}>
         <DialogTitle>Edit Profile</DialogTitle>
-        <DialogContent sx={{paddingBottom:0}}>
+        <DialogContent sx={{ paddingBottom: 0 }}>
           <DialogContentText>
-            You can zoom and move with mouse. <br/>
+            You can zoom and move with mouse. <br />
             Click 'Done' to apply change.
           </DialogContentText>
         </DialogContent>
