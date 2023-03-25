@@ -36,8 +36,8 @@ export async function requestSignIn() {
 
     setTimeout(() => {
       // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      // resolve({ status: "SIGNUP_MODE", user_id: 42 }); // on SUCCESS
-      resolve({ status: "SUCCESS", user_id: 42 }); // on SUCCESS
+      resolve({ status: "SIGNUP_MODE", user_id: 42 }); // on SUCCESS
+      // resolve({ status: "SUCCESS", user_id: 42 }); // on SUCCESS
     }, 500);
 
   });
