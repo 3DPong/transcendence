@@ -32,6 +32,10 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
     console.log(id + " is profile");
     handleClose();
   }
+  function handleDMClick(id: number) {
+    console.log(id + " is DM");
+    handleClose();
+  }
   function handleBanClick(id: number) {
     console.log(id + " is bann");
     handleClose();
@@ -80,6 +84,9 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
             >
               <MenuItem sx={menuItemStyles} onClick={()=>{handleProfileClick(targetId);}}>
                 See Profile
+              </MenuItem>
+              <MenuItem sx={menuItemStyles} onClick={()=>{handleDMClick(targetId);}}>
+                Send DM
               </MenuItem>
               { isAdmin && [
                   isMuted ? 
