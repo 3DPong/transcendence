@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { ErrorPage } from '@/components/ErrorPage'
@@ -112,8 +112,9 @@ function App() {
     // 근데 전역 이 부분 데이터는 로그인 후에만 필요한 데이터이다. 로그인 화정에서부터 세팅할 필요가 없음...
     // GLOBAL CONTEXTS
     // ---------------------------------------------------------------------------
+    
     // Logged User Id (on Login) --> should we store this to Session Storage? Should we encripten this data?
-    const [ loggedUserId, setLoggedUserId ] = useState<number>();
+    const [ loggedUserId, setLoggedUserId ] = useState<number | null>();
     // Chat Rooms
     const [ user, setUser ] = useState<User>();
     const [ rooms, setRooms ] = useState<Room[]>([]);
@@ -121,10 +122,22 @@ function App() {
     const [ friends, setFriends ] = useArray<friendData_t>();
     // ---------------------------------------------------------------------------
 
+    useEffect(() => { // just for re-render check
+        console.log("App re-render");
+        // 페이지 re-fresh일 경우 sessionStorage에 loggedUserId가 존재하는지 체크, 있다면 불러오기.
+        // 이 데이터는 API (api/error/error.ts)에서 검증, 만약 api 요청의 response status가 401
+        const SAVED_USER_ID = sessionStorage.getItem("user_id");
+        if (SAVED_USER_ID) {
+            setLoggedUserId(parseInt(SAVED_USER_ID));
+        }
+    }, []);
+
+    
+
+
     return (
         <div className="App">
             <header className="App-header">
-                
                 <GlobalContext.Provider value={{ user, setUser, rooms, setRooms, friends, setFriends, loggedUserId, setLoggedUserId }}>
                     <RouterProvider router={ router } />
                 </GlobalContext.Provider>

@@ -7,3 +7,7 @@ declare module '*.svg' {
   export default content;
 }
 ```
+
+
+2. Default image icon sets.
+https://www.flaticon.com/free-sticker/woman_4825047?related_id=4825047

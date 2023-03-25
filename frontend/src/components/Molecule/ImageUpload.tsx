@@ -19,6 +19,9 @@ import Alert from '@mui/material/Alert';
  * --------------------------------------------------------
  */
 
+const ALLOWED_FILE_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_FORMAT = ["jpg", "jpeg", "png"];
+
 interface ImageUploadProps {
   thumbnail: string;
   setThumbnail: (path: string) => void;
@@ -38,48 +41,62 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
       // This returns a HTMLCanvasElement, it can be made into a data URL or a blob,
       // drawn on another canvas, or added to the DOM.
       const canvas = editor.current.getImage();
-      const url = canvas.toDataURL();
+      const localFileUrl = canvas.toDataURL();
       // If you want the image resized to the canvas size (also a HTMLCanvasElement)
       // const canvasScaled = editor.current.getImageScaledToCanvas();
 
       setIsEditDone(true);
       // close editor
       handleEditorClose();
-      setThumbnail(url);
+      setThumbnail(localFileUrl);
     }
   };
 
   const onWheelMove = (event: React.WheelEvent) => {
     const delta = Math.sign(event.deltaY);
-    console.log(delta);
     if (delta > 0) {
       setScale(scale + 0.1);
     } else {
       setScale(scale - 0.1);
     }
   }
+  
+  const isValidFormat = (file: File) => {
+    return ALLOWED_FILE_FORMAT.some((format) => file.type.endsWith(format));
+  };
 
+  const isValidSize = (file: File) => {
+    return (file.size <= ALLOWED_FILE_MAX_SIZE);
+  }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
+      setIsEditDone(false);
       const file = event.target.files[0];
-      const { type } = file;
-
+      // Validate file size
+      if (!isValidSize(file)) {
+        alert("Image file is larger than 5MB");
+        event.target.value = "";
+        return;
+      }
+      // Validate file format
+      if (!isValidFormat(file)) {
+        alert("Only jpeg, jpg, png format is allowed.");
+        event.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
-        // Validate file extension
-        if (type.endsWith("jpeg") || type.endsWith("jpg") || type.endsWith("png")) {
-          setThumbnail(e.target?.result as string);
-        } else {
-          <Alert severity="error">Only jpeg, jpg, png format is allowed.</Alert>
-        }
+        setThumbnail(e.target?.result as string);
       };
-      reader.readAsDataURL(event.target.files[0]);
+      reader.readAsDataURL(file);
+      event.target.value = "";
     }
   };
 
   const handleEditorClose = () => {
     setOpenEditor(false);
+    setIsEditDone(true);
   }
 
   // if thumnail data set, then open modal (이미지 편집)
@@ -88,7 +105,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
       console.log("Open editor");
       setOpenEditor(true);
     }
-  }, [thumbnail]);
+  }, [thumbnail, isEditDone]);
 
   return (
     <>
@@ -116,6 +133,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, width = 12
         />
         <input
           accept="image/*"
+          // accept=".jpg, .jpeg, .png" 
           id="image-upload"
           type="file"
           style={{ display: "none" }}

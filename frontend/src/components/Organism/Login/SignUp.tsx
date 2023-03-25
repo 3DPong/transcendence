@@ -12,7 +12,7 @@
 
 
 import ImageUpload from "@/components/Molecule/ImageUpload";
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext, useMemo, useLayoutEffect } from "react";
 import Box from '@mui/material/Box';
 import Button from "@mui/material/Button";
 import { LoadingButton } from "@mui/lab";
@@ -66,6 +66,19 @@ export function SignUp() {
   const WIDTH = 250;
   const HEIGHT = WIDTH;
 
+  // check if user is already logged-in on first render
+  // useLayoutEffect는 DOM paint가 이뤄지기 전에 호출됨으로 깜빡임을 해결 가능.
+  useEffect(() => {
+    // loggedUserId가 있고 세션스토리지도 있다는 얘기는 앱 로그인 후 사용자가 /signin 경로를 입력한 경우이다.
+    // 이 경우는 암것도 하지 않고 home으로 리다이렉트만 시킨다.
+    console.log(1);
+    if (sessionStorage.getItem("user_id") !== null) {
+      console.log(2);
+      navigate("/"); // home 경로로 이동한다.
+      return ;
+    }
+  }, [])
+
   const handleSubmit = () => {
     if (submitDisabled) return;
     (async () => {
@@ -81,11 +94,14 @@ export function SignUp() {
       setLoggedUserId(response.user_id);
 
       // 4. 이제 userId 세팅이 됬으니 "home" 으로 이동.
+      navigate("/");
+      /*  아니 근데 왜 데이터 전달이 안되고 리렌더가 3회 이상 되고 요난리 나지..?
       navigate("/", {
         state: { // 만약 signUp을 통해 처음 들어온 User라면, Home 화면에서 Welcome 안내문이나 사용 방법 튜토리얼등을 렌더하기 위함.
           nickname: response.nickname, // useLocation을 통해 해당 props를 받을 수 있음.
         }
       });
+      */
 
     })(/* IIFE */);
   }
@@ -105,33 +121,37 @@ export function SignUp() {
     }
   }, [nickname])
 
-  return (
-    <div className=" w-screen h-screen flex justify-center items-center">
-      <div
-        className=" border border-green-400
-                    p-5
-                    max-w-sm bg-white rounded-lg shadow-lg 
-                    flex flex-col"
-      >
-        {/* Profile Setting */}
-        {/* TODO: 기본 제공 이미지 선택창이 있는게 좋지 않을까? */}
-        <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} width={WIDTH} height={HEIGHT} />
+  // navigate 함수 사용시 컴포넌트 깜빡임 문제 해결을 위한 시도.
+  if (sessionStorage.getItem("user_id") !== null) 
+    return <></>;
+  else
+    return (
+      <div className=" w-screen h-screen flex justify-center items-center">
+        <div
+          className=" border border-green-400
+                      p-5
+                      max-w-sm bg-white rounded-lg shadow-lg 
+                      flex flex-col"
+        >
+          {/* Profile Setting */}
+          {/* TODO: 기본 제공 이미지 선택창이 있는게 좋지 않을까? */}
+          <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} width={WIDTH} height={HEIGHT} />
 
-        {/* Set Nickname */}
-        <TextFieldWrapper
-          value={nickname}
-          onChange={setNickname}
-          type={"text"}
-          label={"nickname"}
-          disabled={submitDisabled}
-          disabledHelperText={"[DEV] 닉네임 조건을 여기에 입력할 예정입니다."}
-        />
+          {/* Set Nickname */}
+          <TextFieldWrapper
+            value={nickname}
+            onChange={setNickname}
+            type={"text"}
+            label={"nickname"}
+            disabled={submitDisabled}
+            disabledHelperText={"[DEV] 닉네임 조건을 여기에 입력할 예정입니다."}
+          />
 
-        {/* Submit Button */}
-        <LoadingButton loading={isLoading} disabled={submitDisabled} sx={{marginTop: 2}} variant="outlined" onClick={handleSubmit}>
-          Sign Up
-        </LoadingButton>
+          {/* Submit Button */}
+          <LoadingButton loading={isLoading} disabled={submitDisabled} sx={{marginTop: 2}} variant="outlined" onClick={handleSubmit}>
+            Sign Up
+          </LoadingButton>
+        </div>
       </div>
-    </div>
-  );
+    );
 }
