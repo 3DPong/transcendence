@@ -151,6 +151,8 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
     if (!nickname) return;
     if (_validator.isAcceptable("@Nickname", nickname)) {
       setIsNicknameOk(true);
+    } else {
+      setIsNicknameOk(false);
     }
   }, [nickname]);
   // ---------------------------------------------------------------------
@@ -171,6 +173,8 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
+    if (!loggedUserId) return ;
+
     (async () => {
       // 1. 서버에 변경 요청
       setIsLoading(true);
