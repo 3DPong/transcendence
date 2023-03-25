@@ -66,16 +66,14 @@ interface ListItemLinkProps {
 }
 
 export default function ListItemButtonLink(props: ListItemLinkProps) {
-    const { children, tooltipTitle, to, badge, style, onClick, divider, className } = props;
+    const { children, tooltipTitle, to, badge, style, onClick, divider, className, sx } = props;
 
     return (
         <li className=" list-none">
             <Tooltip title={tooltipTitle} placement="right-start">
 
                 {/* 여기가 Anchor 태그. 마우스 올리면 hover되는 부분. */}
-                <ListItemButton style={style} component={Link} to={to} divider={divider} className={className}
-                                // sx={{width: "auto", margin:0, padding:0}}  /*key={to}*/>
-                                sx={props.sx}  /*key={to}*/>
+                <ListItemButton style={style} component={Link} to={to} divider={divider} className={className} sx={props.sx} >
 
                     {children ? (
                         <ListItemIcon onClick={onClick} aria-label={notificationsLabel(badge ? badge : 0)} 

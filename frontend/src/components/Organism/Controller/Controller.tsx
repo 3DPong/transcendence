@@ -174,16 +174,15 @@ export default function Controller() {
                         />
                     </div>
                     <div className={BUTTON_STYLE}>
-                        <ListItemButton 
+                        <ListItemButtonLink
                             sx={sx}
+                            tooltipTitle={"Settings"}
+                            to={"/"}
                             onClick={() => setOpenSetting(true)}
                             children={<Settings fontSize="large" />}
                         />
+                        {/* Dialog */}
                         <SettingDialog open={openSetting} setOpen={setOpenSetting} />
-                            {/* tooltipTitle="Settings"
-                            children={<Settings fontSize="large" />}
-                            onClick={() => toggleClickState(eClickedBtn.SETTINGS)} */}
-
                     </div>
                 </List>
             </Drawer>
