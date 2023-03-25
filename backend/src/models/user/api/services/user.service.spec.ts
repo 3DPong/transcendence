@@ -2,7 +2,6 @@ import { DataSource, Repository } from 'typeorm';
 import { UserService } from './user.service';
 import { User } from '../../entities';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
 import { SessionService } from '../../../../common/session/session.service';
@@ -25,13 +24,7 @@ describe('UserService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [UserService, SessionService],
-      imports: [
-        ConfigModule.forRoot({
-          envFilePath: ['.env.test'],
-        }),
-        PostgresDatabaseProviderModule,
-        TypeOrmModule.forFeature([User]),
-      ],
+      imports: [PostgresDatabaseProviderModule, TypeOrmModule.forFeature([User])],
     }).compile();
 
     dataSource = module.get<DataSource>(DataSource);
