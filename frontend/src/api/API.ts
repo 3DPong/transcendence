@@ -16,7 +16,9 @@ export { requestSignIn } from "@/api/login/signIn";
 
 // SignUp
 export { requestSignUp } from "@/api/login/signUp";
-export { uploadImageToServer } from "@/api/login/signUp";
+
+// Upload Data
+export { uploadImageToServer } from "@/api/upload/upload";
 
 // Error
 export { fetchAndHandleResponseError, ResponseError, ResponseErrorType } from "@/api/error/error";
