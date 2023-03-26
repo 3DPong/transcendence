@@ -21,9 +21,8 @@ import ChatTemplate from "@/components/ChatTemplate";
 
 import GlobalContext from "@/context/GlobalContext";
 import useArray from "@/utils/CustomHooks/useArray";
-import { Room, User } from "@/types/chat";
+import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
-import { UserFriendRelationsDummyData } from "@/dummy/data";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
 
@@ -84,7 +83,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "rooms",
+        path: "channels",
         element: <L1Template organism={<LocalChatList />} />,
         children: [
           {
@@ -96,7 +95,7 @@ const router = createBrowserRouter([
             element: <L2Template organism={<GlobalChatList />} />,
           },
           {
-            path: ":roomId",
+            path: ":channelId",
             element: <ChatTemplate organism={<ChatDetail />} />,
           },
         ],
@@ -119,8 +118,7 @@ function App() {
   // Logged User Id (on Login) --> should we store this to Session Storage? Should we encripten this data?
   const [loggedUserId, setLoggedUserId] = useState<number | null>();
   // Chat Rooms
-  const [user, setUser] = useState<User>();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [channels, setChannels] = useArray<Channel>([]);
   // Friend List
   const [friends, setFriends] = useArray<friendData_t>();
   // ---------------------------------------------------------------------------
@@ -140,7 +138,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <GlobalContext.Provider
-          value={{ user, setUser, rooms, setRooms, friends, setFriends, loggedUserId, setLoggedUserId }}
+          value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
         >
           <RouterProvider router={router} />
         </GlobalContext.Provider>

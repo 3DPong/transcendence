@@ -1,4 +1,4 @@
-import { User } from "@/types/chat";
+import { ChatUser } from "@/types/chat";
 import { FC, useState } from "react";
 import MenuFooter from "./MenuFooter";
 import MenuList from "./MenuList";
@@ -6,8 +6,8 @@ import MenuList from "./MenuList";
 interface MenuDrawerProps {
   open : boolean;
   handleClose : () => void;
-  userlist: User[];
-  banlist: User[];
+  userlist: ChatUser[];
+  banlist: ChatUser[];
 };
 
 const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, banlist }) => {
