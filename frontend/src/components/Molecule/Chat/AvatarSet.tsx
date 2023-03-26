@@ -1,8 +1,9 @@
-import { User, UserStatus } from "@/types/chat";
+import { ChatUser, UserStatus } from "@/types/chat";
 import { Avatar, Badge } from "@mui/material";
 import { FC, useState } from "react";
 import AvatarPopper from "./AvatarPopper";
 import { styled } from '@mui/material/styles';
+
 
 const getBadgeColor = (status: UserStatus = "none") => {
   switch (status) {
@@ -21,6 +22,7 @@ const getBadgeColor = (status: UserStatus = "none") => {
 
 const StyledBadge = styled(Badge)<{ status: UserStatus }>(({ status = "none", theme }) => ({
   '& .MuiBadge-badge': {
+    zindex: 2,
     backgroundColor: getBadgeColor(status),
     color: getBadgeColor(status),
     boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
@@ -49,7 +51,7 @@ const StyledBadge = styled(Badge)<{ status: UserStatus }>(({ status = "none", th
 }));
 
 interface AvatarSetProps {
-  user: User;
+  user: ChatUser;
   scrollY: number;
 };
 
@@ -76,7 +78,7 @@ const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
       {Boolean(anchorEl) && <AvatarPopper
         anchorEl={anchorEl}
         handleClose={()=>{setAnchorEl(null);}}
-        targetId={user.userId}
+        targetId={user.id}
         scrollY={scrollY}
       />
       }

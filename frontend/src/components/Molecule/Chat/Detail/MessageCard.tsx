@@ -1,10 +1,10 @@
-import { Message, User } from "@/types/chat";
+import { Message, ChatUser } from "@/types/chat";
 import { FC } from "react";
 import AvatarSet from "../AvatarSet";
 
 interface MessageCardProps {
   message: Message;
-  sender: User;
+  sender: ChatUser;
   isMyMessage: boolean;
   isFirstMessage: boolean;
   isLastMessage: boolean;
@@ -19,7 +19,7 @@ const MessageCard : FC<MessageCardProps> = ({
 
   return (
     <div
-      key={message.messageId}
+      key={message.id}
       className={`flex items-end space-x-2
                 ${isFirstMessage ? 'space-y-4' : ''}
                 ${isMyMessage ? 'justify-end' : 'justify-start'}`}

@@ -1,24 +1,29 @@
 export interface User {
-  userId: number;
+  id: number;
   profile: string;
   nickname: string;
-  status?: UserStatus;
+};
+
+export interface ChatUser extends User {
+  role : UserRole;
+  status : UserStatus;
 };
 
 export interface Message {
-  messageId: number;
-  userId: number;
-  content: string;
-  created_at: string;
+  id : number;
+  senderId : number;
+  content : string;
+  created_at : string;
 };
 
-export interface Room {
-  channelId : number;
+export interface Channel {
+  id : number;
   thumbnail? : string;
-  channelName : string;
-  channelType : ChatType;  // TODO : ENUM type임 
-  owner: User;
-}
+  title : string;
+  type : ChannelType;
+  owner : User;
+};
 
+export type UserRole = "owner" | "admin" | "user";
 export type UserStatus = "online" | "offline" | "ingame" | "none";
-export type ChatType = "protected" | "private" | "public" | "dm";
+export type ChannelType = "protected" | "private" | "public" | "dm";

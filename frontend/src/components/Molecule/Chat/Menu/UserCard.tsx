@@ -1,11 +1,11 @@
-import { User } from "@/types/chat";
+import { ChatUser } from "@/types/chat";
 import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from "@mui/material";
 import { FC } from "react";
 import AvatarSet from "../AvatarSet";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 
 interface UserCardProps {
-  user : User;
+  user : ChatUser;
   scrollY : number;
 };
 
@@ -17,9 +17,9 @@ const UserCard : FC<UserCardProps> = ({user, scrollY}) => {
         <ListItemAvatar>
           <AvatarSet user={user} scrollY={scrollY} />
         </ListItemAvatar>
-        <ListItemText title={user.nickname} primary={user.nickname} />
+        <ListItemText title={user.nickname} primaryTypographyProps={{ noWrap: true }} primary={user.nickname} />
         <ListItemSecondaryAction>
-          <IconButton edge="end" aria-label="mute">
+          <IconButton style={{color: 'darkorange'}} disabled edge="end" aria-label="mute">
             <VolumeOffIcon/>
           </IconButton>
         </ListItemSecondaryAction>
