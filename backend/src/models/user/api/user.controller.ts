@@ -42,12 +42,12 @@ export class UserController {
   }
 
   @UseGuards(SessionGuard)
-  @Get('/2fa/activate')
+  @Put('/2fa/activate')
   async activateTwoFactor(@GuardData() data, @Req() req: Request, @Res() res: Response): Promise<void> {
     return this.twoFactorService.activateUserTwoFactor(data.user_id, req, res);
   }
   @UseGuards(SessionGuard)
-  @Post('/2fa/deactivate')
+  @Put('/2fa/deactivate')
   async deactivateTwoFactor(
     @GuardData() data,
     @Body() tokenDto: TokenDto,
