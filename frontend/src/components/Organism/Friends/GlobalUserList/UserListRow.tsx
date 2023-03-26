@@ -21,19 +21,15 @@ import Typography from "@mui/material/Typography";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Badge from "@mui/material/Badge";
-import { userListData_t, eUserStatus } from "@/types/user";
+import { globalUserData_t } from "@/types/user";
 import Chip from "@mui/material/Chip";
 
 export interface UserCardProps {
-  user: userListData_t;
+  user: globalUserData_t;
   isLoading: boolean; // for skeleton
 }
 
 export default function UserListRow(props: UserCardProps) {
-
-  const isOnline = (status: eUserStatus) => {
-    return status === eUserStatus.online;
-  };
 
   return (
     // 부모 flex container에 꽉 채우기 위한 용도 div
@@ -45,37 +41,25 @@ export default function UserListRow(props: UserCardProps) {
             <Avatar variant="square" />
           </Skeleton>
         ) : (
-          <Badge /* User [online/offline] 여부 표시 */
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: isOnline(props.user.status) ? "lightgreen" : "lightgray",
-                border: 1,
-              },
-            }}
-            badgeContent={1}
-            variant="dot"
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "left",
-            }}
-          >
-            <Avatar variant="square" alt={props.user.profile.name} src={props.user.profile.imgSrc} />
-          </Badge>
+            <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
         )}
         {/* (2) 프로필 이름 */}
         <div className="flex-1 ml-2 mr-2">
           <Typography variant="subtitle1" component="div">
-            {props.isLoading ? <Skeleton /> : props.user.profile.name}
+            {props.isLoading ? <Skeleton /> : props.user.nickname}
           </Typography>
         </div>
         {/* (3) 차단 여부 등 상태 표기. */}
-        {props.user.isBlocked ? (
+        { (props.user.status === 'block') &&
           <Tooltip title="User is blocked. [Add description here]">
             <Chip label="Blocked" size="small" color="error" variant="outlined" />
           </Tooltip>
-        ) : (
-          <></>
-        )}
+        }
+        { (props.user.status === 'friend') &&
+          <Tooltip title="User is friend. [Add description here]">
+            <Chip label="Friend" size="small" color="success" variant="outlined" />
+          </Tooltip>
+        }
       </div>
     </div>
   );

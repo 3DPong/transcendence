@@ -30,6 +30,8 @@ import {
 import Tooltip from '@mui/material/Tooltip'; // 마우스 hover시에 힌트 뜨기 위함.
 import Badge from "@mui/material/Badge";
 import Skeleton from '@mui/material/Skeleton';
+import { SxProps } from "@mui/material";
+import { Theme } from "@emotion/react";
 
 const Link = React.forwardRef<HTMLAnchorElement, RouterLinkProps>(function Link(
         itemProps,
@@ -59,20 +61,19 @@ interface ListItemLinkProps {
     onClick?: () => void;
     children?: React.ReactNode;
     divider?: boolean;
+    sx?: SxProps<Theme>;
     className?: string;
 }
 
 export default function ListItemButtonLink(props: ListItemLinkProps) {
-    const { children, tooltipTitle, to, badge, style, onClick, divider, className } = props;
+    const { children, tooltipTitle, to, badge, style, onClick, divider, className, sx } = props;
 
     return (
         <li className=" list-none">
             <Tooltip title={tooltipTitle} placement="right-start">
 
                 {/* 여기가 Anchor 태그. 마우스 올리면 hover되는 부분. */}
-                <ListItemButton style={style} component={Link} to={to} divider={divider} className={className}
-                                // sx={{width: "auto", margin:0, padding:0}}  /*key={to}*/>
-                                sx={{width: "100%", aspectRatio:"1/1", border:0.5, borderColor:"gray"}}  /*key={to}*/>
+                <ListItemButton style={style} component={Link} to={to} divider={divider} className={className} sx={props.sx} >
 
                     {children ? (
                         <ListItemIcon onClick={onClick} aria-label={notificationsLabel(badge ? badge : 0)} 

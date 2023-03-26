@@ -6,93 +6,52 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 19:38:02 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/14 21:40:08 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 19:31:21 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, {useEffect, useState} from "react";
-import ProfileCard from './ProfileCard';
-
-import type { user_t } from '@/types/user';
-import type { userStatistic_t } from '@/types/user';
-import type { recentGames_t } from '@/types/user';
+import { useContext, useEffect, useState, useMemo } from "react";
+import ProfileCard from "./ProfileCard";
 import ProfileStatistic from "./ProfileStatistic";
-// ---------------------------------
+import { useLocation, useParams } from "react-router";
+import * as API from "@/api/API";
+import GlobalContext from "@/context/GlobalContext";
+import { Assert } from "@/utils/Assert";
 
+export default function Profile() {
+  const [ profileState, setProfileState ] = useState<API.GET_UserDataResponseFormat>();
+  const { loggedUserId } = useContext(GlobalContext);
+  const { pathname } = useLocation();
 
-const meTest: user_t = {
-    imgSrc: "https://www.richardtmoore.co.uk/wp-content/uploads/2016/10/btx-avatar-placeholder-01-2.jpg",
-    name: "Nickname",
-}
+  // 만약 /profile 경로일 경우 userIdFromRouteURL은 undefined 이다.
+  
+  // (1) initial data loading
+  useEffect(() => {
+    (async () => {
 
-const opponentTest: user_t = {
-    imgSrc: "https://media.licdn.com/dms/image/C4E03AQFWFZ4mjs0CqA/profile-displayphoto-shrink_800_800/0/1517455268292?e=2147483647&v=beta&t=EkD3zEwwCCSfvMTaCYQ5rHyPnG5A8y3Z40lK_sIQ9BQ",
-    name: "schoe",
-}
+      Assert.NonNullish(loggedUserId, "UserId is null")
 
-const recentGamesTest: recentGames_t = [];
-for (let i=0; i< 10; ++i) {
-    recentGamesTest.push({
-        opponent: opponentTest,
-        isWin: true,
-    })
-}
+      // (1) parse :user_id to get user_id
+      let user_id: number;
+      const lastIdx = pathname.lastIndexOf("/");
+      const subUrl = pathname.slice(lastIdx + 1);
+      const convertResult = parseInt(subUrl);
+      console.log(`URL parse result: url param (userId) is ${convertResult}`);
+      if (isNaN(convertResult)) {
+        user_id = loggedUserId;
+      } else {
+        user_id = convertResult;
+      }
+      // (2) load data
+      const profile = await API.getUserDataById(user_id);
+      setProfileState(profile);
+    })(/* IIFE */);
+  }, [pathname]); // call useEffect if pathname changes
 
-
-const userStatisticTest: userStatistic_t = {
-    totalGame   : 5,
-    totalWin    : 3,
-    totalLose   : 2,
-    recentGames : recentGamesTest,
-}
-
-
-interface profileProps {
-    userId?: string, // 일단 테스트용이니까 옵션으로 지정함. 나중엔 반드시 userId 전달해줄 것.
-}
-
-export default function Profle( {userId}: profileProps ) {
-    
-    const [profileState, setProfileState] = useState<user_t>();
-    const [statisticState, setStatisticState] = useState<userStatistic_t>();
-
-    const TEST_TIME_MILLIES = 1000;
-
-    const getUserStatisticData = () => {
-        return new Promise<userStatistic_t>((resolve, reject) => {
-            setTimeout(() => {
-                resolve(userStatisticTest);
-            }, TEST_TIME_MILLIES);
-        });
-    };
-
-    const getUserProfileData = () => {
-        return new Promise<user_t>((resolve, reject) => {
-            setTimeout(() => {
-                resolve(meTest);
-            }, TEST_TIME_MILLIES); 
-        });
-    }
-
-    // (1) initial data loading
-    useEffect(() => {
-
-        (async () => {
-            const profile = await getUserProfileData();
-            setProfileState(profile);
-        })(/* IIFE */);
-
-        (async () => {
-            const statistic = await getUserStatisticData();
-            setStatisticState(statistic);
-        })(/* IIFE */);
-
-    }, []);
-
-    return (
-        <div>
-            <ProfileCard profile={ profileState } />
-            <ProfileStatistic statistic={ statisticState } />
-        </div>
-    );
+  return (
+    <div>
+      <ProfileCard userData={profileState} />
+      <ProfileStatistic userData={profileState} />
+    </div>
+  );
 }

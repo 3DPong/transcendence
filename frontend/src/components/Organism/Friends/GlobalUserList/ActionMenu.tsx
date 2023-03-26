@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/18 15:28:53 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/21 06:05:30 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 16:57:47 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { userListData_t } from "@/types/user";
+import { friendData_t, globalUserData_t } from "@/types/user";
 import Divider from "@mui/material/Divider";
 import { useNavigate } from "react-router-dom";
 import GlobalContext from "@/context/GlobalContext";
@@ -30,8 +30,8 @@ import { Assert } from "@/utils/Assert";
 import * as API from "@/api/API";
 
 interface userActionMenuProps {
-  user: userListData_t;
-  setGlobalUsers: UpdateFunctionOverload<userListData_t>;
+  user: globalUserData_t;
+  setGlobalUsers: UpdateFunctionOverload<globalUserData_t>;
 }
 
 export default function UserActionMenu( { user, setGlobalUsers }: userActionMenuProps) {
@@ -44,7 +44,7 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
   // 프로필 보기 버튼
   const handleProfileRoute = () => {
     setAnchorEl(null);
-    navigate(`/friends/add/${user.profile.id}`); // L3 Template
+    navigate(`./${user.user_id}`); // L3 Template
   };
 
   // DM 보내기 버튼
@@ -61,58 +61,63 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(user.profile.id, API.RelationAction.addFriend);
-      if (RESPONSE.friend === false) { // server handle error
+      const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.addFriend);
+      if (RESPONSE.status !== "friend") { // server handle error
         alert("[SERVER]: 친구가 추가 되지 않았습니다.")
         return ;
       }
       // (2) create user data format with POST response
-      const DUMMY_USER = {
-        profile: {
-          id: RESPONSE.user_id,
-          imgSrc: user.profile.imgSrc,
-          name: user.profile.name,
-        },
-        isBlocked: user.isBlocked, // ?
-        status: user.status, // ?
+      const NEW_FRIEND: friendData_t = {
+        user_id: RESPONSE.target_id,
+        profile_url: user.profile_url,
+        nickname: user.nickname,
+        // status: user.status, // ?
       };
-      // (3) update to friendList
+      // (3) add to friendList
       setFriends((draft) => { 
-        draft.unshift(DUMMY_USER);
+        draft.unshift(NEW_FRIEND);
       });
       // (4) delete from global-userList
       setGlobalUsers((draft) => {
-        const targetIndex = draft.findIndex((m) => m.profile.id === user.profile.id);
+        const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
         if (targetIndex !== -1) draft.splice(targetIndex, 1);
       })
     })(/* IIFE */);
   };
 
-  // 사용자 차단하기 버튼
+  // 친구라면 사용자 차단 (block User), 친구가 아니라면 (add friend | block user)
   const handleBlockUserToogle = () => {
     console.log("Block/Unblock global user");
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(
-        user.profile.id,
-        user.isBlocked ? API.RelationAction.unBlockUser : API.RelationAction.blockUser
-      );
-      if (RESPONSE.block === undefined || RESPONSE.block === user.isBlocked) { // block handle error (no change)
-        alert("[SERVER]: 유저의 차단관계 처리 에러")
-        return ;
+      let action;
+      if (user.status === 'block') { // if block
+        action = API.PUT_RelationActionType.unBlockUser;
+      } else { // friend or none
+        action = API.PUT_RelationActionType.blockUser;
       }
-      // (3) update to Global User List (친구 리스트에 있을 수도 있음...)
-      setFriends((draft) => {
-        const targetFriend = draft.find((m) => m.profile.id === user.profile.id);
-        if (!targetFriend) return; // 친구 리스트에 없으면 return
-        targetFriend.isBlocked = !targetFriend.isBlocked;
-      });
-      // (4) update to Global User List
+      // (2) check API response
+      const RESPONSE = await API.changeUserRelation(user.user_id, action);
+      if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE.status === "block") { // block handle error (no change)
+        alert("[SERVER]: 유저의 차단관계 처리 에러")
+        return ; 
+      } else if (action === API.PUT_RelationActionType.blockUser && RESPONSE.status !== "block") { // block handle error (no change)
+        alert("[SERVER]: 유저의 차단관계 처리 에러")
+        return ; 
+      }
+      // (3) if user is friend, delete from friend list (전체 사용자 리스트와 친구 리스트에 동시에 보여지고 있을 수 있기 때문)
+      if (user.status === "friend") {
+        setFriends((draft) => { 
+          const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
+          if (targetIndex !== -1) draft.splice(targetIndex, 1);
+        });
+      }
+      // (4) update Global User List
       setGlobalUsers((draft) => {
-        const targetUser = draft.find((m) => m.profile.id === user.profile.id);
-        Assert.NonNullish(targetUser); // 같은 리스트상에서는 반드시 있어야 함.
-        targetUser.isBlocked = !targetUser.isBlocked;
+        const targetUser = draft.find((m) => m.user_id === user.user_id);
+        Assert.NonNullish(targetUser, "리스트 검색 오류"); // 같은 리스트상에서는 반드시 있어야 함.
+        targetUser.status = RESPONSE.status;
       });
     })(/* IIFE */);
   };
@@ -187,12 +192,16 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
 
         <Divider sx={{ my: 0.5 }} />
 
-        {/* Add friend handle */}
-        <MenuItem onClick={handleAddFriend} children={"Add friend"} disableRipple />
+        {/* Add friend handle  --> don't show if user is already a friend*/}
+        { user.status !== "friend" && 
+          <MenuItem onClick={handleAddFriend} children={"Add friend"} disableRipple />
+        }
 
         {/* Block User tooggle */}
         <MenuItem onClick={handleBlockUserToogle} disableRipple>
-          {user.isBlocked ? "UnBlock user" : "Block user"}
+          {user.status === "none" && "block user"}
+          {user.status === "friend" && "delete/block friend"}
+          {user.status === "block" && "unblock user"}
         </MenuItem>
       </Menu>
     </div>
