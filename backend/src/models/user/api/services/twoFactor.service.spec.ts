@@ -84,7 +84,7 @@ describe('TwoFactorService', () => {
       expect(file.bytesWritten).toBeGreaterThanOrEqual(100);
     });
 
-    it('유저가 잘못된 id를 제공한 경우 400 에러를 던진다.', async () => {
+    it('유저가 잘못된 id를 제공한 경우 401 에러를 던진다.', async () => {
       request = createRequest({
         session: {
           user_id: 0,
@@ -100,7 +100,7 @@ describe('TwoFactorService', () => {
         const res = await twoFactorService.activateUserTwoFactor(0, request, response);
         expect(res).toBeUndefined();
       } catch (e) {
-        expect(e).toBeInstanceOf(BadRequestException);
+        expect(e).toBeInstanceOf(UnauthorizedException);
         expect(e.message).toEqual('invalid user (session is not valid)');
 
         const users: Array<User> = await userRepository.find();
@@ -139,6 +139,40 @@ describe('TwoFactorService', () => {
       fs.unlink(filePath, () => {
         return;
       });
+    });
+
+    it('활성화된 유저가 요청하는 경우 400에러를 던진다.', async () => {
+      const newUser = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+      });
+      const savedUser = await userRepository.save(newUser);
+      request = createRequest({
+        session: {
+          user_id: savedUser.user_id,
+          userStatus: UserStatusEnum.ONLINE,
+          sessionStatus: SessionStatusEnum.SUCCESS,
+          email: null,
+          destroy: (callback) => {
+            callback();
+          },
+        },
+      });
+      // please check this file!!
+      // file stream 으로 실제 qrcode 가 전달되고 있는지 확인함.
+      const filePath = __dirname + '/test.png';
+      const file = fs.createWriteStream(filePath);
+      await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response);
+      // REAL TEST AREA
+      try {
+        const result = await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response, file);
+        expect(result).toBeUndefined();
+      } catch (e) {
+        expect(e).toBeInstanceOf(BadRequestException);
+        expect(e.message).toEqual('already activated');
+        expect(file.bytesWritten).toEqual(0);
+      }
     });
   });
 

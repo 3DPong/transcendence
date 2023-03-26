@@ -27,7 +27,9 @@ export class TwoFactorService {
   async activateUserTwoFactor(userId: number, req: Request, res: Response, stream: any = res): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
-      throw new BadRequestException('invalid user (session is not valid)');
+      throw new UnauthorizedException('invalid user (session is not valid)');
+    } else if (user.two_factor) {
+      throw new BadRequestException('already activated');
     }
     const runner = this.dataSource.createQueryRunner();
     await runner.connect();
