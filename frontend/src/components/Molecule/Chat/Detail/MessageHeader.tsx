@@ -6,13 +6,13 @@ import { Link } from 'react-router-dom';
 
 interface Props {
   room: Room;
-  users: {[k: string]: User};
+  memberCount: number;
   handleMenuButton: () => void;
 }
 
-const MessageHeader: React.FC<Props> = ({ room, users, handleMenuButton }) => {
+const MessageHeader: React.FC<Props> = ({ room, memberCount, handleMenuButton }) => {
 
-  const memberCount = Object.keys(users).length;
+  //const memberCount = Object.keys(users).length;
 
   const getChatTypeIcon = () => {
     switch (room.channelType) {

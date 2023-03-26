@@ -11,7 +11,7 @@ import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
 import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
 import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
-import ChannelDrawer from '@/components/Molecule/Chat/Detail/ChannelDrawer';
+import ChannelDrawer from '@/components/Molecule/Chat/Menu/MenuDrawer';
 
 interface ChatDetailProps {
 }
@@ -44,7 +44,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const userId = 1;
   const [messageId, setMessageId] = useState(200);
 
-  const users = Object.fromEntries(Dummy.dummy_users.map(item => [item.userId, item]));
+  //const users = Object.fromEntries(Dummy.dummy_users.map(item => [item.userId, item]));
+  const users = Dummy.dummy_users;
   const room = Dummy.dummy_chatrooms[roomIdNumber];
 
   function getMessageId () {
@@ -73,10 +74,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <MessageHeader room={room} users={users} handleMenuButton={()=>{setDrawerOpen(true)}}/>
+      <MessageHeader room={room} memberCount={users.length} handleMenuButton={()=>{setDrawerOpen(true)}}/>
       <MessageList myId={userId} users={users} messages={messages} />
       <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
-      <ChannelDrawer open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} />
+      <ChannelDrawer open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} userlist={users} banlist={users} />
 
       <BattleRequestModal
         open={battleModalOpen}

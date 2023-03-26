@@ -3,13 +3,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Message, User } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
+import { Assert } from '@/utils/Assert';
 
 interface MessageListProps {
   myId: number;
   messages: Message[];
-  users:{
-    [k: string]: User;
-  };
+  //users:{
+    //[k: string]: User;
+  //};
+  users: User[];
 };
 
 const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
@@ -22,6 +24,10 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
     }
   };
 
+  function getUser(userId: number) {
+    return users.find((user)=>(user.userId === userId)) || {"nickname" : "none", "profile" : "", "userId" : 0 };
+  }
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -32,7 +38,8 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
         onScroll={(event)=>setScrollY(event.currentTarget.scrollTop)}>
       {messages.map((message, index) => {
         const isMyMessage = message.userId === myId;
-        const sender = users[message.userId];
+        //const sender = users[message.userId];
+        const sender = getUser(message.userId);
         const isFirstMessage = index === 0 || messages[index - 1].userId !== message.userId;
         const isLastMessage = index === messages.length - 1 || messages[index + 1].userId !== message.userId;
 
