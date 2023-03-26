@@ -7,9 +7,10 @@ import UserCard from "./UserCard";
 interface MenuListProps {
   title : string;
   users : User[];
+  scrollY : number;
 }
 
-const MenuList : FC<MenuListProps> = ({title, users}) => {
+const MenuList : FC<MenuListProps> = ({title, users, scrollY}) => {
   const [open, setOpen] = useState(true);
 
   const handleClick = () => {
@@ -23,7 +24,7 @@ const MenuList : FC<MenuListProps> = ({title, users}) => {
       aria-labelledby="nested-list-subheader"
       subheader={
         <ListSubheader component="div" id="nested-list-subheader" sx={{ padding: '0px' }}>
-          <ListItemButton sx={{ paddingTop: '4px', paddingBottom: '4px' }} onClick={handleClick}>
+          <ListItemButton onClick={handleClick} sx={{ paddingTop: '4px', paddingBottom: '4px' }}>
             <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', width: '100%' }}>
               <ListItemText primary={title} />
               {open ? <ExpandLess /> : <ExpandMore />}
@@ -31,13 +32,13 @@ const MenuList : FC<MenuListProps> = ({title, users}) => {
           </ListItemButton>
         </ListSubheader>
       }
-      onClick={handleClick}
+      
     >
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
           {
             users.map((user)=> (
-              <UserCard user={user} />
+              <UserCard key={user.userId} user={user} scrollY={scrollY}/>
             ))
           }
         </List>

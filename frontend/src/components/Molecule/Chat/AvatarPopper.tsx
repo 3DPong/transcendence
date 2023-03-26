@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useRef } from "react";
 import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/material';
 
 interface AvatarPopperProps {
@@ -9,6 +9,7 @@ interface AvatarPopperProps {
 };
 
 const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, scrollY}) => {
+  const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
   const isAdmin = true;
   const isMuted = false;
@@ -25,7 +26,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
   };
 
   useEffect(() => {
-    open && handleClose();
+    if (scrollY != openScrollY.current)
+      handleClose();
   }, [scrollY]);
 
   function handleProfileClick(id: number) {
@@ -71,7 +73,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
         open={open}
         anchorEl={anchorEl}
         style={{
-          zIndex: 2,
+          zIndex: 200,
         }}
         placement="bottom-start"
         modifiers={modifiers}

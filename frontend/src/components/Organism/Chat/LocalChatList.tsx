@@ -4,7 +4,7 @@ import MediaCard from "@/components/Molecule/MediaCard";
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
-import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
+import VirtualizedChatList from '@/components/Molecule/Chat/List/ChatList'
 import { Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";

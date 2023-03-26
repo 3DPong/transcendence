@@ -2,10 +2,10 @@ import React, {FC, useContext, useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import MediaCard from "@/components/Molecule/MediaCard";
 
-import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
+import VirtualizedChatList from '@/components/Molecule/Chat/List/ChatList'
 import { ChatType, Room } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
-import EnterProtectedModal from "@/components/Molecule/Chat/EnterProtectedModal";
+import EnterProtectedModal from "@/components/Molecule/Chat/List/EnterProtectedModal";
 
 import GlobalContext from "@/context/GlobalContext";
 
