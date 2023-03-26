@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
 import { DataSource, Repository } from 'typeorm';
@@ -36,11 +36,11 @@ export class TwoFactorService {
       const { encrypted, otpURI } = this.otpService.generate(user.email, 'transcendence');
       await runner.manager.update(User, { user_id: userId }, { two_factor: true, two_factor_secret: encrypted });
       this.sessionService.clearSession(req, res);
-      QRCode.toFileStream(stream, otpURI);
+      await QRCode.toFileStream(stream, otpURI);
       await runner.commitTransaction();
     } catch (error) {
       await runner.rollbackTransaction();
-      throw new InternalServerErrorException('database error');
+      throw new InternalServerErrorException('server error');
     } finally {
       await runner.release();
     }
@@ -52,7 +52,7 @@ export class TwoFactorService {
   async deactivateUserTwoFactor(userId: number, token: string, req: Request, res: Response): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
-      throw new BadRequestException('invalid user (session is not valid)');
+      throw new UnauthorizedException('invalid user (session is not valid)');
     } else if (!user.two_factor) {
       throw new BadRequestException('user 2fa is not activated');
     }
