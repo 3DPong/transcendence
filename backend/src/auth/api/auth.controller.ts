@@ -21,7 +21,9 @@ export class AuthController {
 
   @UseGuards(FtGuard)
   @Get('/signin/42')
-  signIn() {}
+  signIn() {
+    return;
+  }
 
   @UseGuards(FtGuard)
   @Get('/redirect/42')
@@ -30,8 +32,8 @@ export class AuthController {
   }
 
   @UseGuards(TwoFactorGuard)
-  @Post('/2fa/activate')
-  async activateTwoFactor(@GetSessionData() data, @Body() payload, @Req() req: Request): Promise<boolean> {
+  @Post('/2fa/otp')
+  async validateOtp(@GetSessionData() data, @Body() payload, @Req() req: Request): Promise<boolean> {
     const isValidated = await this.otpService.validate(data.user_id, payload.token);
     if (isValidated) {
       req.session.sessionStatus = SessionStatusEnum.SUCCESS;
