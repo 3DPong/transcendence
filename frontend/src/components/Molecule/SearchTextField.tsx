@@ -11,101 +11,60 @@
 /* ************************************************************************** */
 
 import * as React from 'react';
-import { styled, alpha } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
-import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
-
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '20ch',
-    },
-  },
-}));
-
-// import { Users } from './UserListOrganism';
+import TextField from '@mui/material/TextField';
 
 export interface SearchBarProps {
-  // users: Users;
-  // setUsers: (arg: Users) => void;
   state: string;
   setState: (arg: string) => void;
-  onClick?: () => void;
-  onKeyUp?: (event: React.KeyboardEvent) => void;
-  placeholder?: string
+
+  onClick?: () => void; // Search Button Click 콜백
+  onKeyUp?: (event: React.KeyboardEvent) => void; // enter key 처리용
+  type?: string; // text or password... etc
+  label?: string; // 이건 입력은 아니고, 단순 표시용 제목 (필드 제목)
+  placeholder?: string; // 미입력시 기본으로 입력되는 내용 (초기값)
+
+  disabled?: boolean; // Search 버튼 활성화 여부
+  disabledHelperText?: string; // 오류시 표기할 내용.
 }
 
 
 // SearchTextField는 입력값을 받아서 state 업데이트 시켜주는 하위 컴포넌트.
 export default function SearchTextField(props: SearchBarProps) {
-
-
     return (
-          <div className=" flex">
-            <input
-                value={props.state}
-                onChange={(event) => {props.setState(event.target.value)}}
-                onKeyUp={props.onKeyUp}
-                placeholder={props.placeholder}
-                className=" flex-1 max-w-full
-                            form-control
-                            px-3
-                            py-1.5
-                            text-base
-                            font-normal
-                            text-gray-700
-                            bg-white bg-clip-padding
-                            border border-solid border-gray-300
-                            rounded
-                            transition
-                            ease-in-out
-                            m-0
-                            focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none
-                            "
-             />
+      <div className=" flex">
+        {/* https://mui.com/material-ui/react-text-field/ */}
+        <TextField
+          sx={{ flex: 1 }} // 가득 채우기
+          id="standard-basic"
+          variant="standard"
+          type={props.type}
+          label={props.label}
+          onChange={(event) => {
+            props.setState(event.target.value);
+          }}
+          onKeyUp={props.onKeyUp}
+          placeholder={props.placeholder}
+          error={props.disabled}
+          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+          // required={true}
+        />
 
-              { props.onClick ? (
-                <IconButton onClick={props.onClick} >
-                  <SearchIcon  />
-                </IconButton>
-              ) : (
-                <IconButton disableFocusRipple disableRipple >
-                  <SearchIcon  />
-                </IconButton>
-              ) }
-          </div>
+        {/* onClick 콜백이 있을 경우에만 검색 버튼을 보여주기 */}
+        <div className=" items-center flex">
+          {props.onClick ? (
+            <IconButton
+              onClick={props.onClick}
+              disabled={props.disabled}
+              sx={{alignItems: "center", padding: 0}}
+            >
+              <SearchIcon />
+            </IconButton>
+          ) : (
+            <></>
+          )}
+        </div>
+      </div>
     );
 }

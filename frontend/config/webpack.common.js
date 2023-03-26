@@ -26,6 +26,28 @@ module.exports = {
       { // wasm 파일 로드가 안되서 이것 추가해봄.
         test: /\.wasm$/,
         type: "asset/inline",
+      },
+      // {
+      //   test: /\.svg$/,
+      //   use: [
+      //     {
+      //       loader: 'svg-url-loader',
+      //       options: {
+      //         limit: 10000,
+      //       },
+      //     },
+      //   ],
+      // },
+      { // 이미지 포멧: PNG, JP(E)G, GIF, SVG, WEBP
+        // https://yamoo9.gitbook.io/webpack/webpack/webpack-loaders/file-loader
+        test: /\.(svg|png|jpg|gif)$/,
+        use: {
+          loader: 'file-loader',
+          options: {
+            publicPath: './', // 브라우저 시작경로
+            name: '[name].[contenthash].[ext]',
+          },
+        },
       }
     ],
   },

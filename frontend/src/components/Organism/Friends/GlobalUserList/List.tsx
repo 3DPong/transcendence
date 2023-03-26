@@ -12,9 +12,9 @@
 
 import * as React from "react";
 import { ListItem } from "@mui/material";
-import UserListRow from "@/components/Molecule/UserListRow";
+import UserListRow from "@/components/Organism/Friends/GlobalUserList/UserListRow";
 import { Box } from "@mui/material";
-import { userListData_t } from "@/types/user";
+import { globalUserData_t, friendData_t } from "@/types/user";
 import { FixedSizeList } from "react-window";
 import { UpdateFunctionOverload } from "@/utils/CustomHooks/useArray";
 import ActionMenu from "@/components/Organism/Friends/GlobalUserList/ActionMenu";
@@ -23,8 +23,8 @@ const Row = (props: {
   index: number;
   style: React.CSSProperties;
   data: {
-    globalUsers: Array<userListData_t>;
-    setGlobalUsers: UpdateFunctionOverload<userListData_t>;
+    globalUsers: Array<globalUserData_t>;
+    setGlobalUsers: UpdateFunctionOverload<globalUserData_t>;
     isLoading: boolean;
   };
 }) => {
@@ -43,8 +43,8 @@ const Row = (props: {
 };
 
 export interface UserListProps {
-  globalUsers: Array<userListData_t>;
-  setGlobalUsers: UpdateFunctionOverload<userListData_t>;
+  globalUsers: Array<globalUserData_t>;
+  setGlobalUsers: UpdateFunctionOverload<globalUserData_t>;
   isLoading: boolean;
 }
 

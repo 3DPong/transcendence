@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/18 15:28:53 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/21 06:07:14 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/23 16:56:48 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,14 @@ import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Divider from "@mui/material/Divider";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import GlobalContext from "@/context/GlobalContext";
-import { userListData_t } from "@/types/user";
+import { friendData_t, globalUserData_t } from "@/types/user";
 import { Assert } from "@/utils/Assert";
 import * as API from "@/api/API";
 
 interface userActionMenuProps {
-  user: userListData_t;
+  user: friendData_t;
 }
 
 export default function UserActionMenu({user}: userActionMenuProps) {
@@ -33,14 +33,25 @@ export default function UserActionMenu({user}: userActionMenuProps) {
   const { setFriends } = useContext(GlobalContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const currentUrl = useLocation().pathname;
 
   // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const navigate = useNavigate();
 
   // 프로필 보기 버튼
-  const handleProfileRoute = () => {
+  const handleProfileRoute = (currentUrl: string) => {
     setAnchorEl(null);
-    navigate(`/friends/${user.profile.id}`);
+    // curr URL 1 = /home/friends
+    // curr URL 2 = /home/friends/add
+    const index = currentUrl.lastIndexOf("/")
+    const substr = currentUrl.substring(index + 1);
+    let urlTo;
+    if (substr === "friends") {
+      urlTo = "../";
+    } else {
+      urlTo = "./";
+    }
+    navigate(urlTo + `${user.user_id}`);
   };
 
   // DM 보내기 버튼
@@ -50,45 +61,21 @@ export default function UserActionMenu({user}: userActionMenuProps) {
     // ...
   };
 
-  // 친구 삭제 버튼
-  const handleDeleteFriend = () => {
-    console.log("Delete friend");
+  // 친구 삭제 버튼 (= 사용자 차단.)
+  const handleDeleteAndBlockFriend = () => {
+    console.log("Delete and Block friend");
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(user.profile.id, API.RelationAction.addFriend);
-      if (RESPONSE.friend === true) { // server handle error
+      const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.blockUser);
+      if (RESPONSE.status === "friend") { // server handle error
         alert("[SERVER]: 친구가 삭제 되지 않았습니다.")
         return ;
       }
       // (2) delete from friendList
       setFriends((draft) => { 
-        const targetIndex = draft.findIndex((m) => m.profile.id === user.profile.id);
+        const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
         if (targetIndex !== -1) draft.splice(targetIndex, 1);
-      });
-    })(/* IIFE */);
-  };
-
-  // 사용자 차단하기 버튼
-  const handleBlockUserToogle = () => {
-    console.log("Block/Unblock friend");
-    setAnchorEl(null);
-
-    (async () => {
-      // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(
-        user.profile.id,
-        user.isBlocked ? API.RelationAction.unBlockUser : API.RelationAction.blockUser
-      );
-      if (RESPONSE.block === undefined || RESPONSE.block === user.isBlocked) { // block handle error (no change)
-        alert("[SERVER]: 유저의 차단관계 처리 에러")
-        return ;
-      }
-      // (3) update to Global User List (친구 리스트에 있을 수도 있음...)
-      setFriends((draft) => {
-        const targetFriend = draft.find((m) => m.profile.id === user.profile.id);
-        if (!targetFriend) return; // 친구 리스트에 없으면 return
-        targetFriend.isBlocked = !targetFriend.isBlocked;
       });
     })(/* IIFE */);
   };
@@ -100,6 +87,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
 
   return (
     <div>
@@ -154,7 +142,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         {/* show profile route */}
-        <MenuItem onClick={handleProfileRoute} children={"See profile"} disableRipple />
+        <MenuItem onClick={ () => handleProfileRoute(currentUrl) } children={"See profile"} disableRipple />
 
         <Divider sx={{ my: 0.5 }} />
 
@@ -164,12 +152,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
         <Divider sx={{ my: 0.5 }} />
 
         {/* Delete friend handle */}
-        <MenuItem onClick={handleDeleteFriend} children={"Delete friend"} disableRipple />
-
-        {/* Block User tooggle */}
-        <MenuItem onClick={handleBlockUserToogle} disableRipple>
-          {user.isBlocked ? "UnBlock user" : "Block user"}
-        </MenuItem>
+        <MenuItem onClick={handleDeleteAndBlockFriend} children={"Delete friend"} disableRipple />
       </Menu>
     </div>
   );

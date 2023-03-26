@@ -33,7 +33,7 @@ export interface RuleConfigObject
 export const DefaultConfig : ConfigStruct = {
     rules: [  
         [
-            "@Name", // 이름 검증
+            "@Nickname", // 이름 검증
             { 
                 regex : /^[A-Za-z0-9]{5,12}$/,
                 hint  : " 영문 대문자, 소문자, 숫자만 사용 가능하며 최소 5자, 최대 12자까지 입력 가능합니다."
@@ -47,8 +47,8 @@ export const DefaultConfig : ConfigStruct = {
             }
         ],
         [
-            "@BadWords", // 비속어 검증
-            { 
+            "@BadWord", // 비속어 검증
+            {  // 이건 regex 설정 안함. (미완성)
                 regex : /^[A-Za-z]$/
             }
         ]
