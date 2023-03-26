@@ -173,6 +173,9 @@ describe('TwoFactorService', () => {
         expect(e.message).toEqual('already activated');
         expect(file.bytesWritten).toEqual(0);
       }
+      fs.unlink(filePath, () => {
+        return;
+      });
     });
   });
 
