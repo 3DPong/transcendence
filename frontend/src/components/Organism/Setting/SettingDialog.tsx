@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect } from "react";
+import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect, useInsertionEffect } from "react";
 
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -111,7 +111,6 @@ interface settingDialogProps {
 
 export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
-  const navigate = useNavigate();
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
   // Preload. 세팅을 누르는 순간 현재 User정보를 서버로부터 load 해야 한다. (input 기본값으로 기존 데이터를 사용하기 위함)
@@ -120,21 +119,27 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   const [ imageFile, setImageFile ] = useState<string>("");
   const [ nickname, setNickname ] = useState<string>("");
   const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
+
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
 
+  let initialTwoFactorAuth: boolean; // 기존 사용자 설정
+
+  // 서버에서 기존 사용자 데이터를 받아오는 과정
   useEffect(() => {
     if (!loggedUserId) return;
     // 1. 페이지 첫 렌더링 전에 세션 검증하고 user_id 받아올것.
     // Assert.NonNullish(loggedUserId, "이건 테스트용 코드입니다. 추후 서버에게 받는걸로 바꿀 예정입니다.");
     // 2. 검증된 user_id를 이용해서 user_data 재요청.
     (async () => {
+
       setIsLoading(true);
       const response = await API.getUserDataById(loggedUserId);
-      console.log(response.profile_url);
       setIsLoading(false);
 
       setImageFile(response.profile_url);
       setNickname(response.nickname);
+      // initialTwoFactorAuth = response.two_factor;
+      initialTwoFactorAuth = false; // 기존 값.
     })(/* IIFE */);
   }, [loggedUserId]);
   // ---------------------------------------------------------------------
@@ -163,49 +168,70 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // 2FactorAuto change Handle
   // ---------------------------------------------------------------------
   const [ twoFactorAuth, setTwoFactorAuth ] = useState<boolean>(false);
-
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTwoFactorAuth(event.target.checked);
   };
+
+  // off 에서 on이 된 경우 "로그아웃 됩니다. 정말 활성화 하시겠습니끼? 경고모달 띄우고 no하면 false로 하기"
+  useEffect(() => {
+    if (!twoFactorAuth) return ;
+    if ((initialTwoFactorAuth === false) && (twoFactorAuth === true)) {
+      console.log("2차 인증이 off 에서 on으로 변경됨.");
+      alert("")
+      // ... 경고 모달 활성화
+    }
+  }, [twoFactorAuth]);
   // ---------------------------------------------------------------------
+
+
 
 
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
     if (!loggedUserId) return ;
-
     (async () => {
+
       // 1. 서버에 변경 요청
       setIsLoading(true);
       const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
       setIsLoading(false);
-      // 2. 만약 요청 status가 정상이 아니라면...?
-          // ...??
+
+      // 2. 만약 요청 status가 정상이 아니라면, 경고 문구 날리기. (서버에서 정상적으로 처리되지 않았음. {DEV})
+      // ...??
+
       // 3. Success 201 : 받은 데이터로 전역 state 설정.
       // setLoggedUserId(response.user_id);
       console.log("서버에 변경사항을 전달하였습니다.");
       setOpen(false); // close dialog
+
+
+      // 4. 2차 인증이 off였던 사용자가 on으로 켰다면, 로그아웃 시켜버리기.
+      handleLogout();
+      // ...
+
     })(/* IIFE */);
   };
 
 
-  // ---------------------------------------------------------------------
 
   // Log-out
-  const handleClickLogout = () => {
+  // ---------------------------------------------------------------------
+  const handleLogout = () => {
     console.log("Logging out...");
     // 1. send server API logout call (delete session)
     // 2. delete user_id (option).
     // 3. go to /login page
-
     setOpen(false); // close dialog
   };
 
-  // Dialog cloas
+
+  // Dialog close
   const handleClose = () => {
     setOpen(false); // close dialog
   }; 
+
+
 
   return (
     // https://mui.com/material-ui/api/container/
@@ -255,7 +281,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
               Save Settings
             </LoadingButton>
             {/* 로그아웃 버튼 */}
-            <Button color="error" variant="contained" onClick={handleClickLogout}>
+            <Button color="error" variant="contained" onClick={handleLogout}>
               Logout
             </Button>
         </DialogContent>
