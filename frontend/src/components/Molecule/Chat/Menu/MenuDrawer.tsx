@@ -1,5 +1,5 @@
 import { User } from "@/types/chat";
-import { FC } from "react";
+import { FC, useState } from "react";
 import MenuFooter from "./MenuFooter";
 import MenuList from "./MenuList";
 
@@ -11,6 +11,8 @@ interface MenuDrawerProps {
 };
 
 const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, banlist }) => {
+  const [scrollY, setScrollY] = useState<number>(0);
+
   return (
     <>
       <div
@@ -19,9 +21,11 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, banlist 
         }`}
       >
         <div className="flex flex-col w-full h-full">
-          <div className=" flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200">
-            <MenuList title="참여 유저 리스트" users={userlist}/>
-            <MenuList title="밴 리스트" users={banlist}/>
+          <div className=" flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
+            onScroll={(event)=>{setScrollY(event.currentTarget.scrollTop)}}
+          >
+            <MenuList title="참여 유저 리스트" users={userlist} scrollY={scrollY}/>
+            <MenuList title="밴 리스트" users={banlist} scrollY={scrollY}/>
           </div>
           <div className="flex-shrink-0 h-50">
             <MenuFooter />

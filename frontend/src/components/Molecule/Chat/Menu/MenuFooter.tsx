@@ -15,7 +15,6 @@ const MenuFooter : FC<MenuFooterProps> = ({}) => {
       </button>
       <button className="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
         <CogIcon className="h-5 w-5 mr-2" />
-        Settings
       </button>
     </div>
   );
