@@ -67,8 +67,8 @@ buttonA.innerHTML = "game room join";
 root.appendChild(buttonA);
 buttonA.addEventListener("click", (event) => {
   console.log("ButtonA Clicked!");
-  socket.emit('randomMatch',{
-    gameRoomType : 'RANDOM',
+  socket.emit('Match',{
+    gameRoomType : 1,
     gameMod : 0,
   })
   // ...
@@ -106,4 +106,7 @@ socket.on('gameExit', (data)=>{
 })
 socket.on('broadcast', (data)=>{
     console.log('socket recvie other data : ',data);
+})
+socket.on('InGameData', (data) => {
+    console.log('recive InGameData' ,data);
 })
