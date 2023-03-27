@@ -22,7 +22,11 @@ export class ChannelDto {
 	})
 	password!: string | null;
 
+	@IsNotEmpty()
 	type: ChannelType;
+
+	// @IsNumber()
+	inviteList: number[] | null;
 }
 
 export class JoinDto {
