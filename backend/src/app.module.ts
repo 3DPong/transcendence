@@ -16,6 +16,8 @@ import { FtConfigModule } from './config/ft/config.module';
 import { RedisConfigModule } from './config/redis/config.module';
 import { DevModule, EmptyModule } from './models/dev/dev.module';
 import { ImageModule } from './models/image/image.module';
+import { OtpModule } from './common/otp/otp.module';
+import { OtpConfigModule } from './config/otp/config.module';
 
 @Module({
   imports: [
@@ -30,7 +32,9 @@ import { ImageModule } from './models/image/image.module';
     SessionConfigModule,
     FtConfigModule,
     RedisConfigModule,
+    OtpConfigModule,
     ImageModule,
+    OtpModule,
     process.env.NODE_ENV !== 'prod' ? DevModule : EmptyModule, // 개발용으로 사용하는 PATH 를 PRODUCTION MODE 에서 제외
   ],
   controllers: [AppController],

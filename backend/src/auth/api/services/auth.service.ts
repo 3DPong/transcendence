@@ -4,6 +4,7 @@ import { User } from '../../../models/user/entities';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { SessionService } from '../../../common/session/session.service';
+import { SessionStatusEnum } from '../../../common/enums/sessionStatus.enum';
 
 @Injectable()
 export class AuthService {
@@ -28,15 +29,17 @@ export class AuthService {
   async signIn(user: User, req: Request) {
     // 2FA 상황인지 체크
     if (user.two_factor) {
-      return await this.twoFactorAuthentication(user, req);
+      req.session.sessionStatus = SessionStatusEnum.TWO_FACTOR;
+      return {
+        status: '2FA',
+        user_id: user.user_id,
+      };
     }
     await this.sessionService.checkSession(user, req);
     this.sessionService.createSession(user, req);
     return {
       status: 'SUCCESS',
-      user: {
-        user_id: user.user_id,
-      },
+      user_id: user.user_id,
     };
   }
 
@@ -45,12 +48,11 @@ export class AuthService {
    */
   async signUp(data, req: Request) {
     req.session.user_id = null;
-    req.session.status = null; // fixme : alarm socket 연결 시에?
+    req.session.userStatus = null; // fixme : alarm socket 연결 시에?
     req.session.email = data.email;
+    req.session.sessionStatus = SessionStatusEnum.SIGNUP;
     return {
       status: 'SIGNUP_MODE',
     };
   }
-
-  async twoFactorAuthentication(user: User, req: Request) {}
 }

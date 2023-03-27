@@ -12,12 +12,14 @@ import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
 import { colorist } from './common/logger/utils';
+import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
 
 declare module 'express-session' {
   interface SessionData {
     user_id?: number;
-    status?: UserStatusEnum;
+    userStatus?: UserStatusEnum;
     email?: string;
+    sessionStatus: SessionStatusEnum;
   }
 }
 
