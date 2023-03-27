@@ -1,16 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../models/user/entities';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { SessionService } from '../../../common/session/session.service';
 import { SessionStatusEnum } from '../../../common/enums/sessionStatus.enum';
+import { OtpService } from '../../../common/otp/otp.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private otpService: OtpService
   ) {}
 
   async redirect(data, req: Request) {
@@ -54,5 +56,17 @@ export class AuthService {
     return {
       status: 'SIGNUP_MODE',
     };
+  }
+
+  async validateOtp(userId: number, token: string, req: Request) {
+    const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('invalid user (session is not valid)');
+    }
+    const isValidated = await this.otpService.validate(user.two_factor_secret, token);
+    if (isValidated) {
+      req.session.sessionStatus = SessionStatusEnum.SUCCESS;
+    }
+    return isValidated;
   }
 }

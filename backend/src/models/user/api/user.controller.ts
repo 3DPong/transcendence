@@ -42,10 +42,22 @@ export class UserController {
   }
 
   @UseGuards(SessionGuard)
-  @Put('/2fa/activate')
-  async activateTwoFactor(@GuardData() data, @Req() req: Request, @Res() res: Response): Promise<void> {
-    return this.twoFactorService.activateUserTwoFactor(data.user_id, req, res);
+  @Get('/2fa/qr')
+  async getQRCode(@GuardData() data, @Req() req: Request, @Res() res: Response): Promise<void> {
+    return this.twoFactorService.getQRCode(data.user_id, req, res);
   }
+
+  @UseGuards(SessionGuard)
+  @Post('/2fa/activate')
+  async activateTwoFactor(
+    @GuardData() data,
+    @Body() tokenDto: TokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<void> {
+    return this.twoFactorService.activateUserTwoFactor(data.user_id, tokenDto.token, req, res);
+  }
+
   @UseGuards(SessionGuard)
   @Put('/2fa/deactivate')
   async deactivateTwoFactor(

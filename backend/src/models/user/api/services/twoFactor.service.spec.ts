@@ -53,8 +53,8 @@ describe('TwoFactorService', () => {
     await dataSource.destroy();
   });
 
-  describe('activateUserTwoFactor', () => {
-    it('유저가 정상적으로 2FA를 활성화한 경우', async () => {
+  describe('getQRCode', () => {
+    it('유저가 정상적으로 QR을 요청한 경우 QR을 반환한다.', async () => {
       const newUser = userRepository.create({
         nickname: 'test',
         email: 'test@gmail.com',
@@ -66,6 +66,7 @@ describe('TwoFactorService', () => {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
           sessionStatus: SessionStatusEnum.SUCCESS,
+          otpSecret: null,
           email: null,
           destroy: (callback) => {
             callback();
@@ -76,12 +77,13 @@ describe('TwoFactorService', () => {
       // file stream 으로 실제 qrcode 가 전달되고 있는지 확인함.
       const filePath = __dirname + '/qrcode.png';
       const file = fs.createWriteStream(filePath);
-      await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response, file);
+      await twoFactorService.getQRCode(savedUser.user_id, request, response, file);
       // check db is changed
       const findUser = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
-      expect(findUser.two_factor).toBe(true);
-      expect(findUser.two_factor_secret).toBeDefined();
-      expect(file.bytesWritten).toBeGreaterThanOrEqual(100);
+      expect(findUser.two_factor).toEqual(false);
+      expect(findUser.two_factor_secret).toBeNull();
+      expect(file.bytesWritten).toBeGreaterThanOrEqual(10);
+      expect(request.session.otpSecret.length).toBeGreaterThanOrEqual(10);
     });
 
     it('유저가 잘못된 id를 제공한 경우 401 에러를 던진다.', async () => {
@@ -90,6 +92,7 @@ describe('TwoFactorService', () => {
           user_id: 0,
           userStatus: UserStatusEnum.ONLINE,
           sessionStatus: SessionStatusEnum.SUCCESS,
+          otpSecret: null,
           email: null,
           destroy: (callback) => {
             callback();
@@ -97,7 +100,7 @@ describe('TwoFactorService', () => {
         },
       });
       try {
-        const res = await twoFactorService.activateUserTwoFactor(0, request, response);
+        const res = await twoFactorService.getQRCode(0, request, response);
         expect(res).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(UnauthorizedException);
@@ -120,13 +123,14 @@ describe('TwoFactorService', () => {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
           sessionStatus: SessionStatusEnum.SUCCESS,
+          otpSecret: null,
           email: null,
         },
       });
       const filePath = __dirname + '/test.png';
       const file = fs.createWriteStream(filePath);
       try {
-        const res = await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response, file);
+        const res = await twoFactorService.getQRCode(savedUser.user_id, request, response, file);
         expect(res).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(InternalServerErrorException);
@@ -146,6 +150,8 @@ describe('TwoFactorService', () => {
         nickname: 'test',
         email: 'test@gmail.com',
         profile_url: 'http://test.com/img/1',
+        two_factor: true,
+        two_factor_secret: 'something',
       });
       const savedUser = await userRepository.save(newUser);
       request = createRequest({
@@ -153,6 +159,7 @@ describe('TwoFactorService', () => {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
           sessionStatus: SessionStatusEnum.SUCCESS,
+          otpSecret: null,
           email: null,
           destroy: (callback) => {
             callback();
@@ -163,10 +170,9 @@ describe('TwoFactorService', () => {
       // file stream 으로 실제 qrcode 가 전달되고 있는지 확인함.
       const filePath = __dirname + '/test.png';
       const file = fs.createWriteStream(filePath);
-      await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response);
       // REAL TEST AREA
       try {
-        const result = await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response, file);
+        const result = await twoFactorService.getQRCode(savedUser.user_id, request, response, file);
         expect(result).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
@@ -179,70 +185,49 @@ describe('TwoFactorService', () => {
     });
   });
 
-  describe('deactivateUserTwoFactor', () => {
+  describe('activateUserTwoFactor', () => {
+    const otpSecret: string = authenticator.generateSecret();
+    const SECRET: string = process.env.OTP_SECRET; // 아마 스코프 문제로 모듈 로드 전에 service 접근이 안되는 것 같아서 이렇게 함.
+    const encrypted: string = CryptoJS.AES.encrypt(otpSecret, SECRET).toString();
     const requestOption = {
       session: {
         user_id: 1,
         userStatus: UserStatusEnum.ONLINE,
         sessionStatus: SessionStatusEnum.SUCCESS,
+        otpSecret: encrypted,
         email: null,
         destroy: (callback) => {
           callback();
         },
       },
     };
-    it('정상적으로 Deactivate 한 경우 200으로 return void', async () => {
-      request = createRequest(requestOption);
-      response = createResponse();
-      const newUser: User = userRepository.create({
-        nickname: 'tester',
-        email: 'tester@gmail.com',
-        profile_url: 'http://test.com/img/2',
+
+    it('정상적으로 활성화한 경우 로그아웃 & 유저 2FA 활성화', async () => {
+      const newUser = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
       });
       const savedUser = await userRepository.save(newUser);
-      // activate 2FA
-      await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response);
-      const twoFactorUser: User = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
-      // get decrypted secret to create valid token
-      const encryptedSecret = twoFactorUser.two_factor_secret;
-      const decryptedSecret = CryptoJS.AES.decrypt(encryptedSecret, otpConfigService.secret).toString(
-        CryptoJS.enc.Utf8
-      );
-      const token: string = authenticator.generate(decryptedSecret);
-      // test service
-      const result = await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, token, request, response);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('잘못된 토큰을 제공한 경우 400에러를 던진다.', async () => {
       request = createRequest(requestOption);
       response = createResponse();
-      const newUser: User = userRepository.create({
-        nickname: 'tester',
-        email: 'tester@gmail.com',
-        profile_url: 'http://test.com/img/2',
-      });
-      const savedUser = await userRepository.save(newUser);
-      // activate 2FA
-      await twoFactorService.activateUserTwoFactor(savedUser.user_id, request, response);
-      const token = '999999';
-      // test service
+      const validToken: string = authenticator.generate(otpSecret);
       try {
-        const result = await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, token, request, response);
-        expect(result).toBeUndefined();
+        await twoFactorService.activateUserTwoFactor(savedUser.user_id, validToken, request, response);
       } catch (e) {
-        expect(e).toBeInstanceOf(BadRequestException);
-        expect(e.message).toEqual('token is invalid');
+        expect(e).toBeUndefined();
       }
+      const updatedUser = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
+      expect(updatedUser.two_factor_secret).toEqual(encrypted);
+      expect(updatedUser.two_factor).toEqual(true);
+      expect(response.cookies['connect.sid'].options.expires).toStrictEqual(new Date(1)); // session cookie clear
     });
 
-    it('없는 유저의 id가 제공된 경우 401에러를 던진다.', async () => {
+    it('존재하지 않는 유저 세션인 경우 401에러를 던진다.', async () => {
       request = createRequest(requestOption);
       response = createResponse();
-      const token = '000000';
       try {
-        const result = await twoFactorService.deactivateUserTwoFactor(0, token, request, response);
+        const result = await twoFactorService.activateUserTwoFactor(0, 'validToken', request, response);
         expect(result).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(UnauthorizedException);
@@ -250,24 +235,156 @@ describe('TwoFactorService', () => {
       }
     });
 
-    it('유저의 2FA가 활성화되지 않은 경우 400에러를 던진다.', async () => {
+    it('이미 two factor가 활성화된 유저일 경우 400에러를 던진다.', async () => {
+      const newUser = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+        two_factor: true,
+        two_factor_secret: '1312312',
+      });
+      const savedUser = await userRepository.save(newUser);
+      let error;
+      request = createRequest(requestOption);
+      response = createResponse();
+      try {
+        const result = await twoFactorService.activateUserTwoFactor(
+          savedUser.user_id,
+          'invalidToken',
+          request,
+          response
+        );
+        expect(result).toBeUndefined();
+      } catch (e) {
+        error = e;
+        expect(e).toBeInstanceOf(BadRequestException);
+        expect(e.message).toEqual('already activated');
+      }
+      expect(error).toBeDefined();
+    });
+
+    it('잘못된 토큰을 보낸 경우 400에러를 던진다.', async () => {
+      const newUser = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+      });
+      const savedUser = await userRepository.save(newUser);
+      let error;
+      request = createRequest(requestOption);
+      response = createResponse();
+      const invalidToken = '00000-';
+      try {
+        const result = await twoFactorService.activateUserTwoFactor(savedUser.user_id, invalidToken, request, response);
+        expect(result).toBeUndefined();
+      } catch (e) {
+        error = e;
+        expect(e).toBeInstanceOf(BadRequestException);
+        expect(e.message).toEqual('token is invalid');
+      }
+      expect(error).toBeDefined();
+    });
+  });
+  describe('deactivateTwoFactor', () => {
+    const otpSecret: string = authenticator.generateSecret();
+    const SECRET: string = process.env.OTP_SECRET; // 아마 스코프 문제로 모듈 로드 전에 service 접근이 안되는 것 같아서 이렇게 함.
+    const encrypted: string = CryptoJS.AES.encrypt(otpSecret, SECRET).toString();
+    const requestOption = {
+      session: {
+        user_id: 1,
+        userStatus: UserStatusEnum.ONLINE,
+        sessionStatus: SessionStatusEnum.SUCCESS,
+        otpSecret: null,
+        email: null,
+        destroy: (callback) => {
+          callback();
+        },
+      },
+    };
+    it('정상적인 경우 유저의 2FA가 해제되고 로그아웃 된다.', async () => {
       request = createRequest(requestOption);
       response = createResponse();
       const newUser: User = userRepository.create({
-        nickname: 'tester',
-        email: 'tester@gmail.com',
-        profile_url: 'http://test.com/img/2',
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+        two_factor: true,
+        two_factor_secret: encrypted,
       });
-      const savedUser = await userRepository.save(newUser);
-      const token = '000000';
-
+      const savedUser: User = await userRepository.save(newUser);
+      const validToken: string = authenticator.generate(otpSecret);
+      let error;
       try {
-        const result = await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, token, request, response);
-        expect(result).toBeUndefined();
+        await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, validToken, request, response);
       } catch (e) {
+        error = e;
+      }
+      expect(error).toBeUndefined();
+      const findUser: User = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
+      expect(findUser.two_factor_secret).toBeNull();
+      expect(findUser.two_factor).toEqual(false);
+      expect(response.cookies['connect.sid'].options.expires).toStrictEqual(new Date(1)); // session cookie clear
+    });
+
+    it('없는 유저의 세션일 경우 401에러를 반환한다.', async () => {
+      request = createRequest(requestOption);
+      response = createResponse();
+
+      let error;
+      try {
+        await twoFactorService.deactivateUserTwoFactor(2222, 'invalidToken', request, response);
+      } catch (e) {
+        error = e;
+        expect(e).toBeInstanceOf(UnauthorizedException);
+        expect(e.message).toEqual('invalid user (session is not valid)');
+      }
+      expect(error).toBeDefined();
+    });
+
+    it('유저가 2FA를 활성화하지 않은 경우 400에러를 반환한다..', async () => {
+      request = createRequest(requestOption);
+      response = createResponse();
+      const newUser: User = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+        two_factor: false,
+        two_factor_secret: null,
+      });
+      const savedUser: User = await userRepository.save(newUser);
+      const validToken: string = authenticator.generate(otpSecret);
+      let error;
+      try {
+        await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, validToken, request, response);
+      } catch (e) {
+        error = e;
         expect(e).toBeInstanceOf(BadRequestException);
         expect(e.message).toEqual('user 2fa is not activated');
       }
+      expect(error).toBeDefined();
+    });
+
+    it('잘못된 토큰이 온 경우 400에러를 반환한다.', async () => {
+      request = createRequest(requestOption);
+      response = createResponse();
+      const newUser: User = userRepository.create({
+        nickname: 'test',
+        email: 'test@gmail.com',
+        profile_url: 'http://test.com/img/1',
+        two_factor: true,
+        two_factor_secret: encrypted,
+      });
+      const savedUser: User = await userRepository.save(newUser);
+      const validToken: string = authenticator.generate(otpSecret) + 'not valid';
+      let error;
+      try {
+        await twoFactorService.deactivateUserTwoFactor(savedUser.user_id, validToken, request, response);
+      } catch (e) {
+        error = e;
+        expect(e).toBeInstanceOf(BadRequestException);
+        expect(e.message).toEqual('token is invalid');
+      }
+      expect(error).toBeDefined();
     });
   });
 });

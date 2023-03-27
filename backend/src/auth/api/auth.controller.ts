@@ -8,16 +8,10 @@ import { Request } from 'express';
 import { GuardData } from '../../common/decorators/guardData.decorator';
 import { TwoFactorGuard } from '../../common/guards/twoFactor/twoFactor.guard';
 import { GetSessionData } from '../../common/decorators';
-import { OtpService } from '../../common/otp/otp.service';
-import { SessionStatusEnum } from '../../common/enums/sessionStatus.enum';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    private authService: AuthService,
-    private otpService: OtpService
-  ) {}
+  constructor(@InjectRepository(User) private userRepository: Repository<User>, private authService: AuthService) {}
 
   @UseGuards(FtGuard)
   @Get('/signin/42')
@@ -33,11 +27,7 @@ export class AuthController {
 
   @UseGuards(TwoFactorGuard)
   @Post('/2fa/otp')
-  async validateOtp(@GetSessionData() data, @Body() payload, @Req() req: Request): Promise<boolean> {
-    const isValidated = await this.otpService.validate(data.user_id, payload.token);
-    if (isValidated) {
-      req.session.sessionStatus = SessionStatusEnum.SUCCESS;
-    }
-    return isValidated;
+  async validateOtp(@GetSessionData() data, @Body() payload: { token: string }, @Req() req: Request): Promise<boolean> {
+    return await this.authService.validateOtp(data.user_id, payload.token, req);
   }
 }

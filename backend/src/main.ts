@@ -20,6 +20,7 @@ declare module 'express-session' {
     userStatus?: UserStatusEnum;
     email?: string;
     sessionStatus: SessionStatusEnum;
+    otpSecret: string;
   }
 }
 

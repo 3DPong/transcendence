@@ -16,11 +16,8 @@ export class OtpService {
    * NOTE!!
    * encryption 의 key 는 utf-8 형태로 stringify 된다.
    */
-  async validate(userId: number, token: string): Promise<boolean> {
-    const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
-    const decrypted: string = CryptoJS.AES.decrypt(user.two_factor_secret, this.otpConfigService.secret).toString(
-      CryptoJS.enc.Utf8
-    );
+  async validate(encrypted: string, token: string): Promise<boolean> {
+    const decrypted: string = CryptoJS.AES.decrypt(encrypted, this.otpConfigService.secret).toString(CryptoJS.enc.Utf8);
     try {
       return authenticator.verify({ token: token, secret: decrypted });
     } catch (error) {
