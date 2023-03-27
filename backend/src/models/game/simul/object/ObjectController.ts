@@ -1,8 +1,8 @@
-import { GameUser } from "../GameUser";
+import { GamePlayer } from "../GamePlayer";
 import * as Box2D from "../../Box2D";
 import { PaddleState } from "../enum/GameEnum";
 
-export function MovePeddle(user : GameUser){
+export function MovePeddle(user : GamePlayer){
   if (user.directionButton === PaddleState.STOP) {
     return;
   }
