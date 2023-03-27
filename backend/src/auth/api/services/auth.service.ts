@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../models/user/entities';
 import { Repository } from 'typeorm';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { SessionService } from '../../../common/session/session.service';
 import { SessionStatusEnum } from '../../../common/enums/sessionStatus.enum';
 import { OtpService } from '../../../common/otp/otp.service';
@@ -68,5 +68,10 @@ export class AuthService {
       req.session.sessionStatus = SessionStatusEnum.SUCCESS;
     }
     return isValidated;
+  }
+
+  async signOut(userId: number, req: Request, res: Response) {
+    await this.sessionService.destroySessionBySid(req.session.id, req);
+    await this.sessionService.clearSession(req, res);
   }
 }
