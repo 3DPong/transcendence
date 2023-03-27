@@ -1,0 +1,38 @@
+version: '3.8'
+
+# 백엔드 개발 환경 구축용 도커 컨테이너들
+services:
+  # npm install 이 안되어있으면 작동 안함
+  node:
+    image: node:18-alpine
+    container_name: node_light
+    depends_on:
+      - postgresql
+    ports:
+      - "3000:3000"
+      - "4242:4242"
+    expose:
+      - "4242"
+    networks:
+      - backend
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    working_dir: /app
+    command: npm run start:dev
+
+#  실제 배포 환경
+#  node_prod:
+#    build: node:18-alpine
+#    container_name: node_dev
+#    depends_on:
+#      - postgresql
+#    ports:
+#      - "3000:3000"
+#    networks:
+#      - backend
+
+networks:
+  backend:
+    driver: bridge
