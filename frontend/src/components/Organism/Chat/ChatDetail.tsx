@@ -11,7 +11,7 @@ import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
 import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
 import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
-import ChannelDrawer from '@/components/Molecule/Chat/Menu/MenuDrawer';
+import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 
 interface ChatDetailProps {
 }
@@ -77,7 +77,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       <MessageHeader channel={channel} memberCount={users.length} handleMenuButton={()=>{setDrawerOpen(true)}}/>
       <MessageList myId={userId} users={users} messages={messages} />
       <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
-      <ChannelDrawer open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} userlist={users} banlist={users} />
+      <MenuDrawer isAdmin={true} open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} userlist={users} banlist={users} />
 
       <BattleRequestModal
         open={battleModalOpen}

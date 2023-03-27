@@ -3,6 +3,7 @@ import { Avatar, Badge } from "@mui/material";
 import { FC, useState } from "react";
 import AvatarPopper from "./AvatarPopper";
 import { styled } from '@mui/material/styles';
+import { RiVipCrown2Fill } from 'react-icons/ri';
 
 
 const getBadgeColor = (status: UserStatus = "none") => {
@@ -22,7 +23,6 @@ const getBadgeColor = (status: UserStatus = "none") => {
 
 const StyledBadge = styled(Badge)<{ status: UserStatus }>(({ status = "none", theme }) => ({
   '& .MuiBadge-badge': {
-    zindex: 2,
     backgroundColor: getBadgeColor(status),
     color: getBadgeColor(status),
     boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
@@ -63,26 +63,37 @@ const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
   };
 
   return (
-    <StyledBadge
-      status={user.status || 'none'}
+    <Badge 
+      sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
+      anchorOrigin={{
+        vertical: 'top',
+        horizontal: 'left',
+      }}
       overlap="circular"
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      variant="dot"
+      badgeContent={ user.role === "user" ? <></> :
+                      <RiVipCrown2Fill size="1.5em" color={ user.role === "owner" ? "Blue" : "Crimson" }/> }
     >
-      <Avatar
-          src={user.profile}
-          alt={user.nickname}
-          className="cursor-pointer"
-          onClick={handleAvatarClick}
-      />
-      {Boolean(anchorEl) && <AvatarPopper
-        anchorEl={anchorEl}
-        handleClose={()=>{setAnchorEl(null);}}
-        targetId={user.id}
-        scrollY={scrollY}
-      />
-      }
-    </StyledBadge>
+      <StyledBadge
+        status={user.status || 'none'}
+        overlap="circular"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        variant="dot"
+      >
+        <Avatar
+            src={user.profile}
+            alt={user.nickname}
+            className="cursor-pointer"
+            onClick={handleAvatarClick}
+        />
+        {Boolean(anchorEl) && <AvatarPopper
+          anchorEl={anchorEl}
+          handleClose={()=>{setAnchorEl(null);}}
+          targetId={user.id}
+          scrollY={scrollY}
+        />
+        }
+      </StyledBadge>
+    </Badge>
   );
 };
 

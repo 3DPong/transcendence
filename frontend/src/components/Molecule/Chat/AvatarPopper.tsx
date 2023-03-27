@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/material';
 
 interface AvatarPopperProps {
@@ -9,11 +9,12 @@ interface AvatarPopperProps {
 };
 
 const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, scrollY}) => {
+  const [muteTime, setMuteTime] = useState("10");
   const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
   const isAdmin = true;
-  const isMuted = false;
-  const isBanned = false;
+  const isTargetMuted = false;
+  const isTargetBanned = false;
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -46,8 +47,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
     console.log(id + " is Unbann");
     handleClose();
   }
-  function handleMuteClick(id: number) {
-    console.log(id + " is mute");
+  function handleMuteClick(id: number, minute: number) {
+    console.log(id + ` is ${minute}m mute`);
     handleClose();
   }
   function handleUnMuteClick(id: number) {
@@ -91,14 +92,29 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
                 Send DM
               </MenuItem>
               { isAdmin && [
-                  isMuted ? 
+                  isTargetMuted ? 
                   <MenuItem key={1} sx={menuItemStyles} onClick={()=>{handleUnMuteClick(targetId);}}>
                     UnMute
                   </MenuItem> :
-                  <MenuItem key={2} sx={menuItemStyles} onClick={()=>{handleMuteClick(targetId);}}>
-                    Mute
+                  <MenuItem key={2} sx={menuItemStyles}>
+                    <input type="text" maxLength={6}
+                      style={{
+                        width:60,
+                        textAlign: "right",
+                        paddingRight: "4px"
+                      }}
+                      value={muteTime}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const valueAsNumber = Number(value);
+                        if (!isNaN(valueAsNumber)) {
+                          setMuteTime(value);
+                        }
+                      }}
+                    /> 
+                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleMuteClick(targetId, Number(muteTime));}}>m Mute</div>
                   </MenuItem>,
-                  isBanned ?
+                  isTargetBanned ?
                   <MenuItem key={3} sx={menuItemStyles} onClick={()=>{handleUnBanClick(targetId);}}>
                     UnBan
                   </MenuItem> :

@@ -8,7 +8,7 @@ interface templateProps {
 
 const ChatTemplate: React.FC<templateProps> = ({organism}) => {
   return (
-    <div className="absolute shadow-lg left-80 top-0 w-96 h-96 overflow-hidden">
+    <div className="absolute shadow-lg left-80 top-0 w-96 h-full overflow-hidden">
       {organism}
     </div>
   );
