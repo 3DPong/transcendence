@@ -71,7 +71,6 @@ export class AuthService {
   }
 
   async signOut(userId: number, req: Request, res: Response) {
-    await this.sessionService.destroySessionBySid(req.session.id, req);
     await this.sessionService.clearSession(req, res);
   }
 }
