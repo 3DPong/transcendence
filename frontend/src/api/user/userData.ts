@@ -6,14 +6,14 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:06:17 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/24 19:12:35 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/27 22:04:39 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import GlobalContext from "@/context/GlobalContext";
 import { Assert } from "@/utils/Assert";
 import { useContext } from "react";
-import { fetchAndHandleResponseError } from "@/api/error/error";
+import { fetchAndHandleSessionError } from "@/api/status/session";
 import { uploadImageToServer } from "@/api/upload/upload";
 
 

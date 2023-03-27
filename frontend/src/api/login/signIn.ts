@@ -1,5 +1,4 @@
 
-import { fetchAndHandleResponseError } from "@/api/error/error";
 
 /** API 42
  * @link https://github.com/3DPong/transcendence/discussions/14
