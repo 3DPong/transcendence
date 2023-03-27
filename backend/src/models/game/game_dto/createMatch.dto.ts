@@ -1,5 +1,5 @@
 import { GameModEnum,GameRoomTypeEnum } from "../simul/enum/GameEnum";
-export class createMatchDto {
+export class MatchDto {
   gameRoomType : GameRoomTypeEnum;
   gameMod : GameModEnum;
   
