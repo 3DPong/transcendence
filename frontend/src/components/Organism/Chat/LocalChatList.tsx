@@ -4,8 +4,8 @@ import MediaCard from "@/components/Molecule/MediaCard";
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
-import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
-import { Room } from "@/types/chat";
+import VirtualizedChatList from '@/components/Molecule/Chat/List/ChannelList'
+import { Channel } from "@/types/chat";
 import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/context/GlobalContext";
@@ -17,37 +17,37 @@ interface ChatListProps {
 
 const LocalChatList : FC<ChatListProps> = () => {
   const navigate = useNavigate();
-  const {rooms, setRooms} = useContext(GlobalContext);
+  const {channels, setChannels} = useContext(GlobalContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
  
   useEffect(() => {
-    async function fetchRooms() {
+    async function fetchChannels() {
     };
     setIsLoading(true);
     setTimeout(() => {
-      setRooms(Dummy.dummy_chatrooms);
+      setChannels(Dummy.dummy_chatrooms);
       setIsLoading(false);
     }, 2000);
   }, []);
 
-  function findRoomsByString(rooms: Room[], searchString : string) {
+  function findChannelsByString(channels: Channel[], searchString : string) {
     if (searchString)
-      return rooms.filter((room) => { return room.channelName.includes(searchString); });
+      return channels.filter((channel) => { return channel.title.includes(searchString); });
     else
-      return rooms;
+      return channels;
   }
 
   function handleCardClick(id:number) {
-    navigate(`/rooms/${id}`)
+    navigate(`/channels/${id}`)
   }
 
   return (
     <>
       <MediaCard
         imageUrl="https://cdn.dribbble.com/userupload/2416463/file/original-ff769e3101b39c1e474e018cd1874138.png?compress=1&resize=640x480&vertical=top"
-        title="My Chatrooms"
+        title="My Channels"
         body="body2 text"
       />
 
@@ -67,7 +67,7 @@ const LocalChatList : FC<ChatListProps> = () => {
           placeholder={"참여채팅 검색"}/>
       </div>
 
-      <VirtualizedChatList rooms={findRoomsByString(rooms, searchString)} isLoading={isLoading} handleCardClick={handleCardClick} />
+      <VirtualizedChatList channels={findChannelsByString(channels, searchString)} isLoading={isLoading} handleCardClick={handleCardClick} />
     </>
   );
 }

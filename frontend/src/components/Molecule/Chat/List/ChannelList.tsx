@@ -1,15 +1,15 @@
-import { ChatType, Room } from "@/types/chat";
+import { ChannelType, Channel } from "@/types/chat";
 import { Box } from "@mui/material";
 import React from "react";
 import { FC } from "react";
 import { FixedSizeList } from "react-window";
-import ChatCard from "./ChatCard";
+import ChannelCard from "./ChannelCard";
 import clsx from "clsx";
 
-interface ChatListProps {
-  rooms: Room[];
+interface ChannelListProps {
+  channels: Channel[];
   isLoading: boolean;
-  handleCardClick: (id: number, type: ChatType) => void;
+  handleCardClick: (id: number, type: ChannelType) => void;
 };
 
 interface RowProps {
@@ -17,39 +17,39 @@ interface RowProps {
   style: React.CSSProperties;
   data: {
     isLoading: boolean;
-    chats: Room[];
-    handleCardClick: (id: number, type: ChatType) => void;
+    chats: Channel[];
+    handleCardClick: (id: number, type: ChannelType) => void;
   }
 }
 
 const Row : FC<RowProps> = ({index, style, data}) => {
-  const room = data.chats[index];
+  const channel = data.chats[index];
 
   return (
     <Box
-      key={index}
+      key={channel.id}
       className={clsx(
         "flex items-center justify-start gap-2",
         index % 2 === 0 ? "bg-white" : "bg-gray-50"
       )}
       style={style}
     >
-      <ChatCard room={room} isLoading={data.isLoading} handleCardClick={data.handleCardClick}/>
+      <ChannelCard channel={channel} isLoading={data.isLoading} handleCardClick={data.handleCardClick}/>
     </Box>
   );
 };
 
 
-const VirtualizedChatList: FC<ChatListProps> = ({rooms, isLoading, handleCardClick}) => {
-  const renderRooms : Room[] = (
+const VirtualizedChannelList: FC<ChannelListProps> = ({channels, isLoading, handleCardClick}) => {
+  const renderChannels : Channel[] = (
     isLoading ?
       Array.from({length: 5}, (_, index) => ({
-        channelId : index,
-        channelName : "",
-        channelType : "public",
-        owner: {userId: 1, profile:"", nickname: "" }
+        id: index,
+        title: "",
+        type: "public",
+        owner: {id: 1, profile:"", nickname: "" }
       }))
-      : rooms
+      : channels
     );
 
   return (
@@ -67,9 +67,9 @@ const VirtualizedChatList: FC<ChatListProps> = ({rooms, isLoading, handleCardCli
             height={400}
             width="100%"
             itemSize={60}
-            itemCount={ renderRooms.length }
+            itemCount={ renderChannels.length }
             overscanCount={5}
-            itemData={ { chats : renderRooms, isLoading : isLoading, handleCardClick : handleCardClick } }
+            itemData={ { chats : renderChannels, isLoading : isLoading, handleCardClick : handleCardClick } }
             // Scrollbar css
             className=" scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
           >
@@ -81,4 +81,4 @@ const VirtualizedChatList: FC<ChatListProps> = ({rooms, isLoading, handleCardCli
   );
 };
 
-export default VirtualizedChatList;
+export default VirtualizedChannelList;
