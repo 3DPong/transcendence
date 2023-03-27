@@ -21,7 +21,7 @@ const InviteList : FC<InviteListProps> = ({users, invitedUsers, setInvitedUsers}
       >
         {
           users.map(user => (
-            <MenuItem key={user.userId} value={user.userId}>{user.nickname}</MenuItem>
+            <MenuItem key={user.id} value={user.id}>{user.nickname}</MenuItem>
           ))
         }
       </Select>

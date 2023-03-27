@@ -5,7 +5,7 @@ import {
   Container,
   Typography,
 } from "@mui/material";
-import { ChatType, User } from "@/types/chat";
+import { ChannelType, User } from "@/types/chat";
 import CreateChatTypeToggle from "@/components/Molecule/Chat/Create/ChatTypeToggle";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import * as Dummy from "@/dummy/data";
@@ -21,7 +21,7 @@ interface CreateChatRoomProps {
 
 const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<ChatType>("public");
+  const [type, setType] = useState<ChannelType>("public");
   const [password, setPassword] = useState("");
   const [searchString, setSearchString] = useState("");
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
@@ -40,12 +40,11 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const handleCreate = () => {};
 
   return (
-    <>
     <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
       <Typography variant="h4" component="h1" gutterBottom>
         채팅방 생성
       </Typography> 
-      <ImageUpload thumbnail={thumbnail} setThumbnail={setThumbnail}/>
+      <ImageUpload width={200} height={200} thumbnail={thumbnail} setThumbnail={setThumbnail}/>
       <Box component="form" sx={{ mt: 1 }}>
         <div className="mb-6" >
           <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle}/>
@@ -73,7 +72,6 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
         </Button>
       </Box>
     </Container>
-    </>
   );
 };
 

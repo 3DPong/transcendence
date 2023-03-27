@@ -1,18 +1,18 @@
 import { FC } from "react";
 import { ToggleButton, ToggleButtonGroup } from "@mui/lab";
 import { FormControl } from "@mui/material";
-import { ChatType } from "@/types/chat";
+import { ChannelType } from "@/types/chat";
 import { Lock, LockOpen, Public } from "@mui/icons-material";
 
 
 interface ChatTypeToggleProps {
-  type : ChatType;
-  setType : (type: ChatType) => void;
+  type : ChannelType;
+  setType : (type: ChannelType) => void;
 };
 
 const ChatTypeToggle : FC<ChatTypeToggleProps> = ({type, setType}) => {
-  const handleTypeChange = (event: React.MouseEvent<HTMLElement>, value: ChatType | null) => {
-    return (value && setType(value as ChatType));
+  const handleTypeChange = (event: React.MouseEvent<HTMLElement>, value: ChannelType | null) => {
+    return (value && setType(value as ChannelType));
   }
 
   return (
