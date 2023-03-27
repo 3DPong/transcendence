@@ -12,17 +12,17 @@ interface EnterProtectedModalProps {
 
 const EnterProtectedModal : FC<EnterProtectedModalProps> = ({channel, isModalOpen, setIsModalOpen, joinChat}) => {
   const CustomDialogTitle = styled(DialogTitle)({
-    maxWidth: 300, // 최대 너비
-    textOverflow: 'ellipsis', // 일정 이상이 되면 ...으로 표시
-    whiteSpace: 'nowrap', // 줄바꿈 없이 표시
-    overflow: 'hidden', // 넘치는 부분 가리기
+    maxWidth: 300,
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
   });
 
   const [password, setPassword] = useState('');
 
   const handleJoin = () => {
     //onJoin(channelId, password);
-    channel && joinChat(channel.channelId);
+    channel && joinChat(channel.id);
     setIsModalOpen(false);
     setPassword('');
   };
@@ -34,8 +34,8 @@ const EnterProtectedModal : FC<EnterProtectedModalProps> = ({channel, isModalOpe
 
   return (
     <Dialog open={isModalOpen} onClose={handleModalClose}>
-      <CustomDialogTitle title={channel ? channel.channelName : ""}>
-        {channel ? channel.channelName : ""}
+      <CustomDialogTitle title={channel ? channel.title: ""}>
+        {channel ? channel.title: ""}
       </CustomDialogTitle>
       <DialogContent>
         <TextField type="password" label="입장 비밀번호 입력" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />

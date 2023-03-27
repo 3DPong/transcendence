@@ -6,7 +6,8 @@ export interface User {
 
 export interface ChatUser extends User {
   role : UserRole;
-  status : UserStatus;
+  status? : UserStatus;
+  isMuted? : boolean;
 };
 
 export interface Message {
