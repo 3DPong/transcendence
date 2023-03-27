@@ -60,25 +60,6 @@ export class ChatController {
   getBanlist(@Param('channelId', ParseIntPipe) channelId: number) : Promise <ChannelBanList[]> {
     return this.chatService.getBanlist(channelId, 1);
   }
-  
-  // @Put('/:id/mute')
-  // getMutelist (@Param('id', ParseIntPipe) id: number) : Promise <ChannelMuteList[]> {
-  // 	return this.chatService.getMutelist(id, 1);
-  // }
-
-  // @Get('/:id/banlist')
-  // getBanlist (@Param('id', ParseIntPipe) id: number) : Promise <ChannelBanList[]> {
-  // 	return this.chatService.getBanlist(id, 1);
-  // }
-
-
-  // @Post('/:id/logAdd')
-  // logAdd(
-  // 	@Param('id', ParseIntPipe) id: number,
-  // 	@Body() logDto: LogDto,
-  // ) {
-
-  // }
 
   @Post('/')
   async createChatRoom(@Body() channelDto: ChannelDto) : Promise<ChatChannel> {
@@ -99,7 +80,7 @@ export class ChatController {
 
   @Put("/:channelId/out")
   leaveChannel(@Param('channelId', ParseIntPipe) channelId: number) {
-    return this.chatService.leaveChannel(76, channelId);
+    return this.chatService.leaveChannel(51, channelId);
   }
 
   @Put("/:channelId/role")

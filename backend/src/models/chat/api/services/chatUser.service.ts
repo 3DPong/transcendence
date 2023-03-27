@@ -27,22 +27,24 @@ export class ChatUserService {
 		name: string;
 		profileURL: string;
 		role: RoleType;         
-		status: UserStatus; 
+		status: UserStatus; //현재 없음
 
 	*/
 	async getChatUsers(channel_id : number):Promise <ChannelUser[]> {
 
 		const channelUserss = await this.channelUserRepository
-      .createQueryBuilder("channel")
+		.createQueryBuilder("channel")
       .innerJoin("channel.user", "us") //innerjoin 으로 수정
       .select([
-        "channel.user_id",
+        "us.user_id",
         "us.nickname",
         "us.profile_url",
-        "channel.role"
+        "channel.role",
+				"channel.deleted_at"
       ])
       .where('channel.channel_id = :channel_id', {channel_id})
-      .getMany();
+			.withDeleted()
+			.getMany();
 
 		return channelUserss;
 	}
