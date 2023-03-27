@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 19:25:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/24 18:37:08 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/27 22:04:39 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ import { Assert } from "@/utils/Assert";
 import { globalUserData_t } from "@/types/user";
 import { UserFriendRelationsDummyData, createUsersDummyByString } from "@/dummy/data";
 import { TryRounded } from "@mui/icons-material";
-import { fetchAndHandleResponseError } from "@/api/error/error";
+import { fetchAndHandleSessionError } from "@/api/status/session";
 import { useNavigate } from "react-router";
 
 /*----------------------------------*
