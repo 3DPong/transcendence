@@ -55,6 +55,7 @@ export class AuthService {
     req.session.sessionStatus = SessionStatusEnum.SIGNUP;
     return {
       status: 'SIGNUP_MODE',
+      profile_url: data.profileUrl, // api.42.fr/img/some_image_name.jpg
     };
   }
 
