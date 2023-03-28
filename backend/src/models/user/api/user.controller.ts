@@ -8,6 +8,7 @@ import { Request, Response } from 'express';
 import { GuardData } from '../../../common/decorators/guardData.decorator';
 import { TwoFactorService } from './services/twoFactor.service';
 import { TokenDto } from '../../../common/otp/token.dto';
+import { GetUserSettingResDto } from './dtos/getUserSettingResDto';
 
 @Controller('user')
 export class UserController {
@@ -29,26 +30,35 @@ export class UserController {
     return this.userService.createUser(data, payload, req);
   }
 
+  /**
+   * 주의! GET /me 로 할경우 상위의 /user/:userId와 겹쳐서 사용할 수 없음.
+   */
   @UseGuards(SessionGuard)
-  @Put()
+  @Get('/me/settings')
+  async getMyUserSettings(@GetSessionData() data): Promise<GetUserSettingResDto> {
+    return this.userService.getMyUserSettings(data.user_id);
+  }
+
+  @UseGuards(SessionGuard)
+  @Put('/me')
   async updateUser(@GetSessionData() data, @Body() payload: UpdateUserReqDto): Promise<UpdateUserResDto> {
-    return this.userService.updateUser(data, payload);
+    return this.userService.updateUser(data.user_id, payload);
   }
 
   @UseGuards(SessionGuard)
-  @Delete()
-  async deleteUser(@GetSessionData() data, @Req() request: Request): Promise<string> {
-    return this.userService.deleteUser(data.user_id, request);
+  @Delete('/me')
+  async deleteUser(@GetSessionData() data, @Req() request: Request, @Res() response: Response): Promise<void> {
+    return this.userService.deleteUser(data.user_id, request, response);
   }
 
   @UseGuards(SessionGuard)
-  @Get('/2fa/qr')
+  @Get('/me/2fa/qr')
   async getQRCode(@GuardData() data, @Req() req: Request, @Res() res: Response): Promise<void> {
     return this.twoFactorService.getQRCode(data.user_id, req, res);
   }
 
   @UseGuards(SessionGuard)
-  @Post('/2fa/activate')
+  @Post('/me/2fa')
   async activateTwoFactor(
     @GuardData() data,
     @Body() tokenDto: TokenDto,
@@ -59,7 +69,7 @@ export class UserController {
   }
 
   @UseGuards(SessionGuard)
-  @Put('/2fa/deactivate')
+  @Delete('/me/2fa')
   async deactivateTwoFactor(
     @GuardData() data,
     @Body() tokenDto: TokenDto,
