@@ -24,7 +24,7 @@ export class TwoFactorService {
    *
    * stream?: test 용으로 stream이 정상적으로 생성되는지 테스트하고자 함.
    */
-  async activateUserTwoFactor(userId: number, req: Request, res: Response, stream: any = res): Promise<void> {
+  async getQRCode(userId: number, req: Request, res: Response, stream: any = res): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
       throw new UnauthorizedException('invalid user (session is not valid)');
@@ -36,9 +36,36 @@ export class TwoFactorService {
     await runner.startTransaction();
     try {
       const { encrypted, otpURI } = this.otpService.generate(user.email, 'transcendence');
-      await runner.manager.update(User, { user_id: userId }, { two_factor: true, two_factor_secret: encrypted });
-      this.sessionService.clearSession(req, res);
+      req.session.otpSecret = encrypted;
       await QRCode.toFileStream(stream, otpURI);
+      await runner.commitTransaction();
+    } catch (error) {
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException('server error');
+    } finally {
+      await runner.release();
+    }
+  }
+
+  async activateUserTwoFactor(userId: number, token: string, req: Request, res: Response): Promise<void> {
+    const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
+    const otpSecret: string = req.session.otpSecret;
+    if (!user) {
+      throw new UnauthorizedException('invalid user (session is not valid)');
+    } else if (user.two_factor) {
+      throw new BadRequestException('already activated');
+    }
+    const isValidated = await this.otpService.validate(otpSecret, token);
+    if (!isValidated) {
+      throw new BadRequestException('token is invalid');
+    }
+
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      await runner.manager.update(User, { user_id: userId }, { two_factor: true, two_factor_secret: otpSecret });
+      this.sessionService.clearSession(req, res);
       await runner.commitTransaction();
     } catch (error) {
       await runner.rollbackTransaction();
@@ -59,7 +86,7 @@ export class TwoFactorService {
       throw new BadRequestException('user 2fa is not activated');
     }
 
-    const isValidated = await this.otpService.validate(userId, token);
+    const isValidated = await this.otpService.validate(user.two_factor_secret, token);
     if (!isValidated) {
       throw new BadRequestException('token is invalid');
     }
