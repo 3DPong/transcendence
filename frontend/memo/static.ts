@@ -1,11 +1,7 @@
-
-
 // test for static variable.
 
-
-function test()
-{
-    let s = 10;
+function test() {
+  let s = 10;
 }
 
 // (1)

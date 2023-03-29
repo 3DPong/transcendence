@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/21 04:10:07 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 15:15:37 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/14 11:37:33 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ export class PongSimulator
                 size: new b2Vec2(0.2, 2),
                 jointControlPoint: new b2Vec2(+(arenaSize.width/2), 0),
                 jointAxis: new b2Vec2(0, -1),
-                Id: ObjectID.PADDLE_LEFT, 
+                Id: ObjectID.PADDLE_RIGHT, 
             })
             .RegisterTo(this.m_World);
             this.m_ObjectList.add(this.m_PaddleRight);
