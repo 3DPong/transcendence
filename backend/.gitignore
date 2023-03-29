@@ -3,8 +3,8 @@
 .vscode/
 .vscode
 ../.idea/
-../.idea
-backend/node_modules/
+.idea
+./node_modules/
 
 
 # Logs
@@ -113,6 +113,7 @@ dist
 .tern-port
 
 # Database ENV file
+.env*
 
 # finder
 .DS_Store
