@@ -43,8 +43,7 @@ export class GameService {
     gameRooms : Map<string, GameManager>,
     gameManager: GameManager
   ){
-    //db작업 및 클라이언트 한테 알려주기?
-    //gameRooms.delete(gameManager.gameId);
+    //db작업 및 클라이언트 한테 알려주기
     gameRooms.delete(gameManager.gameId);
   }
 

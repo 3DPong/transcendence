@@ -11,7 +11,6 @@ export class MatchInterrupt {
 }
 
 export class GameSimulator{
-  //public world : Box2D.World = new Box2D.World(new Box2D.Vec2());
   public objectFactory : ObjectFactory = new ObjectFactory();
   public world : Box2D.World = new Box2D.World(new Box2D.Vec2(0,0));
   public matchInterrupt : MatchInterrupt = new MatchInterrupt();
@@ -42,7 +41,6 @@ export function step(
   simulator : GameSimulator,
   timeStepMillis: number = 1/60
 ){
-  //server.to(gameId).emit('InGameData', this);
     const velocityIterations = 10;
     const positionIterations = 8;
     if (simulator.ball.GetUserData().pause){
