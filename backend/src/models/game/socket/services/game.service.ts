@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io'
 import { GameModEnum,GameRoomTypeEnum } from '../../simul/enum/GameEnum';
 import { v4 as uuidv4} from 'uuid';
-import { GameManager} from '../GameManager';
+import { GameManager} from '../../simul/GameManager';
 import { GamePlayer } from '../../simul/GamePlayer';
 import { MatchDto } from '../../game_dto/createMatch.dto';
 import { MATCH_SCORE } from '../../simul/enum/GameEnv';

@@ -1,12 +1,12 @@
-import { GameModEnum, PaddleState } from "../simul/enum/GameEnum";
-import { GameRoomTypeEnum } from "../simul/enum/GameEnum";
-import { GameSimulator, step} from "../simul/GameSimulator";
-import { GamePlayer } from "../simul/GamePlayer";
+import { GameModEnum, PaddleState } from "./enum/GameEnum";
+import { GameRoomTypeEnum } from "./enum/GameEnum";
+import { GameSimulator, step} from "./GameSimulator";
+import { GamePlayer } from "./GamePlayer";
 import { v4 as uuidv4} from 'uuid';
 import { Server} from 'socket.io'
-import { GameService } from "./services";
+import { GameService } from "../socket/services";
 import { MatchDto } from "../game_dto/createMatch.dto";
-import { MATCH_SCORE } from "../simul/enum/GameEnv";
+import { MATCH_SCORE } from "./enum/GameEnv";
 import { Min } from "../Box2D";
 
 
@@ -47,7 +47,7 @@ export class GameManager {
     this.simulator = new GameSimulator(this.player1, this.player2);
     const timeStep = setInterval(step, 1000, server, this.gameId, this.simulator);
     const timeEndCheck = setInterval(
-    async(
+    (
       simulator : GameSimulator,
       gameRooms : Map<string,GameManager>,
       gameManager : GameManager,
@@ -63,7 +63,7 @@ export class GameManager {
       simulator.user1.socore = Min(simulator.ball.GetUserData().player1_score, simulator.user1.socore);
       simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
       console.log('allClear interval');
-      await gameService.gameEnd(gameRooms, gameManager);
+      gameService.gameEnd(gameRooms, gameManager);
     }},1000, this.simulator, gameRooms, this, gameService)
   }
 

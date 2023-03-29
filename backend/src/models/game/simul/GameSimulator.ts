@@ -3,7 +3,7 @@ import * as Box2D from "../Box2D";
 import { GamePlayer } from "./GamePlayer";
 import { ObjectFactory } from "./object/ObjectFactory";
 import { MovePeddle, BallSpeedCorrection, RandomVec2} from "./object/ObjectController";
-import { ContactListenerInit } from "./ConatactListenerInit";
+import { ContactListenerInit } from "./ContactListenerInit";
 import { Server } from 'socket.io'
 export class MatchInterrupt {
   isInterrupt : boolean = false;
@@ -36,7 +36,12 @@ export class GameSimulator{
     }
 }
 
-export function step(server : Server , gameId : string ,simulator : GameSimulator,timeStepMillis: number = 1/60){
+export function step(
+  server : Server,
+  gameId : string ,
+  simulator : GameSimulator,
+  timeStepMillis: number = 1/60
+){
   //server.to(gameId).emit('InGameData', this);
     const velocityIterations = 10;
     const positionIterations = 8;

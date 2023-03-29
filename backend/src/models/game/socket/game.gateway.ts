@@ -1,6 +1,6 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io'
-import { GameManager } from './GameManager';
+import { GameManager } from '../simul/GameManager';
 import { MatchDto } from '../game_dto/createMatch.dto';
 import { GameService } from './services';
 import { GameDto } from '../game_dto/GameDto';
@@ -27,10 +27,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleDisconnect(@ConnectedSocket() client : Socket) {
     //게임매칭을찾는중,게임을진행중
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    console.log(client.data.gameId);
-    for (const key of this.gameRooms.keys()){
-      console.log(key);
-    }
     if (gameManager === undefined){
       //todo
       console.log('manager undefined check');
@@ -69,7 +65,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(gameManager.gameId).emit('gameStart', gameManager);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
       console.log('gameStart');
-      //this.server.to(gameManager.gameId).emit('InGameData', dto);
     }
   }
 
@@ -88,12 +83,4 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(client.id).emit('gameExit', 'player is exit gameRoom');
     this.gameRooms.delete(gameManager.gameId);
   }
-/*
-  @SubscribeMessage('inChatMatch')
-  match(
-    @MessageBody() dto : createMatchDto,
-    @ConnectedSocket() client : Socket,
-  ) {
-
-  }*/
 }
