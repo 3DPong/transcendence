@@ -1,8 +1,9 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import { User } from '../../models/user/entities';
 import { UserStatusEnum } from '../enums';
+import { SessionStatusEnum } from '../enums/sessionStatus.enum';
 
 @Injectable()
 export class SessionService {
@@ -55,7 +56,7 @@ export class SessionService {
     if (!session) return;
     const { sid, userSession } = session;
     if (userSession) {
-      if (userSession.status === UserStatusEnum.ONLINE) {
+      if (userSession.userStatus === UserStatusEnum.ONLINE) {
         this.logger.log(`conflict on session : ${session.userSession}`);
         throw new ConflictException('이미 다른 세션이 존재합니다.');
       } else {
@@ -66,7 +67,16 @@ export class SessionService {
 
   createSession(user: User, req: Request) {
     req.session.user_id = user.user_id;
-    req.session.status = UserStatusEnum.ONLINE; // fixme : alarm socket 연결 시에?
+    req.session.userStatus = UserStatusEnum.ONLINE; // fixme : alarm socket 연결 시에?
+    req.session.sessionStatus = SessionStatusEnum.SUCCESS;
     req.session.email = null;
+  }
+
+  clearSession(req: Request, res: Response) {
+    // clear session.
+    res.clearCookie('connect.sid');
+    req.session.destroy((err) => {
+      if (err) console.log(err);
+    });
   }
 }

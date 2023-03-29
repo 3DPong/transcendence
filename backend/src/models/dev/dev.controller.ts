@@ -13,8 +13,13 @@ export class DevController {
    * 로그인이 되어있는 세션을 획득함.
    */
   @Get('/session/signin')
-  async getSignInSession(@Req() req: Request, @Query('email') email: string, @Query('nickname') nickname: string) {
-    return this.devService.getSignInSession(req, email, nickname);
+  async getSignInSession(
+    @Req() req: Request,
+    @Query('email') email: string,
+    @Query('nickname') nickname: string,
+    @Query('userid') userId: number
+  ) {
+    return this.devService.getSignInSession(req, email, nickname, userId);
   }
 
   /**
@@ -23,5 +28,13 @@ export class DevController {
   @Get('/session/signup')
   async getSignUpSession(@Req() req: Request, @Query('email') email: string) {
     return this.devService.getSignUpSession(req, email);
+  }
+
+  /**
+   * 2FA 가능한 세션을 획득함.
+   */
+  @Get('/session/2fa')
+  async getTwoFactorSession(@Req() req: Request) {
+    return this.devService.getTwoFactorSession(req);
   }
 }

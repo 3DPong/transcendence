@@ -12,13 +12,16 @@ import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
 import { colorist } from './common/logger/utils';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { GameSocketIoAdapter } from './models/game/socket/game.socket.adapter';
+import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
+
 declare module 'express-session' {
   interface SessionData {
     user_id?: number;
-    status?: UserStatusEnum;
+    userStatus?: UserStatusEnum;
     email?: string;
+    sessionStatus: SessionStatusEnum;
+    otpSecret: string;
   }
 }
 

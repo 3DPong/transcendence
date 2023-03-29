@@ -58,6 +58,9 @@ export class User {
   @Column({ type: 'boolean', default: false, nullable: false })
   two_factor: boolean;
 
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  two_factor_secret: string;
+
   // 추가로 authenticator 반영해야함
 
   @OneToMany(() => UserRelation, (friendship) => friendship.user)

@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { Request } from 'express';
 import { User } from '../user/entities';
 import { SessionService } from '../../common/session/session.service';
+import { SessionStatusEnum } from '../../common/enums/sessionStatus.enum';
+import { UserStatusEnum } from '../../common/enums';
 
 @Injectable()
 export class DevService {
@@ -12,25 +14,67 @@ export class DevService {
     private sessionService: SessionService
   ) {}
 
-  async getSignInSession(req: Request, email: string, nickname: string) {
-    const user: User = new User();
-    user.email = email ? email : 'test@42.fr';
-    user.nickname = nickname ? nickname : 'tester42';
-    user.profile_url = 'https://example.com';
+  async getSignInSession(req: Request, email: string, nickname: string, userId) {
+    let user;
+    let existUser;
+    if (userId) {
+      existUser = await this.userRepository.findOne({
+        where: {
+          user_id: userId,
+        },
+      });
+    }
+    if (existUser) {
+      user = existUser;
+    } else {
+      user = new User();
+      user.email = email ? email : 'test@42.fr';
+      user.nickname = nickname ? nickname : 'tester42';
+      user.profile_url = 'https://example.com';
+    }
 
-    const saved = await this.userRepository.save(user);
-    this.sessionService.createSession(saved, req);
-    return {
-      status: 'SUCCESS',
-      user_id: saved.user_id,
-    };
+    try {
+      const saved = await this.userRepository.save(user);
+      this.sessionService.createSession(saved, req);
+      return {
+        status: 'SUCCESS',
+        user_id: saved.user_id,
+      };
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
+          throw new ConflictException('duplicate nickname');
+        }
+      } else {
+        throw new InternalServerErrorException('Internal server error');
+      }
+    }
   }
+
   async getSignUpSession(req: Request, email: string) {
     req.session.user_id = null;
-    req.session.status = null;
+    req.session.userStatus = null;
+    req.session.sessionStatus = SessionStatusEnum.SIGNUP;
     req.session.email = email ? email : 'test@test.com';
     return {
       status: 'SIGNUP_MODE',
+    };
+  }
+
+  async getTwoFactorSession(req: Request) {
+    const user: User = await this.userRepository.findOne({
+      where: {
+        two_factor: true,
+      },
+    });
+
+    req.session.user_id = user.user_id;
+    req.session.userStatus = UserStatusEnum.ONLINE;
+    req.session.email = null;
+    req.session.sessionStatus = SessionStatusEnum.TWO_FACTOR;
+    return {
+      status: '2FA',
+      user_id: user.user_id,
     };
   }
 }

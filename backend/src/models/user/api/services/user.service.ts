@@ -1,10 +1,17 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
 import { SessionService } from '../../../../common/session/session.service';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { GetUserSettingResDto } from '../dtos/getUserSettingResDto';
 
 @Injectable()
 export class UserService {
@@ -15,13 +22,25 @@ export class UserService {
   ) {}
 
   async getUser(userId: number): Promise<GetUserResDto> {
-    const user: User = await this.userRepository.findOne({
+    const user: GetUserResDto = await this.userRepository.findOne({
       where: {
         user_id: userId,
       },
+      select: ['user_id', 'nickname', 'profile_url', 'wins', 'losses', 'total', 'level'],
     });
-    if (!user) return;
-    return new GetUserResDto(user);
+    if (!user) throw new BadRequestException('not exist user');
+    return user;
+  }
+
+  async getMyUserSettings(userId: number): Promise<GetUserSettingResDto> {
+    const user: GetUserSettingResDto = await this.userRepository.findOne({
+      where: {
+        user_id: userId,
+      },
+      select: ['user_id', 'nickname', 'profile_url', 'two_factor'],
+    });
+    if (!user) throw new UnauthorizedException('invalid user (session is not valid)');
+    return user;
   }
 
   async createUser(data, payload: CreateUserReqDto, req: Request): Promise<CreateUserResDto> {
@@ -57,16 +76,15 @@ export class UserService {
     }
   }
 
-  async updateUser(data, payload: UpdateUserReqDto): Promise<UpdateUserResDto> {
+  async updateUser(userId: number, payload: UpdateUserReqDto): Promise<UpdateUserResDto> {
     // check user is valid
-    const userId = data.user_id;
     const userToUpdate: User = await this.userRepository.findOne({
       where: {
         user_id: userId,
       },
     });
     if (!userToUpdate) {
-      throw new BadRequestException('not exist user');
+      throw new UnauthorizedException('invalid user (session is not valid)');
     }
 
     try {
@@ -86,18 +104,28 @@ export class UserService {
       await this.userRepository.findOne({
         where: {
           user_id: userId,
+          deleted_at: null,
         },
       })
     );
   }
 
-  async deleteUser(userId: number, req: Request): Promise<string> {
+  async deleteUser(userId: number, req: Request, res: Response): Promise<void> {
+    const findUser: User = await this.userRepository.findOne({ where: { user_id: userId } });
+    if (!findUser) throw new UnauthorizedException('invalid user (session is not valid)');
+
+    const runner = await this.dataSource.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
     try {
-      await this.userRepository.delete({ user_id: userId });
-      await this.sessionService.destroySessionByUserId(userId, req);
-      return 'deleted';
+      await runner.manager.softDelete(User, { user_id: userId });
+      this.sessionService.clearSession(req, res);
+      await runner.commitTransaction();
     } catch (e) {
-      throw new BadRequestException('can not delete it');
+      await runner.rollbackTransaction();
+      throw new InternalServerErrorException('server error');
+    } finally {
+      await runner.release();
     }
   }
 }
