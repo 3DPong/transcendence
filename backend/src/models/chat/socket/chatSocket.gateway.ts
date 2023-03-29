@@ -1,138 +1,148 @@
-
-import { Logger } from '@nestjs/common';
 import {
-  ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  ConnectedSocket,
+  WsException,
 } from '@nestjs/websockets';
-import { Namespace, Socket } from 'socket.io';
-
-
-interface MessagePayload {
-  roomName: string;
-  message: string;
-}
-
-
-let createdRooms: string[] = [];
-
+import { Logger } from '@nestjs/common';
+import {
+  ServerToClientEvents,
+  ClientToServerEvents,
+  Message,
+  User,
+} from './chat.interface';
+import { Server, Socket } from 'socket.io';
+import { ChatSocketService } from './services/chatSocket.service';
+import { SocketAddress } from 'net';
 
 @WebSocketGateway({
-  namespace: 'chat',
   cors: {
-    origin: ['http://localhost:3001'],
+    origin: '*',
   },
 })
-export class ChatSocketGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
-  private logger = new Logger('Gateway');
+export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(private chatSocketService: ChatSocketService) {}
 
+  @WebSocketServer()
+  server: Server;
+  private users: { userId: number; socketId: string }[] = [];
+  private logger = new Logger('ChatGateway');
 
-  @WebSocketServer() nsp: Namespace;
+  //= new Server<ServerToClientEvents, ClientToServerEvents>();
+  
 
+  async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
+    //1.socketId 에 대한 유효성 검사
+    //2.유저 채팅 상태 on -> 옵션
+    //const user = await this.chatSocketService.getUserbySocket(socket);
+    //if (!user) return socket.disconnect();
+    //3. 채팅방 여러개 연결 ->옵션
+    //const rooms = await getMyChannels(user);
+    //for (let room of rooms) socket.join('' + room.roomID);
+    //socket.data.user = user;
+    const { user_id, channel_id } = socket.handshake.query; //string 으로 들어옴
 
-  afterInit() {
-    this.nsp.adapter.on('delete-room', (room) => {
-      const deletedRoom = createdRooms.find(
-        (createdRoom) => createdRoom === room,
-      );
-      if (!deletedRoom) return;
-
-
-      this.nsp.emit('delete-room', deletedRoom);
-      createdRooms = createdRooms.filter(
-        (createdRoom) => createdRoom !== deletedRoom,
-      ); // 유저가 생성한 room 목록 중에 삭제되는 room 있으면 제거
-    });
-
-
-    this.logger.log('!!!웹소켓 서버 초기화 ✅');
-  }
-
-
-  handleConnection(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`${socket.id} 소켓 연결`);
-  }
-
-
-  handleDisconnect(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`${socket.id} 소켓 연결 해제 ❌`);
-  }
-
-
-  @SubscribeMessage('message')
-  handleMessage(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() { roomName, message }: MessagePayload,
-  ) {
-    socket.broadcast
-      .to(roomName)
-      .emit('message', { username: socket.id, message });
-
-
-    return { username: socket.id, message };
-  }
-
-
-  @SubscribeMessage('room-list')
-  handleRoomList() {
-    return createdRooms;
-  }
-
-
-  @SubscribeMessage('create-room')
-  handleCreateRoom(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
-  ) {
-    console.log("create room start!!!!!!!!!!!!!!!!!!!!!!!")
-    const exists = createdRooms.find((createdRoom) => createdRoom === roomName);
-    if (exists) {
-      return { success: false, payload: `${roomName} 방이 이미 존재합니다.` };
+    try {
+      const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
+      if (userIndex >= 0) {
+          this.server.in(this.users[userIndex].socketId).disconnectSockets();
+          this.users[userIndex].socketId = socket.id;
+      } else {
+        this.users.push({ userId: parseInt(user_id[0]), socketId: socket.id });
+      }
+      socket.join(channel_id);
+      socket.data.user = user_id;
+      socket.data.chnnel = channel_id;
+      this.logger.log(`Socket connected: ${socket.id}`);
+    } catch (error) {
+      socket.disconnect();
+      throw new WsException(error);
     }
-
-
-    socket.join(roomName); // 기존에 없던 room으로 join하면 room이 생성됨
-    createdRooms.push(roomName); // 유저가 생성한 room 목록에 추가
-    this.nsp.emit('create-room', roomName); // 대기실 방 생성
-
-
-    return { success: true, payload: roomName };
   }
 
+  async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
+    //await this.chatSocketService.removeUserFromAllRooms(socket.id);
+    const { user_id, channel_id } = socket.data
+    try {
+      const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
+      if (userIndex >= 0) {
+        this.users.splice(userIndex, 1);
+      }
+      socket.leave(channel_id); // leave room
+      socket.broadcast
+      .to(channel_id)
+      .emit('message', { message: `${socket.id} 가 나갔습니다.` });
 
-  @SubscribeMessage('join-room')
-  handleJoinRoom(
+      this.logger.log(`Socket disconnected: ${socket.id}`);
+
+    } catch (error) {
+      throw new WsException(error);
+    }
+  }
+
+  getSocketIdFromUserId(userId: number) {
+    return this.users.find((u) => u.userId === userId)?.socketId;
+  }
+  @SubscribeMessage('chat')
+  async handleChatEvent(
+    @MessageBody()
+    payload: Message,
+  ): Promise<Message> {
+    this.logger.log(payload);
+    this.server
+    .to(payload.roomName)
+    .emit('chat', payload); // broadcast messages
+    return payload;
+  }
+
+  @SubscribeMessage('enter_room')
+  async handleSetClientDataEvent(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
+    @MessageBody()
+    payload: {
+      channelName: string;
+      user: User;
+    },
   ) {
-    socket.join(roomName); // join room
-    socket.broadcast
-      .to(roomName)
+    if (payload.user.socketId) {
+      this.logger.log(`${payload.user.socketId} is entering ${payload.channelName}`);
+      await this.server.in(payload.user.socketId).socketsJoin(payload.channelName);
+      
+      socket.broadcast
+      .to(payload.channelName)
       .emit('message', { message: `${socket.id}가 들어왔습니다.` });
 
-
-    return { success: true };
+     // await this.chatSocketService.addUserToRoom(payload.roomName, payload.user);
+    }
   }
-
 
   @SubscribeMessage('leave-room')
   handleLeaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
+    @MessageBody() channelName: string,
   ) {
-    socket.leave(roomName); // leave room
-    socket.broadcast
-      .to(roomName)
+    try {
+      socket.leave(channelName); // leave room
+      socket.broadcast
+      .to(channelName)
       .emit('message', { message: `${socket.id}가 나갔습니다.` });
 
-
-    return { success: true };
+    } catch (error) {
+      throw new WsException(error);
+    }
   }
+
+
+  // handleRemoveSocketIdFromRoom(userId: number, conversationId: number) {
+  //   const socketId = this.socketGateway.getSocketIdFromUserId(userId);
+  //   if (socketId) this.server.in(socketId).socketsLeave(`chatRoom_${conversationId}`);
+  // }
+
+
+ 
+
 }
