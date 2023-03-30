@@ -1,6 +1,6 @@
 import { Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query,Body, Controller, Post} from '@nestjs/common';
 import { ChatChannel } from '../entities/chatChannel.entity';
-import { ChannelDto, JoinDto, UserIdDto} from './dto/create-channel.dto';
+import { ChannelDto, JoinDto, UserIdDto} from '../dto/create-channel.dto';
 import { Request, Response } from "express";
 import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services/chat.service';
@@ -48,7 +48,7 @@ export class ChatController {
 
   @Get('/:channelId/users')
   getUsersInfo(@Param('channelId', ParseIntPipe) channelId: number) : Promise <ChannelUser[]> {
-    return this.userService.getChatUsers(channelId);
+    return this.chatService.getChatUsers(channelId);
   }
   
   @Get('/:channelId/mutelist')

@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
-import { ChannelUserRoles } from "../../entities";
-import { ChannelType } from "../../entities/chatChannel.entity";
+import { IsDate, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { ChannelUserRoles } from "../entities";
+import { ChannelType } from "../entities/chatChannel.entity";
 
 export class ChannelDto {
 
@@ -64,3 +64,50 @@ export class UserIdDto {
 	@IsString()
 	role: ChannelUserRoles;
 }
+
+export class User {
+	@IsNotEmpty()
+	@IsNumber()
+  user_id: number;
+
+	@IsNotEmpty()
+	@IsString()
+  nickname: string;
+
+	@IsNotEmpty()
+	@IsNumber()
+  socket_id: string;
+}
+
+export class MessageDto {
+	// @IsNotEmpty()
+	// user: User;
+
+	@IsNotEmpty()
+	@IsString()
+  message: string;
+
+	@IsNotEmpty()
+	@IsNumber()
+  channel_id: number;
+
+	@IsNotEmpty()
+	@IsDate()
+  time_at: Date;
+}
+
+export class toggleDto {
+	@IsNotEmpty()
+	@IsNumber()
+  user_id: number;
+
+	@IsNotEmpty()
+	@IsNumber()
+  channel_id: number;
+
+	@IsNotEmpty()
+	@IsDate()
+  time_at: Date;
+
+}
+

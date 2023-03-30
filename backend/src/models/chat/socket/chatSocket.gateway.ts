@@ -8,16 +8,11 @@ import {
   ConnectedSocket,
   WsException,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
-import {
-  ServerToClientEvents,
-  ClientToServerEvents,
-  Message,
-  User,
-} from './chat.interface';
+import { Logger} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { SocketAddress } from 'net';
+import { MessageDto, toggleDto } from '../dto/create-channel.dto';
 
 @WebSocketGateway({
   cors: {
@@ -57,7 +52,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       socket.join(channel_id);
       socket.data.user = user_id;
       socket.data.chnnel = channel_id;
-      this.logger.log(`Socket connected: ${socket.id}`);
     } catch (error) {
       socket.disconnect();
       throw new WsException(error);
@@ -84,51 +78,63 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
   }
 
-  getSocketIdFromUserId(userId: number) {
-    return this.users.find((u) => u.userId === userId)?.socketId;
-  }
-  @SubscribeMessage('chat')
+
+  @SubscribeMessage('message-chat')
   async handleChatEvent(
-    @MessageBody()
-    payload: Message,
-  ): Promise<Message> {
-    this.logger.log(payload);
-    this.server
-    .to(payload.roomName)
-    .emit('chat', payload); // broadcast messages
-    return payload;
-  }
-
-  @SubscribeMessage('enter_room')
-  async handleSetClientDataEvent(
     @ConnectedSocket() socket: Socket,
-    @MessageBody()
-    payload: {
-      channelName: string;
-      user: User;
-    },
-  ) {
-    if (payload.user.socketId) {
-      this.logger.log(`${payload.user.socketId} is entering ${payload.channelName}`);
-      await this.server.in(payload.user.socketId).socketsJoin(payload.channelName);
-      
-      socket.broadcast
-      .to(payload.channelName)
-      .emit('message', { message: `${socket.id}가 들어왔습니다.` });
-
-     // await this.chatSocketService.addUserToRoom(payload.roomName, payload.user);
-    }
-  }
-
-  @SubscribeMessage('leave-room')
-  handleLeaveRoom(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() channelName: string,
+    @MessageBody() md: MessageDto,
   ) {
     try {
-      socket.leave(channelName); // leave room
+      const user_id = this.getUserIdBySocketId(socket.id);
+      if (!user_id || !(await this.chatSocketService.checkChannelUser(md.channel_id, user_id)))
+        return { error: 'No permission!' };
+      this.logger.log(md);
+      await this.chatSocketService.createMessageLog(user_id, md);
+
+      this.server
+      .to(`chat_${md.channel_id}`)
+      .emit('chat', md); // broadcast messages
+
+    } catch (error) {
+      throw new WsException(error);
+    }
+  
+  }
+
+  @SubscribeMessage('enter-chat')
+  async handleSetClientDataEvent(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() channel_id : number
+  ){
+    try {
+      const user_id = this.getUserIdBySocketId(socket.id);
+      if (!user_id || !(await this.chatSocketService.checkChannelUser(channel_id, user_id)))
+      return { error: 'No permission!' };
+    
+      await this.server.in(socket.id).socketsJoin(`chat_${channel_id}`);
+        
       socket.broadcast
-      .to(channelName)
+      .to(`chat_${channel_id}`)
+      .emit('message', { message: `${socket.id}가 들어왔습니다.` });
+
+    } catch (error) {
+      throw new WsException(error);
+    }
+  }
+  
+  @SubscribeMessage('leave-chat')
+  async handleLeaveRoom(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() channel_id : number
+  ) {
+    try {
+      const user_id = this.getUserIdBySocketId(socket.id);
+      if (!user_id || !(await this.chatSocketService.checkChannelUser(channel_id, user_id)))
+        return { error: 'No permission!' };
+    
+      socket.leave(`chat_${channel_id}`); // leave room
+      socket.broadcast
+      .to(`chat_${channel_id}`)
       .emit('message', { message: `${socket.id}가 나갔습니다.` });
 
     } catch (error) {
@@ -136,11 +142,52 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
   }
 
+  @SubscribeMessage('mute-chat')
+  async muteChannelUser(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() muteDto: toggleDto,
+  ) {
+    try {
+      const user_id = this.getUserIdBySocketId(socket.id);
+      if (!user_id ||
+        !(await this.chatSocketService.checkAdminUser(muteDto.channel_id, user_id)) ||)
+        !(await this.chatSocketService.checkChannelUser(muteDto.channel_id, muteDto.user_id))
+         return { error: 'No permission!' };
+ 
+      
+    } catch (error) {
+      throw new WsException(error);
+    }
+  }
 
-  // handleRemoveSocketIdFromRoom(userId: number, conversationId: number) {
-  //   const socketId = this.socketGateway.getSocketIdFromUserId(userId);
-  //   if (socketId) this.server.in(socketId).socketsLeave(`chatRoom_${conversationId}`);
-  // }
+  @SubscribeMessage('ban-chat')
+  async banChannelUser(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() md: toggleDto,
+  ) {
+
+  }
+
+
+  @SubscribeMessage('kick-chat')
+
+  @SubscribeMessage('user-list-chat')
+
+
+  getSocketIdByUserId(userId: number) {
+    return this.users.find((u) => u.userId === userId)?.socketId;
+  }
+
+  getUserIdBySocketId(socketId: string) {
+    return this.users.find((u) => u.socketId === socketId)?.userId;
+  }
+
+  handleJoinChatChannel(userId: number, channelId: number) {
+    const socketId = this.getSocketIdByUserId(userId);
+    if (socketId) {
+      this.server.in(socketId).socketsJoin(`chat_${channelId}`);
+    }
+  }
 
 
  

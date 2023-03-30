@@ -5,10 +5,9 @@ import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { User } from 'src/models/user/entities/user.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { ChannelDto, JoinDto, UserIdDto } from '../dto/create-channel.dto';
+import { ChannelDto, JoinDto, UserIdDto } from '../../dto/create-channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
-import { ChatSocketGateway } from '../../socket/chatSocket.gateway';
 
 @Injectable()
 export class ChatService {
@@ -39,6 +38,32 @@ export class ChatService {
   ) {}
 
 
+	/*
+		id: number;
+		name: string;
+		profileURL: string;
+		role: RoleType;         
+		status: UserStatus; //현재 없음
+
+	*/
+	async getChatUsers(channel_id : number):Promise <ChannelUser[]> {
+
+		const channelUserss = await this.channelUserRepository
+		.createQueryBuilder("channel")
+      .innerJoin("channel.user", "us") //innerjoin 으로 수정
+      .select([
+        "us.user_id",
+        "us.nickname",
+        "us.profile_url",
+        "channel.role",
+				"channel.deleted_at"
+      ])
+      .where('channel.channel_id = :channel_id', {channel_id})
+			.withDeleted()
+			.getMany();
+
+		return channelUserss;
+	}
 
   async getMyChannels(user_id: number): Promise<ChatChannel[]> {
 
@@ -48,9 +73,9 @@ export class ChatService {
       .where('cu.user_id = :user_id', {user_id})
       .getMany();
     
-    const userIds = channelUsers.map((user)=>user.user_id)
-    //var userIds = [];
-    //channelUsers.map((cu) =>userIds.push(cu.channel_id));
+    //const userIds = channelUsers.map((user)=>user.user_id)
+    var userIds = [];
+    channelUsers.map((cu) =>userIds.push(cu.channel_id));
 
     const channel: ChatChannel[] = await this.channelRepository
       .createQueryBuilder("channel")

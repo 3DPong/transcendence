@@ -1,10 +1,81 @@
-import { Injectable } from '@nestjs/common';
-import { Room, User } from '../chat.interface';
+import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChannel, MessageLog } from '../../entities';
+import { ChatChannel } from '../../entities/chatChannel.entity';
+import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MessageDto } from '../../dto/create-channel.dto';
+
 
 @Injectable()
 export class ChatSocketService {
+  constructor(
+    @InjectRepository(ChatChannel)
+    private channelRepository: Repository<ChatChannel>,
+    
+    @InjectRepository(ChannelUser)
+    private channelUserRepository: Repository<ChannelUser>,
+    
+    @InjectRepository(MessageLog)
+    private messageLogRepository: Repository<MessageLog>,
 
-  private rooms: Room[] = [];
+    @InjectRepository(DmChannel)
+    private dmRepository: Repository<DmChannel>,
+
+    @InjectRepository(ChannelBanList)
+    private banRepository: Repository<ChannelBanList>,
+
+    @InjectRepository(ChannelMuteList)
+    private muteRepository: Repository<ChannelMuteList>,
+
+    private dataSource: DataSource
+  
+  ) {}
+
+  async createMessageLog(user_id: number, md: MessageDto) :Promise<MessageLog> {
+    try {
+      const existingUser = await this.channelUserRepository
+        .findOne({where: {channel_id: md.channel_id, user_id}});
+      if (!existingUser)
+        throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
+      
+      if (await this.checkMuteUser(md.channel_id, user_id))
+        throw new UnauthorizedException('muted User!');
+
+      const newLog = this.messageLogRepository.create({
+        channel_id: md.channel_id,
+        user_id,
+        content: md.message
+      });
+      await this.messageLogRepository.save(newLog);
+      return newLog;
+      } catch (error) {
+        throw new InternalServerErrorException();
+    }
+  }
+
+  async checkMuteUser(channel_id: number, user_id: number) : Promise <boolean> {
+    const muted = await this.banRepository.findOne({where: {channel_id, user_id}});
+    if (muted) {
+      const time = new Date();
+      if (muted.end_at > time)
+        return true;
+    }
+    return false;
+  }
+
+  async checkChannelUser(channel_id: number, user_id: number) :Promise <boolean>   {
+    const chatUser = await this.channelUserRepository.findOne({ where: {channel_id, user_id }});
+    if (chatUser)
+      return true;
+    return false;
+  }
+
+  async checkAdminUser(channel_id: number, user_id: number) : Promise <boolean> {
+    const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+    if (!channelUser || channelUser.role == ChannelUserRoles.USER)
+      return false;
+    return true;
+  }
 
   //createChatRoom 대체
   // async addRoom(roomName: string, host: User): Promise<void> {
@@ -26,10 +97,10 @@ export class ChatSocketService {
   //   return this.rooms[roomIndex].host;
   // }
 
-  async getRoomByName(roomName: string): Promise<number> {
-    const roomIndex = this.rooms.findIndex((room) => room?.name === roomName);
-    return roomIndex;
-  }
+  // async getRoomByName(roomName: string): Promise<number> {
+  //   const roomIndex = this.rooms.findIndex((room) => room?.name === roomName);
+  //   return roomIndex;
+  // }
 
   // async addUserToRoom(roomName: string, user: User): Promise<void> {
   //   const roomIndex = await this.getRoomByName(roomName);
@@ -71,7 +142,7 @@ export class ChatSocketService {
   //   }
   // }
 
-  async getRooms(): Promise<Room[]> {
-    return this.rooms;
-  }
+  // async getRooms(): Promise<Room[]> {
+  //   return this.rooms;
+  // }
 }
