@@ -7,12 +7,23 @@ import UserCard from "./UserCard";
 interface MenuListProps {
   title : string;
   users : ChatUser[];
-  muteList : number[];
   scrollY : number;
 }
 
-const MenuList : FC<MenuListProps> = ({title, users, scrollY, muteList}) => {
+const MenuList : FC<MenuListProps> = ({title, users, scrollY}) => {
   const [open, setOpen] = useState(true);
+  users.sort((a, b) => {
+    switch (a.role) {
+      case "owner":
+        return -1;
+      case "admin":
+        return (b.role === "owner" ? 1 : -1);
+      case "user":
+        return 1;
+      default:
+        return 1;
+    }
+  });
 
   const handleClick = () => {
     setOpen(!open);
@@ -42,9 +53,7 @@ const MenuList : FC<MenuListProps> = ({title, users, scrollY, muteList}) => {
         <List component="div" disablePadding sx={{ zIndex:0}}>
           {
             users.map((user)=> (
-              <UserCard key={user.id} user={user} scrollY={scrollY}
-                isMuted={muteList.includes(user.id)}
-              />
+              <UserCard key={user.id} user={user} scrollY={scrollY} />
             ))
           }
         </List>

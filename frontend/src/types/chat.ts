@@ -8,8 +8,8 @@ export interface User {
 
 export interface ChatUser extends User {
   role : UserRole;
-  status? : UserStatus;
-  isMuted? : boolean;
+  status : UserStatus;
+  deleted_at : Date | null;
 };
 
 export interface Message {
@@ -39,6 +39,7 @@ export const defaultChatUser: ChatUser = {
   nickname: defaultUser.nickname,
   role: "none",
   status: "none",
+  deleted_at: null,
 };
 
 export const defaultChannel: Channel = {
