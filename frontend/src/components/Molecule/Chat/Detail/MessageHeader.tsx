@@ -15,9 +15,9 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
   const getChannelTypeIcon = (type: ChannelType) => {
     switch (type) {
       case 'protected':
-        return <Lock fontSize="small" />;
-      case 'private':
         return <LockOpen fontSize="small" />;
+      case 'private':
+        return <Lock fontSize="small" />;
       case 'public':
         return <Public fontSize="small" />;
       case 'dm':

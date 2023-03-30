@@ -1,16 +1,18 @@
 import { ChatUser } from "@/types/chat";
 import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from "@mui/material";
-import { FC } from "react";
+import { FC, useContext } from "react";
 import AvatarSet from "../AvatarSet";
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import ChatContext from "@/context/ChatContext";
 
 interface UserCardProps {
   user : ChatUser;
-  isMuted: boolean;
   scrollY : number;
 };
 
-const UserCard : FC<UserCardProps> = ({user, isMuted, scrollY}) => {
+const UserCard : FC<UserCardProps> = ({user, scrollY}) => {
+  const { muteList } = useContext(ChatContext);
+  const isMuted = muteList.includes(user.id);
 
   return (
     <div className="pr-4">

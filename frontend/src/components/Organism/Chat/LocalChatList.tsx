@@ -22,20 +22,6 @@ const LocalChatList : FC<ChatListProps> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
 
-//export interface Channel {
-  //id : number;
-  //thumbnail? : string;
-  //title : string;
-  //type : ChannelType;
-  //owner : User;
-//};
-
-//export interface User {
-  //id: number;
-  //profile: string;
-  //nickname: string;
-//};
-
   useEffect(() => {
     setIsLoading(true);
     async function fetchChannels() {
@@ -45,6 +31,7 @@ const LocalChatList : FC<ChatListProps> = () => {
         id: ch.channel_id,
         type: ch.type,
         title: ch.name,
+        thumbnail: ch.type === "dm" ? ch.owner.profile_url : null,
         owner: {
           id: ch.owner.user_id,
           nickname: ch.owner.nickname,

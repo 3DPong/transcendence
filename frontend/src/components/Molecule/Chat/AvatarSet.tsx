@@ -1,6 +1,6 @@
 import { ChatUser, UserStatus } from "@/types/chat";
-import { Avatar, Badge } from "@mui/material";
-import { FC, useState } from "react";
+import { Avatar, Badge, Box } from "@mui/material";
+import { FC, ReactNode, useState } from "react";
 import AvatarPopper from "./AvatarPopper";
 import { styled } from '@mui/material/styles';
 import { RiVipCrown2Fill } from 'react-icons/ri';
@@ -33,7 +33,7 @@ const StyledBadge = styled(Badge)<{ status: UserStatus }>(({ status = "none", th
       width: '100%',
       height: '100%',
       borderRadius: '50%',
-      animation: status === 'offline' ? 'none' : 'ripple 1.2s infinite ease-in-out',
+      animation: ["online", "ingame"].includes(status) ? 'ripple 1.2s infinite ease-in-out' : 'none',
       border: '1px solid currentColor',
       content: '""',
     },
@@ -50,6 +50,47 @@ const StyledBadge = styled(Badge)<{ status: UserStatus }>(({ status = "none", th
   },
 }));
 
+interface AvatarBadgeProps {
+  user: ChatUser;
+  children: ReactNode;
+  isNone: boolean;
+};
+
+const AvatarBadge : FC<AvatarBadgeProps> = ({user, children, isNone}) => {
+  if (isNone)
+    return (
+      <Box
+        sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
+      >
+        {children}
+      </Box>
+    );
+  else
+    return (
+      <Badge 
+        sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        overlap="circular"
+        badgeContent={ ["owner", "admin"].includes(user.role) ?
+                        <RiVipCrown2Fill size="1.5em" color={ user.role === "owner" ? "Blue" : "Crimson" }/>
+                        : <></>
+        }
+      >
+        <StyledBadge
+          status={user.status || 'none'}
+          overlap="circular"
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          variant="dot"
+        >
+          {children}
+        </StyledBadge>
+      </Badge>
+    );
+}
+
 interface AvatarSetProps {
   user: ChatUser;
   scrollY: number;
@@ -57,43 +98,28 @@ interface AvatarSetProps {
 
 const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const isNone = user.status === "none";
 
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
   return (
-    <Badge 
-      sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'left',
-      }}
-      overlap="circular"
-      badgeContent={ user.role === "user" ? <></> :
-                      <RiVipCrown2Fill size="1.5em" color={ user.role === "owner" ? "Blue" : "Crimson" }/> }
-    >
-      <StyledBadge
-        status={user.status || 'none'}
-        overlap="circular"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        variant="dot"
-      >
-        <Avatar
-            src={user.profile}
-            alt={user.nickname}
-            className="cursor-pointer"
-            onClick={handleAvatarClick}
-        />
-        {Boolean(anchorEl) && <AvatarPopper
-          anchorEl={anchorEl}
-          handleClose={()=>{setAnchorEl(null);}}
-          targetId={user.id}
-          scrollY={scrollY}
-        />
-        }
-      </StyledBadge>
-    </Badge>
+    <AvatarBadge user={user} isNone={isNone}>
+      <Avatar
+          src={user.profile}
+          alt={user.nickname}
+          className="cursor-pointer"
+          onClick={handleAvatarClick}
+      />
+      {Boolean(anchorEl) && <AvatarPopper
+        anchorEl={anchorEl}
+        handleClose={()=>{setAnchorEl(null);}}
+        targetId={user.id}
+        scrollY={scrollY}
+      />
+      }
+    </AvatarBadge>
   );
 };
 

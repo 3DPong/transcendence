@@ -12,11 +12,11 @@ import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotifica
 import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
+import ChatContext from '@/context/ChatContext';
+
 
 interface ChatDetailProps {
 }
-
-
 
 const ChatDetail: FC<ChatDetailProps> = () => {
 
@@ -25,7 +25,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const channelIdNumber = Number(channelId);
   const [channel, setChannel] = useState<Channel>(defaultChannel);
 
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [users, setUsers] = useState<ChatUser[]>([]);
+  const [banList, setBanList] = useState<ChatUser[]>([]);
+  const [muteList, setMuteList] = useState<number[]>([]);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [skip, setSkip] = useState(0);
   
@@ -33,13 +37,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [battleModalOpen, setBattleModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
-  //export interface Message {
-    //id : number;
-    //senderId : number;
-    //content : string;
-    //created_at : string;
-  //};
-  // channelId가 변경될때마다 fetch 이후 리렌더링
   async function fetchMessagesByChannelId(_channelId : number, _skip : number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/log?take=20&skip=" + _skip, {
       cache: 'no-cache'
@@ -55,17 +52,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     return msgs;
   }
 
-  //export interface User {
-    //id: number;
-    //profile: string;
-    //nickname: string;
-  //};
-
-  //export interface ChatUser extends User {
-    //role : UserRole;
-    //status? : UserStatus;
-    //isMuted? : boolean;
-  //};
   async function fetchUsersByChannelId(_channelId : number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/users", {
       cache: 'no-cache'
@@ -77,8 +63,34 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       nickname: usr.user.nickname,
       role: usr.role,
       status: "online",
+      deleted_at: usr.deleted_at,
     }));
     return usrs;
+  }
+
+  async function fetchBanListByChannelId(_channelId : number) {
+    const response = await fetch(API_URL + "/chat/" + _channelId + "/banlist");
+    const fetchBanList = await response.json();
+
+    const banlist : ChatUser[] = fetchBanList.map((usr : any) => ({
+      id: usr.user.user_id,
+      profile: usr.user.profile_url,
+      nickname: usr.user.nickname,
+      role: "none",
+      status: "none",
+      deleted_at: usr.end_at,
+    }));
+    return banlist;
+  }
+
+  async function fetchMuteListByChannelId(_channelId : number) {
+    const response = await fetch(API_URL + "/chat/" + _channelId + "/mutelist");
+    const fetchMuteList = await response.json();
+
+    const mutelist : number[] = fetchMuteList.map((usr : any) => {
+      return (usr.user.user_id);
+    });
+    return mutelist;
   }
 
   const handleGameCreate = (gameType: string) => {
@@ -87,13 +99,13 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     setBattleModalOpen(false);
   };
 
+  /* dummyData */
   function sendMessage(textContent: string) {
     const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
     const message : Message = {id: getMessageId(), senderId:userId, content:textContent, created_at:formattedTime};
     setMessages([...messages, message]);
   }
 
-  /* dummyData */
   const userId = 63;
   const [messageId, setMessageId] = useState(200);
 
@@ -102,18 +114,22 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     return messageId;
   }
   /* dummyData */
+
   useEffect(() => {
-    console.log("Fetch User and Message")
     async function init() {
       setShowNotification(false);
       setDrawerOpen(false);
-      const [usrs, msgs] = await Promise.all([
+      const [usrs, msgs, bans, mutes] = await Promise.all([
         fetchUsersByChannelId(channelIdNumber),
-        fetchMessagesByChannelId(channelIdNumber, 0)
+        fetchMessagesByChannelId(channelIdNumber, 0),
+        fetchBanListByChannelId(channelIdNumber),
+        fetchMuteListByChannelId(channelIdNumber),
       ])
-      console.log(msgs);
       setUsers(usrs);
       setMessages(msgs);
+      setBanList(bans);
+      setMuteList(mutes);
+      setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === userId))?.role || "none"))
     };
     init();
   }, [channelId]);
@@ -126,10 +142,19 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <MessageHeader channel={channel} memberCount={users.length} handleMenuButton={()=>{setDrawerOpen(true)}}/>
-      <MessageList myId={userId} users={users} messages={messages} />
+      <MessageHeader
+        channel={channel}
+        memberCount={users.filter((u)=>(u.deleted_at === null)).length}
+        handleMenuButton={()=>{setDrawerOpen(true)}}/>
+      <ChatContext.Provider value={{isAdmin, setIsAdmin, muteList, setMuteList, banList, setBanList}}>
+        <MessageList myId={userId} users={users} messages={messages} />
+        <MenuDrawer
+          open={drawerOpen}
+          handleClose={()=>{setDrawerOpen(false)}}
+          userlist={users.filter((u)=>(u.deleted_at === null))}
+          />
+      </ChatContext.Provider>
       <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
-      <MenuDrawer isAdmin={true} open={drawerOpen} handleClose={()=>{setDrawerOpen(false)}} userlist={users} banlist={users} />
 
       <BattleRequestModal
         open={battleModalOpen}
