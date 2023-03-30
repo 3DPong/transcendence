@@ -4,10 +4,10 @@ import MediaCard from "@/components/Molecule/MediaCard";
 
 import VirtualizedChatList from '@/components/Molecule/Chat/List/ChannelList'
 import { ChannelType, Channel } from "@/types/chat";
-import * as Dummy from "@/dummy/data";
 import EnterProtectedModal from "@/components/Molecule/Chat/List/EnterProtectedModal";
 
 import GlobalContext from "@/context/GlobalContext";
+import { API_URL } from "@/../config/backend";
 
 
 interface ChatListProps {
@@ -25,10 +25,22 @@ const GlobalChatList : FC<ChatListProps> = () => {
 
   function searchButtonClick() {
     setIsLoading(true);
-    setTimeout(() => {
-      setGlobalChats(Dummy.dummy_globalchatrooms);
+    async function fetchChannels() {
+      const response = await fetch(API_URL + "/chat/search/"+searchString);
+      const fetchChannels = await response.json();
+      setGlobalChats(fetchChannels.map((ch : any) => ({
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.name,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      })));
       setIsLoading(false);
-    }, 2000);
+    };
+    fetchChannels();
   }
 
   function searchButtonKeyup(event: React.KeyboardEvent) {
@@ -36,13 +48,27 @@ const GlobalChatList : FC<ChatListProps> = () => {
       searchButtonClick();
   }
 
-  function joinChat(id:number) {
-    const channel = globalChats.find((channel)=>(channel.id) === id);
-    setGlobalChats(globalChats.filter((channel)=>(channel.id !== id)))
-    if (channel) {
-      console.log(channel.title);
-      setChannels([channel, ...channels]);
+  function joinChannel(id:number, password: string | null = null) {
+    async function fetchJoinChannel() {
+      await fetch(API_URL+"/chat/join", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel_id: id,
+          password: password,
+        }),
+      });
+      
+      const channel = globalChats.find((channel)=>(channel.id) === id);
+      setGlobalChats(globalChats.filter((channel)=>(channel.id !== id)))
+      if (channel) {
+        console.log(channel.title);
+        setChannels([channel, ...channels]);
+      }
     }
+    fetchJoinChannel();
   }
 
   function handleCardClick(id: number, type: ChannelType) {
@@ -50,7 +76,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
       setPasswordModalOpen(true);
       setSelectChat(globalChats.find((chat) => (chat.id === id)));
     } else {
-      joinChat(id);
+      joinChannel(id);
     }
   }
   
@@ -74,7 +100,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
 
       <VirtualizedChatList channels={globalChats} isLoading={isLoading} handleCardClick={handleCardClick} />
 
-      <EnterProtectedModal channel={selectChat} isModalOpen={passwordModalOpen} setIsModalOpen={setPasswordModalOpen} joinChat={joinChat} />
+      <EnterProtectedModal channel={selectChat} isModalOpen={passwordModalOpen} setIsModalOpen={setPasswordModalOpen} joinChannel={joinChannel} />
     </>
   );
 }

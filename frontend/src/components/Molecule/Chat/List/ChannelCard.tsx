@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Box, ListItemButton, Skeleton } from "@mui/material";
-import { ChannelType, Channel } from "@/types/chat";
+import { ChannelType, Channel, defaultThumbnail } from "@/types/chat";
 import { Lock, LockOpen, Public, Sms } from "@mui/icons-material";
 
 interface ChannelCardProps {
@@ -44,7 +44,7 @@ const LoadedCard : FC<LoadedCardProps> = ({channel}) => {
   return (
     <>
       <img
-        src={channel.thumbnail || "https://pbs.twimg.com/profile_images/859429610248863744/mg7H1c7u_400x400.jpg"}
+        src={channel.thumbnail || defaultThumbnail}
         alt="thumbnail"
         className="w-12 h-12 rounded-full"
       />

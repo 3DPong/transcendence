@@ -6,10 +6,10 @@ import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
 import VirtualizedChatList from '@/components/Molecule/Chat/List/ChannelList'
 import { Channel } from "@/types/chat";
-import * as Dummy from "@/dummy/data";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/../config/backend";
 
 
 interface ChatListProps {
@@ -21,15 +21,39 @@ const LocalChatList : FC<ChatListProps> = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
- 
+
+//export interface Channel {
+  //id : number;
+  //thumbnail? : string;
+  //title : string;
+  //type : ChannelType;
+  //owner : User;
+//};
+
+//export interface User {
+  //id: number;
+  //profile: string;
+  //nickname: string;
+//};
+
   useEffect(() => {
-    async function fetchChannels() {
-    };
     setIsLoading(true);
-    setTimeout(() => {
-      setChannels(Dummy.dummy_chatrooms);
+    async function fetchChannels() {
+      const response = await fetch(API_URL + "/chat");
+      const fetchChannels = await response.json();
+      setChannels(fetchChannels.map((ch : any) => ({
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.name,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      })));
       setIsLoading(false);
-    }, 2000);
+    };
+    fetchChannels();
   }, []);
 
   function findChannelsByString(channels: Channel[], searchString : string) {
