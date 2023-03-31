@@ -49,8 +49,6 @@ function validateSessionResponseStatus(response: Response) {
 // 로그인 이후 사용자 정보, 리스트 등을 요청할 때 발생하는 error status code는 세션 관련 정보들입니다.
 // response가 성공일 경우 response 객체를 반환하고, 그게 아니면 null을 반환합니다.
 export async function fetchAndHandleSessionError(url: string, requestObject?: RequestInit) {
-  // const navigate = useNavigate();
-  // const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
 
   try 
   {

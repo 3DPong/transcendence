@@ -1,11 +1,13 @@
 
-// 2FA Auth 관련 API 
-
+/** --------------------------------------
+ * 이 파일은 2차 인증에 관련된 api 요청입니다.
+ * 2FA Auth 관련 API 
+ * @link https://github.com/3DPong/transcendence/pull/70
+ * ---------------------------------------*/
 
 
 import { fetchAndHandleAuthActivateError } from "../status/authActivate";
 import { fetchAndHandleAuthDeactivateError } from "../status/authDeactivate";
-
 
 // 1. activate 2fa
 export interface PUT_activate2FactorAuthRequestFormat {}
