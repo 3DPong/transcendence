@@ -28,3 +28,6 @@ export {
     activate2FactorAuthAndGetQrCode,
     deactivate2FactorAuth
 } from "./auth/auth";
+
+// Me
+export { getMySettings } from "@/api/me/settings";

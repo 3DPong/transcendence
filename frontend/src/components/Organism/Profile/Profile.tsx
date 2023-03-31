@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 19:38:02 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/24 19:31:21 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/31 18:10:42 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ import { Assert } from "@/utils/Assert";
 
 export default function Profile() {
   const [ profileState, setProfileState ] = useState<API.GET_UserDataResponseFormat>();
-  const { loggedUserId } = useContext(GlobalContext);
   const { pathname } = useLocation();
 
   // 만약 /profile 경로일 경우 userIdFromRouteURL은 undefined 이다.
@@ -29,7 +28,6 @@ export default function Profile() {
   useEffect(() => {
     (async () => {
 
-      Assert.NonNullish(loggedUserId, "UserId is null")
 
       // (1) parse :user_id to get user_id
       let user_id: number;
@@ -38,13 +36,15 @@ export default function Profile() {
       const convertResult = parseInt(subUrl);
       console.log(`URL parse result: url param (userId) is ${convertResult}`);
       if (isNaN(convertResult)) {
-        user_id = loggedUserId;
+        // user_id = loggedUserId;
       } else {
         user_id = convertResult;
       }
       // (2) load data
-      const profile = await API.getUserDataById(user_id);
-      setProfileState(profile);
+      const mySettings = await API.getMySettings();
+      if (mySettings) {
+        setProfileState(mySettings.profile_url);
+      }
     })(/* IIFE */);
   }, [pathname]); // call useEffect if pathname changes
 

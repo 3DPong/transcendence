@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/25 14:33:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/13 20:32:33 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/31 18:01:01 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,19 +64,17 @@ export function Game({state} : any) {
                 {simulator && (
                     <Renderer3D
                         simulator={simulator}
-                        // width={window.innerWidth}
-                        width={700}
-                        // height={window.innerHeight}
-                        height={700}
+                        width={window.innerWidth}
+                        height={window.innerHeight}
                     />
                 )}
             </div>
 
-            <div> {/* Box2D Debug Draw */}
+            {/* <div>
                 {simulator && (
                     <DebugDraw simulator={simulator} width={700} height={700} />
                 )}
-            </div>
+            </div> */}
         </>
     );
 }

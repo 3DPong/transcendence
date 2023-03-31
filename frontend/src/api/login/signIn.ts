@@ -1,5 +1,7 @@
 
 
+import { API_URL } from "../config"
+
 /** API 42
  * @link https://github.com/3DPong/transcendence/discussions/14
  * GET /auth/signin
@@ -16,21 +18,13 @@ export interface GET_SignInResponseFormat {
   user_id?: number; // SUCCESS일 경우에만 날라옴.
 }
 
+
 export async function requestSignIn() {
   return new Promise<GET_SignInResponseFormat>(async (resolve, reject) => {
 
+    const requestUri = `${API_URL}/auth/signin/42`;
 
-    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
-    /*
-    const URL = `/auth/signin`;
-    const response = await fetchAndHandleResponseError(URL, { method: "GET", redirect: "follow" });
-    if (response) {
-      const jsonObjcet = response.json();
-      console.log("Response data JSON :"); console.dir(jsonObjcet);
-      resolve (jsonObject);
-    }
-    */
-
+    // 성준님이랑 같이 작업한 코드 여기로 옮기기
 
 
     setTimeout(() => {

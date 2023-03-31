@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Setting.tsx                                        :+:      :+:    :+:   */
+/*   SettingDialog.tsx                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/25 19:36:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/25 19:36:43 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/31 17:52:22 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,33 +115,25 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
   // Preload. 세팅을 누르는 순간 현재 User정보를 서버로부터 load 해야 한다. (input 기본값으로 기존 데이터를 사용하기 위함)
   // ---------------------------------------------------------------------
-
   const [ imageFile, setImageFile ] = useState<string>("");
   const [ nickname, setNickname ] = useState<string>("");
   const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
 
-  const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
-
   let initialTwoFactorAuth: boolean; // 기존 사용자 설정
 
-  // 서버에서 기존 사용자 데이터를 받아오는 과정
+  // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
   useEffect(() => {
-    if (!loggedUserId) return;
-    // 1. 페이지 첫 렌더링 전에 세션 검증하고 user_id 받아올것.
-    // Assert.NonNullish(loggedUserId, "이건 테스트용 코드입니다. 추후 서버에게 받는걸로 바꿀 예정입니다.");
-    // 2. 검증된 user_id를 이용해서 user_data 재요청.
     (async () => {
-
       setIsLoading(true);
-      const response = await API.getUserDataById(loggedUserId);
+      const loadedSettings = await API.getMySettings();
       setIsLoading(false);
-
-      setImageFile(response.profile_url);
-      setNickname(response.nickname);
-      // initialTwoFactorAuth = response.two_factor;
-      initialTwoFactorAuth = false; // 기존 값.
+      if (loadedSettings) {
+        setImageFile(loadedSettings.profile_url);
+        setNickname(loadedSettings.nickname);
+        setTwoFactorAuth(loadedSettings.two_factor);
+      }
     })(/* IIFE */);
-  }, [loggedUserId]);
+  }, []);
   // ---------------------------------------------------------------------
 
  
@@ -189,21 +181,19 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
-    if (!loggedUserId) return ;
     (async () => {
 
       // 1. 서버에 변경 요청
-      setIsLoading(true);
-      const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
-      setIsLoading(false);
+      // setIsLoading(true);
+      // const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
+      // setIsLoading(false);
 
       // 2. 만약 요청 status가 정상이 아니라면, 경고 문구 날리기. (서버에서 정상적으로 처리되지 않았음. {DEV})
       // ...??
 
       // 3. Success 201 : 받은 데이터로 전역 state 설정.
       // setLoggedUserId(response.user_id);
-      console.log("서버에 변경사항을 전달하였습니다.");
-      setOpen(false); // close dialog
+      // console.log("서버에 변경사항을 전달하였습니다.");
 
 
       // 4. 2차 인증이 off였던 사용자가 on으로 켰다면, 로그아웃 시켜버리기.

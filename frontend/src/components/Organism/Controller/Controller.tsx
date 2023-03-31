@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/24 16:36:22 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/31 17:31:39 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,8 +87,6 @@ export enum eClickedBtn {
 export default function Controller() {
 
     const [ clickState, setClickState ] = React.useState<eClickedBtn>(0);
-    const { loggedUserId, setLoggedUserId } = React.useContext(GlobalContext);
-
     const [openSetting, setOpenSetting] = React.useState<boolean>(false);
 
     // ---------------------------------------------------------------
@@ -99,17 +97,6 @@ export default function Controller() {
     const navigate = useNavigate();
     React.useEffect(() => {
         // TODO: 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
-        if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
-
-            const saved_user_id = sessionStorage.getItem("user_id");
-            if (saved_user_id) {
-                setLoggedUserId(parseInt(saved_user_id));
-                console.log("setting up user_id from sessionStorage");
-            } else {
-                alert("[DEV] Null user_id. redirecting to /signin");
-                navigate("/signin");
-            }
-        }
     }, []);
     // ---------------------------------------------------------------
 
@@ -122,10 +109,7 @@ export default function Controller() {
 
 
     return (
-        // <Box sx={{ display: "flex" }}>
-
         <>
-        {/* { s && <WelcomeDialog state={s}/>} */}
         <Box>
             <CssBaseline />
             <Drawer

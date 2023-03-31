@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:06:17 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/27 22:04:39 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/31 17:21:09 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ import { useContext } from "react";
 import { fetchAndHandleSessionError } from "@/api/status/session";
 import { uploadImageToServer } from "@/api/upload/upload";
 
+// 모든 사용자에 대해 데이터를 요청할 수 있는 API 입니다.
 
 /*----------------------------------*
  *             GET API              *
