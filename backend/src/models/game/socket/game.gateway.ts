@@ -59,8 +59,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameRooms.set(gameManager.gameId, gameManager);
       console.log('gameCreate', gameManager.gameId);
     } else {
-      this.gameService.socketJoinRoom(client, gameManager.gameId);
       gameManager.createPlayer(client.id);
+      this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.server.to(gameManager.gameId).emit('gameStart', gameManager);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
       console.log('gameStart');
