@@ -11,6 +11,7 @@ import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
+import { GameModule } from './models/game/socket';
 import { SessionConfigModule } from './config/session/config.module';
 import { FtConfigModule } from './config/ft/config.module';
 import { RedisConfigModule } from './config/redis/config.module';
@@ -26,6 +27,7 @@ import { OtpConfigModule } from './config/otp/config.module';
     ChatModule,
     MatchModule,
     AlarmModule,
+    GameModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
