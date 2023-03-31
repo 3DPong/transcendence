@@ -1,11 +1,10 @@
 import * as Box2D from "../../Box2D";
-import { MAP_HEIGHT, MAP_WIDTH } from "../enum/GameEnv";
+import { MAP_HEIGHT, MAP_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH } from "../enum/GameEnv";
 import {InGameData } from "./InGameObjectData.js";
 
 export enum ObjectType{
   BALL,
   PADDLE,
-  //etc..
 }
 export class ObjectDefBase {
   public objectBodyDef : Box2D.BodyDef;
@@ -22,6 +21,7 @@ export class BallDef extends ObjectDefBase{
     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
     this.objectBodyDef.userData = new InGameData("ball", ObjectType.BALL);
     this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0,0),1);
+    //density 특별한 경우가 아니면 물의 밀도 1000g/cm^3 적용
     this.objectFixtureDef.density = 1000;
     this.objectFixtureDef.friction = 0 // temp
     this.objectFixtureDef.restitution = 1;
@@ -37,8 +37,8 @@ export class GroundDef extends ObjectDefBase{
       new Box2D.Vec2(MAP_WIDTH,-MAP_HEIGHT),
       new Box2D.Vec2(-MAP_WIDTH,-MAP_HEIGHT),
     ]; // game box 크기 나중에 조절 해야함
-    this.objectFixtureDef.shape = new Box2D.ChainShape().CreateLoop(vs);//맞나?
-    this.objectFixtureDef.friction = 0.3;
+    this.objectFixtureDef.shape = new Box2D.ChainShape().CreateLoop(vs);
+    this.objectFixtureDef.friction = 0;
   }
 }
 
@@ -48,7 +48,7 @@ export class PaddleDef extends ObjectDefBase {
     //this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
     this.objectBodyDef.position.Set(x, y);
     this.objectBodyDef.userData = new InGameData(id, ObjectType.PADDLE);
-    this.objectFixtureDef.shape = new Box2D.PolygonShape().SetAsBox(1, 5);//temp 값 이라 수정 해야함
+    this.objectFixtureDef.shape = new Box2D.PolygonShape().SetAsBox(PADDLE_WIDTH, PADDLE_HEIGHT);
     this.objectFixtureDef.density = 1000;
     this.objectFixtureDef.friction = 0;
     this.objectFixtureDef.restitution = 1;
@@ -80,11 +80,10 @@ export class RectangleDef extends ObjectDefBase {
   constructor(posX: number, posY: number){
     super();
     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
-    this.objectBodyDef.position.Set(posX, posY);//temp
+    this.objectBodyDef.position.Set(posX, posY);
     this.objectFixtureDef.shape = new Box2D.PolygonShape().SetAsBox(2,1);
     this.objectFixtureDef.friction = 0;
     this.objectFixtureDef.restitution = 1;
     this.objectFixtureDef.density = 1000;
-    this.objectFixtureDef.userData = "rectangle";
   }
 }

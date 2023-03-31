@@ -28,7 +28,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //게임매칭을찾는중,게임을진행중
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
     if (gameManager === undefined){
-      //todo
+      //todo:
       console.log('manager undefined check');
     } else if (gameManager.playerCount === 1) {
       console.log('player disconnect and delete gameRoom')
@@ -51,7 +51,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() dto : MatchDto,
     @ConnectedSocket() client : Socket,
   ) {
-    console.log(dto);
     let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, dto);
     if (gameManager === undefined){
       gameManager = new GameManager(dto);

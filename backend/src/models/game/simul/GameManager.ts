@@ -1,5 +1,5 @@
-import { GameModEnum, PaddleState } from "./enum/GameEnum";
-import { GameRoomTypeEnum } from "./enum/GameEnum";
+import { GameType, PaddleState } from "./enum/GameEnum";
+import { GameRoomType } from "./enum/GameEnum";
 import { GameSimulator, step} from "./GameSimulator";
 import { GamePlayer } from "./GamePlayer";
 import { v4 as uuidv4} from 'uuid';
@@ -12,8 +12,8 @@ import { Min } from "../Box2D";
 
 export class GameManager {
   public readonly gameId : string;
-  public readonly gameRoomType : GameRoomTypeEnum;
-  public readonly gameMod : GameModEnum;
+  public readonly gameRoomType : GameRoomType;
+  public readonly gameType : GameType;
   public playerCount : number;
   public player1 : GamePlayer;
   public player2 : GamePlayer;
@@ -22,7 +22,7 @@ export class GameManager {
   constructor(matchDto : MatchDto)
   {
     this.gameRoomType = matchDto.gameRoomType;
-    this.gameMod = matchDto.gameMod;
+    this.gameType = matchDto.gameType;
     this.gameId = uuidv4();
     this.playerCount = 0;
   }

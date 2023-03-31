@@ -4,12 +4,12 @@ export const enum PaddleState{
   STOP,
 }
 
-export const enum GameModEnum {
+export enum GameType {
   NORMAL,
   OTHER,
 }
 
-export const enum GameRoomTypeEnum {
+export enum GameRoomType {
   INCHAT,
   RANDOM,
 }

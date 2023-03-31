@@ -1,6 +1,7 @@
 import { GamePlayer } from "../GamePlayer";
 import * as Box2D from "../../Box2D";
 import { PaddleState } from "../enum/GameEnum";
+import { MAP_HEIGHT, PADDLE_HEIGHT, PADDLE_SPEED } from "../enum/GameEnv";
 
 export function MovePeddle(user : GamePlayer){
   if (user.directionButton === PaddleState.STOP) {
@@ -11,10 +12,10 @@ export function MovePeddle(user : GamePlayer){
   if (user.directionReverse){
     dir = user.directionButton === PaddleState.UP ? PaddleState.DOWN : PaddleState.UP;
   }
-  if (dir === PaddleState.UP && pos.y <= 23){
-    user.paddle.SetPositionXY(pos.x, pos.y + 1);
-  } else if (dir === PaddleState.DOWN && pos.y >= -23){
-    user.paddle.SetPositionXY(pos.x, pos.y - 1);
+  if (dir === PaddleState.UP && pos.y <= MAP_HEIGHT-PADDLE_HEIGHT){
+    user.paddle.SetPositionXY(pos.x, pos.y + PADDLE_SPEED);
+  } else if (dir === PaddleState.DOWN && pos.y >= -(MAP_HEIGHT-PADDLE_HEIGHT)){
+    user.paddle.SetPositionXY(pos.x, pos.y - PADDLE_SPEED);
   }
 }
 

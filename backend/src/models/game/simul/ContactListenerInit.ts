@@ -1,9 +1,8 @@
 import * as Box2D from "../Box2D";
-import { MAP_WIDTH, MAP_HEIGHT } from "./enum/GameEnv";
+import { MAP_WIDTH, MAP_HEIGHT, BALL_SPEED } from "./enum/GameEnv";
 import { BallSpeedCorrection } from "./object/ObjectController";
 
 export function ContactListenerInit(world: Box2D.World){
-  // 추후에 아이템 먹는걸로 하면 sensor_Object 충돌할때 호출 해야하는 함수들
   //  world.GetContactManager().m_contactListener.BeginContact = ()=>{};
   //  world.GetContactManager().m_contactListener.EndContact = ()=>{};
 
@@ -35,7 +34,6 @@ export function ContactListenerInit(world: Box2D.World){
       const Ashape : Box2D.Fixture = contact.GetFixtureA();
       const Bshape : Box2D.Fixture = contact.GetFixtureB();
       const ball : Box2D.Body = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
-      BallSpeedCorrection(ball, 5000);
-      //console.log('call contactListener postsolve');
+      BallSpeedCorrection(ball, BALL_SPEED*2);
     }
 }

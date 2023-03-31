@@ -1,14 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io'
-import { GameModEnum,GameRoomTypeEnum } from '../../simul/enum/GameEnum';
-import { v4 as uuidv4} from 'uuid';
+import { GameType,GameRoomType } from '../../simul/enum/GameEnum';
 import { GameManager} from '../../simul/GameManager';
 import { GamePlayer } from '../../simul/GamePlayer';
 import { MatchDto } from '../../game_dto/createMatch.dto';
 import { MATCH_SCORE } from '../../simul/enum/GameEnv';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Match } from '../../entities';
+import { DataSource, Repository } from 'typeorm';
 @Injectable()
 export class GameService {
-
+  constructor (
+    @InjectRepository(Match) 
+    private matchRepository : Repository<Match>,
+    private dataSource : DataSource,
+  ) {}
   public createGamePlayer(id : string) : GamePlayer {
     const player : GamePlayer = new GamePlayer(id);
     return player;
@@ -28,11 +34,8 @@ export class GameService {
     gameRooms : Map<string, GameManager>, dto : MatchDto
   ) : GameManager {
     for (const manager of gameRooms.values()){
-      if (true
-        /*manager.playerCount === 0 &&
-        manager.gameMod == dto.gameMod &&
-        manager.gameRoomType == dto.gameRoomType// random    */  
-      ) {
+      //test를 위해  default true고정 추후 client socket과 통신할때 수정예정
+      if (true) {
         return manager;
       }
     }
@@ -43,7 +46,7 @@ export class GameService {
     gameRooms : Map<string, GameManager>,
     gameManager: GameManager
   ){
-    //db작업 및 클라이언트 한테 알려주기
+    //todo : db작업 및 클라이언트 한테 알려주기
     gameRooms.delete(gameManager.gameId);
   }
 
@@ -52,5 +55,13 @@ export class GameService {
     const winner : GamePlayer = gameManager.player1.sid !== sid ? gameManager.player1 : gameManager.player2; 
     winner.socore = MATCH_SCORE;
     loser.socore = 0;
+  }
+  //todo:
+  async createMatch(gameManager : GameManager){
+    const newMatch = new Match();
+    newMatch.game_type = gameManager.gameType;
+    newMatch.match_type = gameManager.gameRoomType;
+    newMatch.left_score = gameManager.player1.socore;
+    newMatch.right_score = gameManager.player2.socore;
   }
 }

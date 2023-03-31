@@ -5,6 +5,7 @@ import { ObjectFactory } from "./object/ObjectFactory";
 import { MovePeddle, BallSpeedCorrection, RandomVec2} from "./object/ObjectController";
 import { ContactListenerInit } from "./ContactListenerInit";
 import { Server } from 'socket.io'
+import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "./enum/GameEnv";
 export class MatchInterrupt {
   isInterrupt : boolean = false;
   sid : string = undefined;
@@ -25,13 +26,13 @@ export class GameSimulator{
       this.objectFactory.createGround(this.world);
       this.user1 = user1;
       this.user2 = user2;
-      user1.paddle = this.objectFactory.createPaddle(this.world, -43,0,"player1");
-      user2.paddle = this.objectFactory.createPaddle(this.world, 43,0,"player2");
+      user1.paddle = this.objectFactory.createPaddle(this.world, -(MAP_WIDTH-PADDLE_OFFSET),0,"player1");
+      user2.paddle = this.objectFactory.createPaddle(this.world, MAP_WIDTH-PADDLE_OFFSET,0,"player2");
       this.objectFactory.createObstacle(this.world);
-      BallSpeedCorrection(this.ball, 2000);
+      BallSpeedCorrection(this.ball, BALL_SPEED);
       ContactListenerInit(this.world);
       //start : ball velocity init
-      this.ball.SetLinearVelocity(new Box2D.Vec2(50,40));
+      this.ball.SetLinearVelocity(RandomVec2());
     }
 }
 
@@ -47,7 +48,7 @@ export function step(
       simulator.ball.SetPositionXY(0,0);
       simulator.ball.GetUserData().pause = false;
       simulator.ball.SetLinearVelocity(RandomVec2());
-      BallSpeedCorrection(simulator.ball, 2000);
+      BallSpeedCorrection(simulator.ball, BALL_SPEED);
     }
     MovePeddle(simulator.user1);
     MovePeddle(simulator.user2);
