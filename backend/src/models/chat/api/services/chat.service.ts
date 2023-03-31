@@ -446,7 +446,6 @@ export class ChatService {
     const result = await this.channelRepository.delete({channel_id});
     if (result.affected === 0)
       throw new NotFoundException(`Cant't find id ${channel_id}`)
-    console.log('deleteChatRoom : ', result);
   }
 
 

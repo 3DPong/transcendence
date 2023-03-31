@@ -3,7 +3,7 @@ import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChann
 import { ChatChannel } from '../../entities/chatChannel.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageDto } from '../../dto/create-channel.dto';
+import { MessageDto, toggleDto } from '../../dto/create-channel.dto';
 
 
 @Injectable()
@@ -51,6 +51,39 @@ export class ChatSocketService {
       } catch (error) {
         throw new InternalServerErrorException();
     }
+  }
+
+  async muteUser(muteDto: toggleDto) :Promise<ChannelMuteList> {
+    const muteUser = this.muteRepository.create({
+      user_id: muteDto.user_id,
+      channel_id: muteDto.channel_id,
+      end_at: muteDto.time_at
+    });
+    await this.muteRepository.save(muteUser);
+    return muteUser;
+  }
+
+  async banUser(muteDto: toggleDto) :Promise<ChannelBanList> {
+    const banUser = this.banRepository.create({
+      user_id: muteDto.user_id,
+      channel_id: muteDto.channel_id,
+      end_at: muteDto.time_at
+    });
+    await this.muteRepository.save(banUser);
+    return banUser;
+  }
+
+
+  async unmuteUser(channel_id: number, user_id: number) {
+    const result = await this.muteRepository.delete({channel_id, user_id});
+    if (result.affected === 0)
+      throw new NotFoundException(`Cant't find mute id ${user_id} in ${channel_id}`)
+  }
+
+  async unbanUser(channel_id: number, user_id: number) {
+    const result = await this.banRepository.delete({channel_id, user_id});
+    if (result.affected === 0)
+      throw new NotFoundException(`Cant't find ban id ${user_id} in ${channel_id}`)
   }
 
   async checkMuteUser(channel_id: number, user_id: number) : Promise <boolean> {

@@ -147,18 +147,34 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     @ConnectedSocket() socket: Socket,
     @MessageBody() muteDto: toggleDto,
   ) {
+    const {user_id, channel_id, time_at} = muteDto;
     try {
-      const user_id = this.getUserIdBySocketId(socket.id);
-      if (!user_id ||
-        !(await this.chatSocketService.checkAdminUser(muteDto.channel_id, user_id)) ||)
-        !(await this.chatSocketService.checkChannelUser(muteDto.channel_id, muteDto.user_id))
+      const adminId = this.getUserIdBySocketId(socket.id);
+      if (!adminId ||
+        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+        !(await this.chatSocketService.checkChannelUser(channel_id, user_id)))
          return { error: 'No permission!' };
- 
       
+      const muted = this.chatSocketService.checkMuteUser(channel_id, user_id);
+      if (muted) {
+        await this.chatSocketService.unmuteUser(channel_id, user_id);
+        this.server.to(`chat_${channel_id}`).emit('unmute', {user_id, channel_id});
+        
+      } else {
+        const mute = await this.chatSocketService.muteUser(muteDto);
+        if (!mute)
+         return { error: 'Server error!' };
+        const timeout = setTimeout(async() => {
+          await this.chatSocketService.unmuteUser(channel_id, user_id);
+          this.server.to(`chat_${channel_id}`).emit('unmute', {user_id, channel_id});
+        }, 5000);
+      }
     } catch (error) {
       throw new WsException(error);
     }
   }
+
+
 
   @SubscribeMessage('ban-chat')
   async banChannelUser(
@@ -188,6 +204,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       this.server.in(socketId).socketsJoin(`chat_${channelId}`);
     }
   }
+
 
 
  
