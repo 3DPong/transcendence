@@ -2,20 +2,53 @@ import ChatTypeToggle from "@/components/Molecule/Chat/Create/ChatTypeToggle";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import { TextField } from "@/components/Molecule/Chat/TextField";
 import { Box, Button, Container, Typography } from "@mui/material";
-import { FC, useState } from "react";
-import { ChannelType } from "@/types/chat";
+import { FC, useContext, useEffect, useState } from "react";
+import { Channel, ChannelType, defaultThumbnail } from "@/types/chat";
+import GlobalContext from "@/context/GlobalContext";
+import { API_URL } from "@/../config/backend";
 
 interface ChannelSettingProps {
   handleClose : () => void;
+  channel: Channel;
 };
 
-const ChannelSetting : FC<ChannelSettingProps> = ({handleClose}) => {
+const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<ChannelType>("public");
+  const [type, setType] = useState<ChannelType>("none");
   const [password, setPassword] = useState("");
-  const [thumbnail, setThumbnail] = useState<string>("");
+  const [thumbnail, setThumbnail] = useState<string>(""); 
+  const {channels, setChannels} = useContext(GlobalContext);
 
-  function handleCreate() {
+  useEffect(()=>{
+    setTitle(channel.title);
+    setType(channel.type);
+    setThumbnail(channel.thumbnail || defaultThumbnail);
+  }, [channel])
+
+  function handleSave() {
+    async function updateChannel() {
+      await fetch(API_URL + "/chat/" + channel.id + "/update", {
+        method: "PUT", 
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: title,
+          password: password === "" ? null : password,
+          type: type,
+          inviteList: null,
+        })
+      });
+      setChannels((draft) => {
+        const target = draft.find((tchannel) => tchannel.id === channel.id);
+        if (target) {
+          target.title = title;
+          //target.thumbnail = thumbnail;
+          target.type = type;
+        }
+      });
+    }
+    updateChannel();
     handleClose();
   }
 
@@ -34,7 +67,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose}) => {
           <div className="mb-6">
             <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
           </div>}
-        <Button fullWidth variant="contained" color="primary" onClick={handleCreate}>
+        <Button fullWidth variant="contained" color="primary" onClick={handleSave}>
           설정 저장
         </Button>
       </Box>

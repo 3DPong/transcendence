@@ -1,20 +1,34 @@
 import ChatContext from "@/context/ChatContext";
-import { ChatUser } from "@/types/chat";
+import GlobalContext from "@/context/GlobalContext";
+import { Channel, ChatUser } from "@/types/chat";
+import { API_URL } from "@/../config/backend";
 import { FC, useContext, useState } from "react";
 import MenuFooter from "../../Molecule/Chat/Menu/MenuFooter";
 import MenuList from "../../Molecule/Chat/Menu/MenuList";
 import ChannelSetting from "./ChannelSetting";
+import { useNavigate } from "react-router-dom";
 
 interface MenuDrawerProps {
   open : boolean;
   handleClose : () => void;
   userlist: ChatUser[];
+  channel: Channel;
 };
 
-const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist}) => {
+const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}) => {
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
   const { isAdmin, banList } = useContext(ChatContext);
+  const { channels, setChannels } = useContext(GlobalContext);
+  const navigate = useNavigate();
+
+  async function leaveChannel() {
+    await fetch(API_URL + "/chat/" + channel.id + "/out", {
+      method: "PUT"
+    });
+    setChannels(channels.filter((_channel) => (_channel.id !== channel.id)));
+    navigate("/channels");
+  };
 
   return (
     <>
@@ -31,7 +45,7 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist}) => {
             onScroll={(event)=>{setScrollY(event.currentTarget.scrollTop)}}
           >
             {
-              settingOpen ? <ChannelSetting handleClose={()=>setSettingOpen(false)}/> :
+              settingOpen ? <ChannelSetting handleClose={()=>setSettingOpen(false)} channel={channel}/> :
               <>
                 <MenuList title="참여 유저 리스트" users={userlist} scrollY={scrollY}/>
                 {isAdmin && <MenuList title="밴 리스트" users={banList} scrollY={scrollY}/> }
@@ -39,7 +53,7 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist}) => {
             }
           </div>
           <div className="flex-shrink-0 h-50">
-            <MenuFooter handleLeave={()=>{}} handleSetting={()=>{setSettingOpen(!settingOpen)}}/>
+            <MenuFooter handleLeave={leaveChannel} handleSetting={()=>{setSettingOpen(!settingOpen)}} settingOpen={settingOpen}/>
           </div>
         </div>
       </div>

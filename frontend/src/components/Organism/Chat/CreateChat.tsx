@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   Button,
   Container,
   Typography,
 } from "@mui/material";
-import { ChannelType, User } from "@/types/chat";
+import { ChannelType, defaultThumbnail, User } from "@/types/chat";
 import CreateChatTypeToggle from "@/components/Molecule/Chat/Create/ChatTypeToggle";
 import SearchTextField from "@/components/Molecule/SearchTextField";
-import * as Dummy from "@/dummy/data";
 import CreateChatInviteList from "@/components/Molecule/Chat/Create/InviteList";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 
 import {TextField} from "@/components/Molecule/Chat/TextField";
+import { API_URL } from "@/../config/backend";
+import { useNavigate } from "react-router";
+import GlobalContext from "@/context/GlobalContext";
 
 
 interface CreateChatRoomProps {
@@ -26,10 +28,21 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [searchString, setSearchString] = useState("");
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
-  const [thumbnail, setThumbnail] = useState<string>("");
+  const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
+  const navigate = useNavigate();
+  const { channels, setChannels } = useContext(GlobalContext);
 
   function searchButtonClick() {
-    setSearchUsers(Dummy.dummy_users);
+    async function searchUser() {
+      const response = await fetch(API_URL + "/chat/users/" + searchString);
+      const fetchUsers = await response.json();
+      setSearchUsers(fetchUsers.map((u : any) => ({
+        id: u.user_id,
+        nickname: u.nickname,
+        profile: "",
+      })));
+    }
+    searchUser();
   }
 
   function searchButtonKeyup(event: React.KeyboardEvent) {
@@ -37,7 +50,35 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
       searchButtonClick();
   }
 
-  const handleCreate = () => {};
+  const handleCreate = () => {
+    async function createChat() {
+      const response = await fetch(API_URL + "/chat/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: title,
+          password: password === "" ? null : password,
+          type: type,
+          inviteList: invitedUsers,
+        })
+      });
+      const createChannel = await response.json();
+      setChannels([{
+        id: createChannel.channel_id,
+        title: createChannel.name,
+        type: createChannel.type,
+        owner: {
+          id: createChannel.owner.user_id,
+          nickname: createChannel.owner.nickname,
+          profile: createChannel.owner.profile_url,
+        },
+      }, ...channels]);
+    }
+    createChat();
+    navigate("/channels");
+  };
 
   return (
     <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
