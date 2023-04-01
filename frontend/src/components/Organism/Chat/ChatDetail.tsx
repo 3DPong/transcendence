@@ -152,6 +152,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           open={drawerOpen}
           handleClose={()=>{setDrawerOpen(false)}}
           userlist={users.filter((u)=>(u.deleted_at === null))}
+          channel={channel}
           />
       </ChatContext.Provider>
       <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
