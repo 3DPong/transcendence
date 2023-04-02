@@ -127,8 +127,7 @@ export class ChatService {
         "owner.nickname",
         "owner.profile_url"
       ])
-      .where('channel.type != :type', {type: ChannelType.PRIVATE})
-      .andWhere(`channel.type != :type`, {type: ChannelType.DM})
+      .where('channel.type!= :type and channel.type!= :type2', {type: 'private', type2: 'dm'})
       .orderBy("channel.created_at", "DESC")
       .getMany();
 
@@ -217,7 +216,8 @@ export class ChatService {
       await queryRunner.commitTransaction();
     
       delete channel.password;
-      delete channel.owner;
+      delete channel.owner.email;
+    
       return channel;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -365,8 +365,7 @@ export class ChatService {
         "owner.nickname",
         "owner.profile_url"
       ])
-      .where('channel.type != :type', {type: ChannelType.PRIVATE})
-      .andWhere(`channel.type != :type`, {type: ChannelType.DM})
+      .where('channel.type!= :type and channel.type!= :type2', {type: 'private', type2: 'dm'})
       .andWhere('channel.name LIKE :name', {name: `%${str}%`})
       .orderBy("channel.created_at", "DESC")
       .getMany();
