@@ -3,7 +3,7 @@ import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChann
 import { ChatChannel } from '../../entities/chatChannel.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageDto, toggleDto } from '../../dto/create-channel.dto';
+import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/create-channel.dto';
 
 
 @Injectable()
@@ -57,21 +57,23 @@ export class ChatSocketService {
     }
   }
 
-  async muteUser(muteDto: toggleDto) :Promise<ChannelMuteList> {
+  async muteUser(muteDto: toggleTimeDto) :Promise<ChannelMuteList> {
     const muteUser = this.muteRepository.create({
       user_id: muteDto.user_id,
-      channel_id: muteDto.channel_id
+      channel_id: muteDto.channel_id,
+      end_at: muteDto.end_at
     });
     await this.muteRepository.save(muteUser);
     return muteUser;
   }
 
-  async banUser(muteDto: toggleDto) :Promise<ChannelBanList> {
+  async banUser(banDto: toggleTimeDto) :Promise<ChannelBanList> {
     const banUser = this.banRepository.create({
-      user_id: muteDto.user_id,
-      channel_id: muteDto.channel_id
+      user_id: banDto.user_id,
+      channel_id: banDto.channel_id,
+      end_at: banDto.end_at
     });
-    await this.muteRepository.save(banUser);
+    await this.banRepository.save(banUser);
     return banUser;
   }
 
@@ -92,7 +94,7 @@ export class ChatSocketService {
   }
 
   async checkMuteUser(channel_id: number, user_id: number) : Promise <boolean> {
-    const muted = await this.banRepository.findOne({where: {channel_id, user_id}});
+    const muted = await this.muteRepository.findOne({where: {channel_id, user_id}});
     if (muted) {
       const time = new Date();
       if (muted.end_at > time)
@@ -128,6 +130,7 @@ export class ChatSocketService {
   
   async checkAdminUser(channel_id: number, user_id: number) : Promise <boolean> {
     const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+    console.log(channelUser)
     if (!channelUser || channelUser.role === ChannelUserRoles.USER)
       return false;
     return true;

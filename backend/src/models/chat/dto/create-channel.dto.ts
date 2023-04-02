@@ -80,8 +80,6 @@ export class User {
 }
 
 export class MessageDto {
-	// @IsNotEmpty()
-	// user: User;
 
 	@IsNotEmpty()
 	@IsString()
@@ -93,6 +91,19 @@ export class MessageDto {
 
 }
 
+export class toggleTimeDto {
+	@IsNotEmpty()
+	@IsNumber()
+  user_id: number;
+
+	@IsNotEmpty()
+	@IsNumber()
+  channel_id: number;
+  
+  @IsNotEmpty()
+  end_at: Date;
+}
+
 export class toggleDto {
 	@IsNotEmpty()
 	@IsNumber()
@@ -101,6 +112,7 @@ export class toggleDto {
 	@IsNotEmpty()
 	@IsNumber()
   channel_id: number;
+
 }
 
 export  class ChannelIdDto {

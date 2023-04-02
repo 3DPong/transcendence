@@ -10,7 +10,7 @@ import {
 import { Logger} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
-import { ChannelIdDto, MessageDto, toggleDto } from '../dto/create-channel.dto';
+import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/create-channel.dto';
 import { WsException } from '@nestjs/websockets';
 
 @WebSocketGateway({
@@ -25,8 +25,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   server: Server;
   private users: { userId: number; socketId: string }[] = [];
   private logger = new Logger('ChatGateway');
-
-  //= new Server<ServerToClientEvents, ClientToServerEvents>();
   
 
   async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
@@ -41,12 +39,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       } else {
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
-      // socket.join(`chat_${channel_id}`);
-      // socket.broadcast
-      //  .to(`chat_${channel_id}`)
-      //  .emit('message', { message: `${user_id} 유저가 들어왔습니다.` });
-      // this.logger.log(`Socket connected: ${socket.id}`);
-   
     } catch (error) {
       socket.disconnect();
       throw new WsException(error);
@@ -54,24 +46,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
-    //await this.chatSocketService.removeUserFromAllRooms(socket.id);
     const { user_id, channel_id } = socket.data
     try {
       const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
       if (userIndex >= 0) {
         this.users.splice(userIndex, 1);
       }
-    
-      // this.server
-      // .to(`chat_${channel_id}`)
-      // .emit('message', { message: `${socket.id}가 나갔습니다.` });
-      // socket.leave(`chat_${channel_id}`); // leave room
-
-      // socket.broadcast
-      // .to(`chat_${channel_id}`)
-      // .emit('message', { message: `${socket.id}가 나갔습니다.` });
-
-      this.logger.log(`Socket disconnected: ${socket.id}`);
+      this.logger.log(`Socket disconnected: ${user_id}`);
 
     } catch (error) {
       throw new WsException(error);
@@ -79,22 +60,22 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
 
-
   @SubscribeMessage('enter-chat')
   async handleSetClientDataEvent(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
     try {
       const user_id = this.getUserIdBySocketId(socket.id);
       if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
-      return { error: 'No permission!' };
+      throw { error: 'No permission!' };
     
       socket.join(`chat_${dto.channel_id}`);
       socket.broadcast
        .to(`chat_${dto.channel_id}`)
        .emit('message', { message: `${user_id} 유저가 들어왔습니다.` });
-      this.logger.log(`Socket connected: ${socket.id}`);  
+      this.logger.log(`Socket connected: ${user_id}`);  
 
     } catch (error) {
-   throw new WsException(error);
+      this.logger.log(error)
+      throw new WsException(error);
     }
   }
   
@@ -103,7 +84,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     try {
       const user_id = this.getUserIdBySocketId(socket.id);
       if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
-        return { error: 'No permission!' };
+        throw { error: 'No permission!' };
     
       socket.leave(`chat_${dto.channel_id}`); // leave room
       socket.broadcast
@@ -111,7 +92,8 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       .emit('message', { message: `${user_id}가 나갔습니다.` });
 
     } catch (error) {
-   throw new WsException(error);
+      this.logger.log(error)
+      throw new WsException(error);
     }
   }
 
@@ -122,7 +104,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     try {
       const user_id = this.getUserIdBySocketId(socket.id);
       if (!user_id || !(await this.chatSocketService.checkChannelUser(md.channel_id, user_id)))
-        return { error: 'No permission!' };
+        throw { error: 'No permission!' };
       await this.chatSocketService.createMessageLog(user_id, md);
 
       socket.broadcast
@@ -130,13 +112,124 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       .emit('chat', md);
 
     } catch (error) {
+      this.logger.log(error)
       throw new WsException(error);
     }
   
   }
 
-  @SubscribeMessage('user-list-chat')
+  @SubscribeMessage('mute-chat')
+  async muteChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() muteDto: toggleTimeDto) {
+    const {user_id, channel_id} = muteDto;
+    try {
+      const adminId = this.getUserIdBySocketId(socket.id);
+  
+      if (!adminId ||
+        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+         throw { error: 'No permission!' };
 
+      const muted = await this.chatSocketService.checkMuteUser(channel_id, user_id);
+    
+      if (muted) {
+        await this.chatSocketService.unmuteUser(channel_id, user_id);
+        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 해제 되었습니다.` });
+        
+      } else {
+        const mute = await this.chatSocketService.muteUser(muteDto);
+        if (!mute)
+         return { error: 'Server error!' };
+        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 되었습니다.` });
+        
+        // const timeout = setTimeout(async() => {
+        //   await this.chatSocketService.unmuteUser(channel_id, user_id);
+        //   this.server.to(`chat_${channel_id}`).emit('unmute', {user_id, channel_id});
+        // }, 5000);
+      }
+    } catch (error) {
+      this.logger.log(error)
+      throw new WsException(error);
+    }
+  }
+
+  @SubscribeMessage('ban-chat')
+  async banChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() banDto: toggleTimeDto) {
+    const {user_id, channel_id} = banDto;
+    try {
+      const adminId = this.getUserIdBySocketId(socket.id);
+      if (!adminId ||
+        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+        throw { error: 'No permission!' };
+      
+      const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
+
+      if (banned) {
+        await this.chatSocketService.unbanUser(channel_id, user_id);
+        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 밴 해제 되었습니다.` });
+        
+      } else {
+        const banned = await this.chatSocketService.banUser(banDto);
+        if (!banned)
+         throw { error: 'Server error!' };
+
+        await this.chatSocketService.kickUser(channel_id, user_id);
+        const userSocket = this.getSocketIdByUserId(user_id);
+        if (userSocket)
+         this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+        
+        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가  밴 되었습니다.` });
+      }
+    } catch (error) {
+      this.logger.log(error)
+      throw new WsException(error);
+    }
+  }
+
+  @SubscribeMessage('unban-chat')
+  async unbanChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() unbanDto: toggleDto) {
+    const {user_id, channel_id} = unbanDto;
+    try {
+      const adminId = this.getUserIdBySocketId(socket.id);
+      if (!adminId ||
+        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)))
+        throw { error: 'No permission!' };
+      
+      const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
+      if (banned) {
+        await this.chatSocketService.unbanUser(channel_id, user_id);
+        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 밴 해제 되었습니다.` });
+      }  else {
+        throw { error: '밴 상태가 아닙니다!' };
+      }
+    } catch (error) {
+      this.logger.log(error)
+      throw new WsException(error);
+    }
+  }
+
+
+  @SubscribeMessage('kick-chat')
+  async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickDto: toggleDto) {
+    const {user_id, channel_id} = kickDto;
+    try {
+      const adminId = this.getUserIdBySocketId(socket.id);
+      if (!adminId ||
+        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+         return { error: 'No permission!' };
+      
+      await this.chatSocketService.kickUser(channel_id, user_id);
+     const userSocket = this.getSocketIdByUserId(user_id);
+     if (userSocket)
+      this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+
+      this.server.to(`chat_${channel_id}`).emit(`kick`,  { message: `${user_id} 가 강제 퇴장 되었습니다.` });
+    } catch (error) {
+      this.logger.log(error)
+      throw new WsException(error);
+    }
+  }
 
   getSocketIdByUserId(userId: number) {
     return this.users.find((u) => u.userId === userId)?.socketId;
@@ -144,14 +237,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   getUserIdBySocketId(socketId: string) {
     return this.users.find((u) => u.socketId === socketId)?.userId;
-  }
-
-  handleJoinChatChannel(userId: number, channelId: number) {
-    const socketId = this.getSocketIdByUserId(userId);
-    if (socketId) {
-      this.server.in(socketId).socketsJoin(`chat_${channelId}`);
-    }
-  }
- 
+  } 
 
 }
