@@ -18,7 +18,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, myId, users, messa
   const [scrollY, setScrollY] = useState<number>(0);
   const [prevScrollHeight, setPrevScrollHeight] = useState<number>(0);
   const [fetchCount, setFetchCount] = useState<number>(0);
-  const [scrollState, setScrollState] = useState<number>(0);
+  const [scrollState, setScrollState] = useState<number>(1);
   const userMap = new Map<number, ChatUser>(users.map((user) => [user.id, user]));
   const {handleError} = useError();
 
@@ -57,6 +57,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, myId, users, messa
       const msgs = await fetchMessagesByChannelId(0);
       setFetchCount(msgs.length);
       setMessages(msgs);
+      setScrollState(1);
     }
     fetchMessages();
   }, [channelId]);
