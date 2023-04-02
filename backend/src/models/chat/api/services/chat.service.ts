@@ -128,6 +128,7 @@ export class ChatService {
         "owner.profile_url"
       ])
       .where('channel.type != :type', {type: ChannelType.PRIVATE})
+      .andWhere(`channel.type != :type`, {type: ChannelType.DM})
       .orderBy("channel.created_at", "DESC")
       .getMany();
 
@@ -178,14 +179,15 @@ export class ChatService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 
-    try {
+
       if (type == ChannelType.PROTECTED){
         if (password == undefined) {
-          throw new NotFoundException(`Can't find password`);
+          throw new NotFoundException(`비밀번호 없음`);
         }
         const salt = await bcrypt.genSalt();
         hashedPassword = await bcrypt.hash(password, salt);
       }
+      try {
       const channel = this.channelRepository.create({
         name,
         password: hashedPassword,
@@ -213,14 +215,13 @@ export class ChatService {
         }
       }
       await queryRunner.commitTransaction();
+    
+      delete channel.password;
+      delete channel.owner;
       return channel;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (error.code === '23505') { //채팅방 제목이 중복
-        throw new ConflictException('Existing Title');
-			} else {
-				throw new InternalServerErrorException();
-      }
+			throw new InternalServerErrorException();
 		} finally {
 			await queryRunner.release();
 		}
@@ -247,10 +248,7 @@ export class ChatService {
     try {
       await this.channelRepository.update(channel_id, {name, type, password: hashedPassword});
     } catch (error) {
-      if (error.code === '23505')       //entity의 @Unique(['name']) 데코레이터 에러 반환 값
-        throw new ConflictException('Existing Title');
-      else
-        throw new InternalServerErrorException();
+      throw new InternalServerErrorException();
     }
   }
 
@@ -368,6 +366,7 @@ export class ChatService {
         "owner.profile_url"
       ])
       .where('channel.type != :type', {type: ChannelType.PRIVATE})
+      .andWhere(`channel.type != :type`, {type: ChannelType.DM})
       .andWhere('channel.name LIKE :name', {name: `%${str}%`})
       .orderBy("channel.created_at", "DESC")
       .getMany();

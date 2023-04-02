@@ -26,7 +26,6 @@ export enum ChannelType {
 }
 
 @Entity()
-@Unique(['name'])
 export class ChatChannel {
   @PrimaryGeneratedColumn()
   channel_id: number;
@@ -58,7 +57,7 @@ export class ChatChannel {
   @DeleteDateColumn({ type: 'timestamp' })
   deleted_at: Timestamp;
 
-  @OneToMany(() => ChannelUser, (cu) => cu.channel, { eager: true })
+  @OneToMany(() => ChannelUser, (cu) => cu.channel, { eager: false })
   users: ChannelUser[];
 
   @OneToMany(() => MessageLog, (msgLog) => msgLog.channel)
@@ -67,7 +66,7 @@ export class ChatChannel {
   @OneToMany(() => DmChannel, (dm) => dm.channel)
   dmList: DmChannel[];
 
-  @OneToMany(() => ChannelBanList, (ban) => ban.channel, { eager: true })
+  @OneToMany(() => ChannelBanList, (ban) => ban.channel, { eager: false })
   bannedUsers: ChannelBanList[];
 
   @OneToMany(() => ChannelMuteList, (mute) => mute.channel, { eager: false })
