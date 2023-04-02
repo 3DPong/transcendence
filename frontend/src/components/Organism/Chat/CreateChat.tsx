@@ -15,6 +15,7 @@ import {TextField} from "@/components/Molecule/Chat/TextField";
 import { API_URL } from "@/../config/backend";
 import { useNavigate } from "react-router";
 import GlobalContext from "@/context/GlobalContext";
+import { useError } from "@/context/ErrorContext";
 
 
 interface CreateChatRoomProps {
@@ -31,10 +32,16 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
   const navigate = useNavigate();
   const { channels, setChannels } = useContext(GlobalContext);
+  const { handleError } = useError();
 
   function searchButtonClick() {
     async function searchUser() {
       const response = await fetch(API_URL + "/chat/users/" + searchString);
+      if (!response.ok) {
+        const error = await response.json();
+        handleError("Search User", error.message);
+        return;
+      }
       const fetchUsers = await response.json();
       setSearchUsers(fetchUsers.map((u : any) => ({
         id: u.user_id,
@@ -64,6 +71,12 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           inviteList: invitedUsers,
         })
       });
+      if (!response.ok) {
+        const error = await response.json();
+        handleError("Channel Create", error.message);
+        return;
+      }
+
       const createChannel = await response.json();
       setChannels([{
         id: createChannel.channel_id,
@@ -75,44 +88,46 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           profile: createChannel.owner.profile_url,
         },
       }, ...channels]);
+      navigate("/channels");
     }
     createChat();
-    navigate("/channels");
   };
 
   return (
-    <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
-      <Typography variant="h4" component="h1" gutterBottom>
-        채팅방 생성
-      </Typography> 
-      <ImageUpload width={200} height={200} thumbnail={thumbnail} setThumbnail={setThumbnail}/>
-      <Box component="form" sx={{ mt: 1 }}>
-        <div className="mb-6" >
-          <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle}/>
-        </div>
-        <CreateChatTypeToggle type={type} setType={setType}/>
-        { "protected" === type &&
-          <div className="mb-6" >
-            <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
-          </div>
-        }
-
-        <div className=" m-0 p-0">
-          <label className="inline-block mb-2 text-gray-700 form-label">
-            초대 리스트
-          </label>
-          <SearchTextField placeholder={"초대할 유저 검색"} state={searchString} setState={setSearchString} onClick={searchButtonClick} onKeyUp={searchButtonKeyup} />
-        </div>
-
-        <Box sx={{mt:2}}>
-          <CreateChatInviteList users={searchUsers} invitedUsers={invitedUsers} setInvitedUsers={setInvitedUsers} />
-        </Box>
-
-        <Button fullWidth variant="contained" color="primary" onClick={handleCreate}> 
+    <>
+      <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
+        <Typography variant="h4" component="h1" gutterBottom>
           채팅방 생성
-        </Button>
-      </Box>
-    </Container>
+        </Typography> 
+        <ImageUpload width={200} height={200} thumbnail={thumbnail} setThumbnail={setThumbnail}/>
+        <Box component="form" sx={{ mt: 1 }}>
+          <div className="mb-6" >
+            <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle}/>
+          </div>
+          <CreateChatTypeToggle type={type} setType={setType}/>
+          { "protected" === type &&
+            <div className="mb-6" >
+              <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
+            </div>
+          }
+
+          <div className=" m-0 p-0">
+            <label className="inline-block mb-2 text-gray-700 form-label">
+              초대 리스트
+            </label>
+            <SearchTextField placeholder={"초대할 유저 검색"} state={searchString} setState={setSearchString} onClick={searchButtonClick} onKeyUp={searchButtonKeyup} />
+          </div>
+
+          <Box sx={{mt:2}}>
+            <CreateChatInviteList users={searchUsers} invitedUsers={invitedUsers} setInvitedUsers={setInvitedUsers} />
+          </Box>
+
+          <Button fullWidth variant="contained" color="primary" onClick={handleCreate}> 
+            채팅방 생성
+          </Button>
+        </Box>
+      </Container>
+    </>
   );
 };
 

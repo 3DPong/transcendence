@@ -6,6 +6,7 @@ import { FC, useContext, useEffect, useState } from "react";
 import { Channel, ChannelType, defaultThumbnail } from "@/types/chat";
 import GlobalContext from "@/context/GlobalContext";
 import { API_URL } from "@/../config/backend";
+import { useError } from "@/context/ErrorContext";
 
 interface ChannelSettingProps {
   handleClose : () => void;
@@ -17,7 +18,8 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
   const [type, setType] = useState<ChannelType>("none");
   const [password, setPassword] = useState("");
   const [thumbnail, setThumbnail] = useState<string>(""); 
-  const {channels, setChannels} = useContext(GlobalContext);
+  const {setChannels} = useContext(GlobalContext);
+  const {handleError} = useError();
 
   useEffect(()=>{
     setTitle(channel.title);
@@ -27,7 +29,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
 
   function handleSave() {
     async function updateChannel() {
-      await fetch(API_URL + "/chat/" + channel.id + "/update", {
+      const response = await fetch(API_URL + "/chat/" + channel.id + "/update", {
         method: "PUT", 
         headers: {
           "Content-Type": "application/json",
@@ -39,6 +41,11 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
           inviteList: null,
         })
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        handleError("Channel Save", errorData.message);
+        return;
+      }
       setChannels((draft) => {
         const target = draft.find((tchannel) => tchannel.id === channel.id);
         if (target) {
