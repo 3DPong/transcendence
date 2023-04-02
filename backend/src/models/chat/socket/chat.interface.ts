@@ -18,11 +18,3 @@ export interface Message {
 }
 
 
-export interface ServerToClientEvents {
-  chat: (e: Message) => void;
-}
-
-export interface ClientToServerEvents {
-  chat: (e: Message) => void;
-  enter_room: (e: { user: User; roomName: string }) => void;
-}

@@ -1,11 +1,10 @@
 import { Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query,Body, Controller, Post} from '@nestjs/common';
 import { ChatChannel } from '../entities/chatChannel.entity';
-import { ChannelDto, JoinDto, UserIdDto} from '../dto/create-channel.dto';
-import { Request, Response } from "express";
 import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services/chat.service';
 import { ChannelUser, ChannelUserRoles } from '../entities/channelUser.entity';
 import { ChannelBanList, ChannelMuteList } from '../entities';
+import { ChannelDto, JoinDto, UserIdDto } from '../dto/create-channel.dto';
 
 
 @Controller('/chat')
@@ -23,10 +22,10 @@ export class ChatController {
   @Get()
   getMyChannels() : Promise<ChatChannel[]> {
     //const user = await this.userService.getUser(3);
-    return this.chatService.getMyChannels(78);
+    return this.chatService.getMyChannels(82);
   }
 
-  @Get('/add')
+  @Get('/search')
   getAllChannels() : Promise<ChatChannel[]> {
     return this.chatService.getAllChannels();
   }
@@ -69,7 +68,7 @@ export class ChatController {
 
   @Put('/:channelId/update')
   async updateChatRoom(@Param('channelId', ParseIntPipe) channelId: number, @Body() channelDto: ChannelDto) : Promise <void> {
-    const user = await this.userService.getUser(78);
+    const user = await this.userService.getUser(82);
     return this.chatService.updateChatRoom(channelId, channelDto, user);
   }
   

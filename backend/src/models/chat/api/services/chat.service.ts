@@ -73,9 +73,9 @@ export class ChatService {
       .where('cu.user_id = :user_id', {user_id})
       .getMany();
     
-    //const userIds = channelUsers.map((user)=>user.user_id)
-    var userIds = [];
-    channelUsers.map((cu) =>userIds.push(cu.channel_id));
+    const userIds = channelUsers.map((user)=>user.channel_id)
+    // var userIds = [];
+    // channelUsers.map((cu) =>userIds.push(cu.channel_id));
 
     const channel: ChatChannel[] = await this.channelRepository
       .createQueryBuilder("channel")
@@ -244,11 +244,8 @@ export class ChatService {
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
     }
-    channel.name = name;
-    channel.type = type;
-    channel.password = hashedPassword;
     try {
-      await this.channelRepository.save(channel);
+      await this.channelRepository.update(channel_id, {name, type, password: hashedPassword});
     } catch (error) {
       if (error.code === '23505')       //entity의 @Unique(['name']) 데코레이터 에러 반환 값
         throw new ConflictException('Existing Title');
