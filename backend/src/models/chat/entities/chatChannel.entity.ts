@@ -19,9 +19,9 @@ import { ChannelMuteList } from './channeMuteList.entity';
 import { Factory } from 'nestjs-seeder';
 
 export enum ChannelType {
-  PRIVATE = 'private',
   PROTECTED = 'protected',
   PUBLIC = 'public',
+  PRIVATE = 'private',
   DM = 'dm',
 }
 
@@ -49,6 +49,10 @@ export class ChatChannel {
   @Factory((faker) => faker.helpers.arrayElement([faker.internet.password(50), null]))
   @Column({ type: 'varchar', length: 100, nullable: true }) // encrypt 이후 길이를 알아야함
   password: string;
+
+  @Factory((faker) => faker.image.nature())
+  @Column({ type: 'varchar', length: 150 })
+  thumbnail_url: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Timestamp;
