@@ -8,6 +8,7 @@ import EnterProtectedModal from "@/components/Molecule/Chat/List/EnterProtectedM
 
 import GlobalContext from "@/context/GlobalContext";
 import { API_URL } from "@/../config/backend";
+import { useError } from "@/context/ErrorContext";
 
 
 interface ChatListProps {
@@ -22,11 +23,17 @@ const GlobalChatList : FC<ChatListProps> = () => {
   const [selectChat, setSelectChat] = useState<Channel>();
 
   const {channels, setChannels} = useContext(GlobalContext);
+  const {handleError} = useError();
 
   function searchButtonClick() {
     setIsLoading(true);
     async function fetchChannels() {
       const response = await fetch(API_URL + "/chat/search/"+searchString);
+      if (!response.ok) {
+        const error = await response.json();
+        handleError("Search Channels", error.message);
+        return;
+      }
       const fetchChannels = await response.json();
       setGlobalChats(fetchChannels.map((ch : any) => ({
         id: ch.channel_id,
@@ -50,7 +57,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
 
   function joinChannel(id:number, password: string | null = null) {
     async function fetchJoinChannel() {
-      await fetch(API_URL+"/chat/join", {
+      const response = await fetch(API_URL+"/chat/join", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,6 +67,11 @@ const GlobalChatList : FC<ChatListProps> = () => {
           password: password,
         }),
       });
+      if (!response.ok) {
+        const error = await response.json();
+        handleError("Channel Join", error.message);
+        return;
+      }
       
       const channel = globalChats.find((channel)=>(channel.id) === id);
       setGlobalChats(globalChats.filter((channel)=>(channel.id !== id)))

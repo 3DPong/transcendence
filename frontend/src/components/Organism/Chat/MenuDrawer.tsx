@@ -7,6 +7,7 @@ import MenuFooter from "../../Molecule/Chat/Menu/MenuFooter";
 import MenuList from "../../Molecule/Chat/Menu/MenuList";
 import ChannelSetting from "./ChannelSetting";
 import { useNavigate } from "react-router-dom";
+import { useError } from "@/context/ErrorContext";
 
 interface MenuDrawerProps {
   open : boolean;
@@ -21,11 +22,17 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}
   const { isAdmin, banList } = useContext(ChatContext);
   const { channels, setChannels } = useContext(GlobalContext);
   const navigate = useNavigate();
+  const {handleError} = useError();
 
   async function leaveChannel() {
-    await fetch(API_URL + "/chat/" + channel.id + "/out", {
+    const response = await fetch(API_URL + "/chat/" + channel.id + "/out", {
       method: "PUT"
     });
+    if (!response.ok) {
+      const errorData = await response.json();
+      handleError("Leave Channel", errorData.message);
+      return;
+    }
     setChannels(channels.filter((_channel) => (_channel.id !== channel.id)));
     navigate("/channels");
   };

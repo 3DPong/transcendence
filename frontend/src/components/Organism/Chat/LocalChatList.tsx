@@ -10,6 +10,7 @@ import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/../config/backend";
+import { useError } from "@/context/ErrorContext";
 
 
 interface ChatListProps {
@@ -21,6 +22,7 @@ const LocalChatList : FC<ChatListProps> = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
+  const {handleError} = useError();
 
   useEffect(() => {
     setIsLoading(true);
@@ -38,6 +40,11 @@ const LocalChatList : FC<ChatListProps> = () => {
           profile: ch.owner.profile_url,
         },
       })));
+      if (!response.ok) {
+        const errorData = await response.json();
+        handleError("Fetch MyChannels", errorData.message);
+        return;
+      }
       setIsLoading(false);
     };
     fetchChannels();

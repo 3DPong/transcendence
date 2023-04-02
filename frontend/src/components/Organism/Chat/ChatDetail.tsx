@@ -13,6 +13,7 @@ import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
+import { useError } from '@/context/ErrorContext';
 
 
 interface ChatDetailProps {
@@ -36,11 +37,16 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [battleModalOpen, setBattleModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const { handleError} = useError();
 
   async function fetchMessagesByChannelId(_channelId : number, _skip : number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/log?take=20&skip=" + _skip, {
       cache: 'no-cache'
     });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Unknown error occurred');
+    }
     const fetchMessages = await response.json();
     const msgs : Message[] = fetchMessages.map((msg : any) => ({
       id: msg.message_id,
@@ -56,6 +62,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/users", {
       cache: 'no-cache'
     });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Unknown error occurred');
+    }
     const fetchUsers = await response.json();
     const usrs : ChatUser[] = fetchUsers.map((usr : any) => ({
       id: usr.user.user_id,
@@ -70,6 +80,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   async function fetchBanListByChannelId(_channelId : number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/banlist");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Unknown error occurred");
+    }
     const fetchBanList = await response.json();
 
     const banlist : ChatUser[] = fetchBanList.map((usr : any) => ({
@@ -85,6 +99,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   async function fetchMuteListByChannelId(_channelId : number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/mutelist");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Unknown error occurred");
+    }
     const fetchMuteList = await response.json();
 
     const mutelist : number[] = fetchMuteList.map((usr : any) => {
@@ -117,19 +135,23 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   useEffect(() => {
     async function init() {
-      setShowNotification(false);
-      setDrawerOpen(false);
-      const [usrs, msgs, bans, mutes] = await Promise.all([
-        fetchUsersByChannelId(channelIdNumber),
-        fetchMessagesByChannelId(channelIdNumber, 0),
-        fetchBanListByChannelId(channelIdNumber),
-        fetchMuteListByChannelId(channelIdNumber),
-      ])
-      setUsers(usrs);
-      setMessages(msgs);
-      setBanList(bans);
-      setMuteList(mutes);
-      setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === userId))?.role || "none"))
+        setShowNotification(false);
+        setDrawerOpen(false);
+      try {
+        const [usrs, msgs, bans, mutes] = await Promise.all([
+          fetchUsersByChannelId(channelIdNumber),
+          fetchMessagesByChannelId(channelIdNumber, 0),
+          fetchBanListByChannelId(channelIdNumber),
+          fetchMuteListByChannelId(channelIdNumber),
+        ]);
+        setUsers(usrs);
+        setMessages(msgs);
+        setBanList(bans);
+        setMuteList(mutes);
+        setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === userId))?.role || "none"))
+      } catch (error) {
+          handleError("Init Fetch", (error as Error).message);
+      }
     };
     init();
   }, [channelId]);
