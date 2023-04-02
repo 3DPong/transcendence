@@ -91,9 +91,6 @@ export class MessageDto {
 	@IsNumber()
   channel_id: number;
 
-	@IsNotEmpty()
-	@IsDate()
-  time_at: Date;
 }
 
 export class toggleDto {
@@ -104,10 +101,10 @@ export class toggleDto {
 	@IsNotEmpty()
 	@IsNumber()
   channel_id: number;
-
-	@IsNotEmpty()
-	@IsDate()
-  time_at: Date;
-
 }
 
+export  class ChannelIdDto {
+	@IsNotEmpty()
+	@IsNumber()
+  channel_id: number;
+}
