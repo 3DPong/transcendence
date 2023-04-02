@@ -40,7 +40,7 @@ const MessageCard : FC<MessageCardProps> = ({
         <div
           className={`inline-block px-3 py-2 mt-1 rounded-lg text-sm ${
             isMyMessage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
-          }`}
+          } break-all`}
         >
           {message.content}
         </div>
