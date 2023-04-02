@@ -136,9 +136,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 해제 되었습니다.` });
         
       } else {
+        if (muteDto.end_at === null)
+          throw {error: '뮤트 해제 시간 없음.'} 
         const mute = await this.chatSocketService.muteUser(muteDto);
         if (!mute)
-         return { error: 'Server error!' };
+          throw { error: 'Server error!' };
         this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 되었습니다.` });
         
         // const timeout = setTimeout(async() => {
@@ -165,9 +167,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
 
       if (banned) {
-        await this.chatSocketService.unbanUser(channel_id, user_id);
-        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 밴 해제 되었습니다.` });
-        
+        throw { error: '이미 밴 유저입니다!' };
       } else {
         const banned = await this.chatSocketService.banUser(banDto);
         if (!banned)
@@ -178,7 +178,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         if (userSocket)
          this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
         
-        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가  밴 되었습니다.` });
+        this.server.to(`chat_${channel_id}`).emit('ban', { message: `${user_id} 가 밴 되었습니다.` });
       }
     } catch (error) {
       this.logger.log(error)
@@ -198,9 +198,9 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
       if (banned) {
         await this.chatSocketService.unbanUser(channel_id, user_id);
-        this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 밴 해제 되었습니다.` });
+        this.server.to(`chat_${channel_id}`).emit('ban', { message: `${user_id} 가 밴 해제 되었습니다.` });
       }  else {
-        throw { error: '밴 상태가 아닙니다!' };
+        throw { error: '밴 유저가 아닙니다!' };
       }
     } catch (error) {
       this.logger.log(error)

@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { isDate, IsDate, isDateString, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
 import { ChannelUserRoles } from "../entities";
 import { ChannelType } from "../entities/chatChannel.entity";
 
@@ -100,8 +100,7 @@ export class toggleTimeDto {
 	@IsNumber()
   channel_id: number;
   
-  @IsNotEmpty()
-  end_at: Date;
+  end_at: Date | null;
 }
 
 export class toggleDto {
