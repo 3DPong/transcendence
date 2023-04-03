@@ -36,7 +36,11 @@ export function TextField({
             setState(event.target.value);
           }}
           placeholder={placeholder}
-          className="form-control flex-1 px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+          className="form-control flex-1 px-3 py-1.5 text-base
+                      font-normal text-gray-700 bg-white bg-clip-padding
+                      border border-solid border-gray-300 rounded
+                      transition ease-in-out focus:text-gray-700
+                      focus:bg-white focus:border-blue-600 focus:outline-none"
         />
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
           {type === "password" && (
