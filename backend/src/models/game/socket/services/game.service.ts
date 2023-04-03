@@ -2,11 +2,12 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Socket } from 'socket.io'
 import { GameManager} from '../../simul/GameManager';
 import { GamePlayer } from '../../simul/GamePlayer';
-import { MatchDto } from '../../game_dto/createMatch.dto';
-import { MATCH_SCORE } from '../../simul/enum/GameEnv';
+import { MATCH_SCORE } from '../../enum/GameEnv';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Match } from '../../entities';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { MatchJoinData } from '../../game_dto/socket.Data';
+import { Server} from 'socket.io'
 @Injectable()
 export class GameService {
   constructor (
@@ -25,7 +26,8 @@ export class GameService {
   }
 
   public mathFind(
-    gameRooms : Map<string, GameManager>, dto : MatchDto
+    gameRooms : Map<string, GameManager>, 
+    matchJoinData : MatchJoinData
   ) : GameManager {
     for (const manager of gameRooms.values()){
       //test를 위해  default true고정 추후 client socket과 통신할때 수정예정
@@ -50,6 +52,10 @@ export class GameService {
     const winner : GamePlayer = gameManager.player1.sid !== sid ? gameManager.player1 : gameManager.player2; 
     winner.socore = MATCH_SCORE;
     loser.socore = 0;
+  }
+
+  public gameStart(gameManager : GameManager, server : Server){
+    
   }
 
   async createMatch(gameManager : GameManager){

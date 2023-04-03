@@ -4,7 +4,8 @@ import { GameManager } from '../simul/GameManager';
 import { MatchDto } from '../game_dto/createMatch.dto';
 import { GameService } from './services';
 import { GameDto } from '../game_dto/GameDto';
-import { GameRoomType, GameType } from '../simul/enum/GameEnum';
+import { RoomType, GameType } from '../enum/GameEnum';
+import { MatchJoinData } from '../game_dto/socket.Data';
 
 @WebSocketGateway(4242, {
   namespace : 'game',
@@ -47,20 +48,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
-  @SubscribeMessage('Match')
+  @SubscribeMessage('MatchJoin')
   match(
-    @MessageBody() dto : MatchDto,
+    @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,
   ) {
-    let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, dto);
+    let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, matchJoinData);
     if (gameManager === undefined){
-      gameManager = new GameManager(dto);
-      //gameManager.createPlayer(client.id);
+      gameManager = new GameManager(matchJoinData);
+      gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
       console.log('gameCreate', gameManager.gameId);
     } else {
-      //gameManager.createPlayer(client.id);
+      gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.server.to(gameManager.gameId).emit('gameStart', gameManager);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
@@ -86,13 +87,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('dbTest')
   dbTest(
-    @MessageBody() dto : GameDto,
+    @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,
   ) {
     const matchDto = new MatchDto();
-    matchDto.gameRoomType = GameRoomType.RANDOM;
+    matchDto.gameRoomType = RoomType.RANDOM;
     matchDto.gameType = GameType.NORMAL;
-    const gameManager : GameManager = new GameManager(matchDto);
+    const gameManager : GameManager = new GameManager(matchJoinData);
     gameManager.createPlayer(client.id, 1000);
     gameManager.createPlayer(client.id, 2000);
     gameManager.player1.socore = 15;
