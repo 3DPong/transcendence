@@ -25,6 +25,8 @@ import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
+import { ErrorProvider } from "@/context/ErrorContext";
+import AlertSnackbar from "./components/Molecule/AlertSnackbar";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -135,15 +137,18 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <GlobalContext.Provider
-          value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-        >
-          <RouterProvider router={router} />
-        </GlobalContext.Provider>
-      </header>
-    </div>
+    <ErrorProvider>
+      <div className="App">
+        <header className="App-header">
+          <GlobalContext.Provider
+            value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+          >
+            <RouterProvider router={router} />
+          </GlobalContext.Provider>
+        </header>
+      </div>
+      <AlertSnackbar />
+    </ErrorProvider>
   );
 }
 

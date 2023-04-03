@@ -7,10 +7,10 @@ interface EnterProtectedModalProps {
   channel: Channel | undefined;
   isModalOpen : boolean;
   setIsModalOpen : (tf: boolean) => void;
-  joinChat : (id:number) => void;
+  joinChannel : (id:number, password:string | null) => void;
 };
 
-const EnterProtectedModal : FC<EnterProtectedModalProps> = ({channel, isModalOpen, setIsModalOpen, joinChat}) => {
+const EnterProtectedModal : FC<EnterProtectedModalProps> = ({channel, isModalOpen, setIsModalOpen, joinChannel}) => {
   const CustomDialogTitle = styled(DialogTitle)({
     maxWidth: 300,
     textOverflow: 'ellipsis',
@@ -21,8 +21,7 @@ const EnterProtectedModal : FC<EnterProtectedModalProps> = ({channel, isModalOpe
   const [password, setPassword] = useState('');
 
   const handleJoin = () => {
-    //onJoin(channelId, password);
-    channel && joinChat(channel.id);
+    channel && joinChannel(channel.id, password);
     setIsModalOpen(false);
     setPassword('');
   };
