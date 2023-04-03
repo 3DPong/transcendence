@@ -1,15 +1,5 @@
 
-
 import { API_URL } from "../config"
-
-/** API 42
- * @link https://github.com/3DPong/transcendence/discussions/14
- * GET /auth/signin
- * POST /auth/signup
- */
-
-// 로그인
-// 200 success
 
 export interface GET_SignInResponseFormat {
   status:   "SUCCESS" /*로그인성공 */ 
@@ -23,15 +13,6 @@ export async function requestSignIn() {
   return new Promise<GET_SignInResponseFormat>(async (resolve, reject) => {
 
     const requestUri = `${API_URL}/auth/signin/42`;
-
-    // 성준님이랑 같이 작업한 코드 여기로 옮기기
-
-
-    setTimeout(() => {
-      // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      resolve({ status: "SIGNUP_MODE", user_id: 42 }); // on SUCCESS
-      // resolve({ status: "SUCCESS", user_id: 42 }); // on SUCCESS
-    }, 500);
 
   });
 };
