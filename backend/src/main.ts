@@ -31,11 +31,16 @@ async function bootstrap() {
   const appConfig = app.get(AppConfigService);
   const sessionConfig = app.get(SessionConfigService);
   const redisConfig = app.get(RedisConfigService);
-  const redisClient = new Redis({ port: redisConfig.port, host: redisConfig.host });
+  const redisClient = new Redis({
+    port: redisConfig.port,
+    host: redisConfig.host,
+    db: redisConfig.sessionDB,
+    password: redisConfig.password,
+    keyPrefix: 'session:',
+  });
   // @ts-ignore
   const redisStore = new RedisStore({
     client: redisClient,
-    prefix: 'ts:',
   } as any);
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe());
