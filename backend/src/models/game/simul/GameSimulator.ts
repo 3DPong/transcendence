@@ -5,7 +5,7 @@ import { ObjectFactory } from "./object/ObjectFactory";
 import { MovePeddle, BallSpeedCorrection, RandomVec2} from "./object/ObjectController";
 import { ContactListenerInit } from "./ContactListenerInit";
 import { Server } from 'socket.io'
-import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "./enum/GameEnv";
+import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "../enum/GameEnv";
 export class MatchInterrupt {
   isInterrupt : boolean = false;
   sid : string = undefined;

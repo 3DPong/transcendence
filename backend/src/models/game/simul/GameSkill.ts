@@ -1,4 +1,4 @@
-import { SKILL_COLL } from "./enum/GameEnv.js";
+import { SKILL_COLL } from "../enum/GameEnv.js";
 import { GamePlayer } from "./GamePlayer.js";
 
 export class GameSkill {
