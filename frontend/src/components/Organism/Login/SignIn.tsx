@@ -38,32 +38,30 @@ interface signInProps {}
 export function SignIn() {
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
-
   const navigate = useNavigate();
 
-  // 42 API 로그인 --> 일단 클릭하면 바로 되도록 테스트.
   const handleClick = () => {
-
-    // setLoggedUserId(null); // 먼저 State 초기화부터 진행.
-    sessionStorage.clear(); // 이 버튼이 클릭된 경우는 로그인을 처음 하는 경우 뿐임.
-    // 만약 이미 로그인을 했거나 데이터가 존재하면 이 페이지에서 바로 리다이렉트 되기 때문.
-
-
     (async () => {
       setIsLoading(true); // loading
       const response = await requestSignIn();
       setIsLoading(false); // load finished
 
-      if (response.status === "SUCCESS") 
+      if (!response) return;
+
+      if (response.status === "SUCCESS")
       { // go to '/home'
-        console.log("Login Success");
-        Assert.NonNullish(response.user_id, "서버에서 null 들어옴");
+        Assert.NonNullish(response.user_id);
         setLoggedUserId(response.user_id);
-      } 
-      else
+      }
+      else if (response.status === "SIGNUP_MODE")
       { // go to SignUp
-        console.log("Go to SignUp page");
         navigate("/signup");
+      }
+      else // 2FA
+      {
+        // 1. qr코드 이미지를 받아온다.
+        // 2. 이 이미지와 함께 입력할 창을 제공한다.
+        // 3. click을 누르면 제출된다.
       }
     })(/* IIFE */);
   };

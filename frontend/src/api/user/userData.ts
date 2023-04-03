@@ -10,11 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import GlobalContext from "@/context/GlobalContext";
-import { Assert } from "@/utils/Assert";
-import { useContext } from "react";
-import { fetchAndHandleSessionError } from "@/api/status/session";
 import { uploadImageToServer } from "@/api/upload/upload";
+import {useError} from "@/context/ErrorContext";
+import {API_URL} from "../../../config/backend";
+import {useNavigate} from "react-router";
 
 // 모든 사용자에 대해 데이터를 요청할 수 있는 API 입니다.
 
@@ -36,120 +35,100 @@ export interface GET_UserDataResponseFormat {
     level       : number;
 }
 
-import MyDummyProfile from "@/dummy/dummy.png";
-import { json } from "react-router";
+// 친구가 추가되면
 
-// Create Dummy Data
-const createUserDummyDataById = (userId: number) => {
-    return {
-      user_id     : userId,
-      nickname    : "Dummy User" + userId.toString(),
-      profile_url : MyDummyProfile,
-      wins        : 0, // no use
-      losses      : 0, // no use
-      total       : 0, // no use
-      level       : 0, // no use
-    }
-};
 
-// 단일 사용자 데이터 요청
 export async function getUserDataById(userId: number) {
-  return new Promise<GET_UserDataResponseFormat>(async (resolve, reject) => {
+  const {handleError} = useError();
 
+  const requestUrl = `${API_URL}/api/user/${userId}`;
+  const userDataResponse = await fetch(requestUrl, { method: "GET" });
 
-    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
-    /*
-    const URL = `/user/search/${searchString}`;
-    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
-    if (response) {
-      const jsonObjcet = response.json();
-      console.log("Response data JSON :"); console.dir(jsonObjcet);
-      resolve (jsonObjcet);
-    }
-    */
-
-    setTimeout(() => {
-      // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      const randomTestUser = createUserDummyDataById(userId);
-      resolve(randomTestUser);
-    }, 50);
-  });
+  // on error
+  if (!userDataResponse.ok) {
+    const errorData = await userDataResponse.json();
+    handleError(
+        "UserData",
+        errorData.message,
+        () => {
+          if (userDataResponse.status === 401) { // if status code is 401, then session is invalid. login again.
+            console.log("[401 Error] redirecting to login page...")
+            const navigate = useNavigate();
+            navigate("/login");
+          }
+        }); // redirect to /login page
+    return ;
+  }
+  // on success
+  const userData: GET_UserDataResponseFormat = await userDataResponse.json();
+  return (userData);
 };
 
 
 /*----------------------------------*
- *             POST API              *
+ *             회원 정보 수정              *
  *----------------------------------*/
-// 내 정보 수정 (나만 가능)
-// POST /user
 
-export interface POST_UserDataRequestFormat {
+export interface PUT_UserDataRequestFormat {
   nickname?     : string;
   profile_url?  : string;
-  twofactor?    : boolean;
 }
 
-export interface POST_UserDataResponseFormat {
-    user_id     : number;
-    nickname    : string;
-    profile_url : string;
-    wins        : number;
-    losses      : number;
-    total       : number;
-    level       : number;
+export interface PUT_UserDataResponseFormat {
+  user_id: number;
+  nickname: string;
+  profile_url: string;
+  wins: number;
+  losses: number;
+  total: number;
+  level: number;
 }
 
 // POST, 내 정보 수정하기
 export async function updateUserData(
-  user_id: number, // TODO: delete later!!
   nickname?: string,
   clientSideImageUrl?: string,
-  twofactor?: boolean,
 ) {
-  return new Promise<POST_UserDataResponseFormat>(async (resolve, reject) => {
+  const {handleError} = useError();
 
-    // 1. 서버에 프로필 이미지부터 전송.
-    let serverSideImageUrl: string | undefined;
-    if (clientSideImageUrl) {
-      const response_1 = await uploadImageToServer(clientSideImageUrl);
-      serverSideImageUrl = response_1.body; // 서버에 업로드된 이미지의 url
-    }
+  // 1. 서버에 프로필 이미지부터 전송.
+  let serverSideImageUrl: string | undefined;
+  if (clientSideImageUrl) {
+    serverSideImageUrl = await uploadImageToServer(clientSideImageUrl);
+  }
 
-    // 2. 정보 수정 Request 생성.
-    const request: POST_UserDataRequestFormat = {};
-    if (nickname) { request.nickname = nickname; }
-    if (serverSideImageUrl) { request.profile_url = serverSideImageUrl; }
-    if (twofactor) { request.twofactor = twofactor; }
+  // 2. 정보 수정 Request 생성.
+  const request: PUT_UserDataRequestFormat = {};
+  if (nickname) { request.nickname = nickname; }
+  if (serverSideImageUrl) { request.profile_url = serverSideImageUrl; }
 
-    // 3. 서버에 Request 전송
-    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
-    /*
-    const POST_URL = "/user";
-    const response = await fetchAndHandleResponseError(POST_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request)
-    });
-    if (response) {
-      const responseData: POST_UserDataResponseFormat = await response.json();
-      console.log("Response data from JSON :");
-      console.dir(responseData);
-      resolve(responseData);
-    }
-    */
+  // 3. 서버에 Request 전송
+  const requestUrl = `${API_URL}/api/user/`;
+  const updateResponse = await fetch(requestUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request)
+  });
 
-    setTimeout(() => {
-      // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      const resultMockUp = createUserDummyDataById(user_id);
-      nickname && (resultMockUp.nickname = nickname);
-      serverSideImageUrl && (resultMockUp.profile_url = serverSideImageUrl);
-      // resultMockUp.twofactor = twofactor;
-      resolve(resultMockUp);
-    }, 1000);
-
-
-  })
-
+  // on error
+  if (!updateResponse.ok) {
+    const errorData = await updateResponse.json();
+    handleError(
+        "UserData",
+        errorData.message,
+        () => {
+          if (updateResponse.status === 401) { // if status code is 401, then session is invalid. login again.
+            console.log("[401 Error] redirecting to login page...")
+            const navigate = useNavigate();
+            navigate("/login");
+          }
+        }); // redirect to /login page
+    return ;
+  }
+  // on success
+  const userData: PUT_UserDataResponseFormat = await updateResponse.json();
+  console.log("userData me update result:", userData);
+  return (userData);
 }

@@ -3,7 +3,9 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 interface ErrorContextValue {
   errorTitle: string | null;
   errorMessage: string | null;
-  handleError: (tilte:string | null, message: string | null) => void;
+  action: (() => void) | null;
+  handleError: (tilte:string | null, message: string | null, action?: ()=>void) => void;
+
 }
 
 const ErrorContext = createContext<ErrorContextValue | null>(null);
@@ -23,14 +25,16 @@ interface ErrorProviderProps {
 export function ErrorProvider({ children }: ErrorProviderProps): JSX.Element {
   const [errorTitle, setErrorTitle] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [action, setAction] = useState<(()=>void) | null>(null);
 
-  function handleError(title: string | null, message: string | null) {
+  function handleError(title: string | null, message: string | null, action?: ()=>void ) {
     setErrorTitle(title);
     setErrorMessage(message);
+    action && setAction(action); // if param exists, set callback state.
   }
 
   return (
-    <ErrorContext.Provider value={{ errorTitle, errorMessage, handleError }}>
+    <ErrorContext.Provider value={{ errorTitle, errorMessage, action, handleError }}>
       {children}
     </ErrorContext.Provider>
   );

@@ -68,7 +68,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.blockUser);
-      if (RESPONSE.status === "friend") { // server handle error
+      if (RESPONSE?.status === "friend") { // server handle error
         alert("[SERVER]: 친구가 삭제 되지 않았습니다.")
         return ;
       }

@@ -54,21 +54,17 @@ export default function VirtualizedUserList(props: UserListProps) {
             // 0. load start (used at MUI Skeleton)
             setIsLoading(true); 
             // 1. 일단 userId를 불러와야 함.
-            const receivedRelationData = await API.getUserRelationsList(API.GET_RelationType.friend);
-            const friendsList: friendData_t[] = receivedRelationData.relations.map((relation) => {
+            const userList = await API.getUserListByRelationType(API.GET_RelationType.friend);
+            if (!userList) {
+              return ;
+            }
+            const friendsList: friendData_t[] = userList.map((relation) => {
                 return { 
                     user_id: relation.target_id,
                     nickname: relation.nickname,
                     profile_url: relation.profile_url,
                 };
             })
-            // 2. 하단 코드는 Back에서 한번에 보내줌으로 주석처리함.
-            // for (const friend of friendsList) {
-                // const receivedUserData = await API.getUserDataById(friend.user_id);
-                // friend.nickname = receivedUserData.nickname;
-                // friend.profile_url = receivedUserData.profile_url;
-            // }
-            // 3. 최종 데이터를 상태배열에 삽입.
             setFriends(friendsList);
             setIsLoading(false); // load finish
         })(/* IIFE */);

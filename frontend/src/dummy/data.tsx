@@ -124,18 +124,3 @@ export const createUsersDummyByString = (str: string, size: number) => {
   }
   return arr;
 }
-
-import { GET_RelationResponseFormat } from '@/api/API';
-
-export const UserFriendRelationsDummyData: GET_RelationResponseFormat = {
-  relations: [
-    {target_id: 0, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 1, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 2, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 3, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 4, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 5, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 6, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-    {target_id: 7, nickname: "Jack", profile_url: DUMMY_IMG, status: 'friend'},
-  ]
-}

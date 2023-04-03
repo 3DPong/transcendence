@@ -21,14 +21,11 @@ import { Assert } from "@/utils/Assert";
 export default function Profile() {
   const [ profileState, setProfileState ] = useState<API.GET_UserDataResponseFormat>();
   const { pathname } = useLocation();
+  const { loggedUserId } = useContext(GlobalContext);
 
-  // 만약 /profile 경로일 경우 userIdFromRouteURL은 undefined 이다.
-  
   // (1) initial data loading
   useEffect(() => {
     (async () => {
-
-
       // (1) parse :user_id to get user_id
       let user_id: number;
       const lastIdx = pathname.lastIndexOf("/");
@@ -41,9 +38,10 @@ export default function Profile() {
         user_id = convertResult;
       }
       // (2) load data
-      const mySettings = await API.getMySettings();
+      Assert.NonNullish(loggedUserId);
+      const mySettings = await API.getUserDataById(loggedUserId);
       if (mySettings) {
-        setProfileState(mySettings.profile_url);
+        setProfileState(mySettings);
       }
     })(/* IIFE */);
   }, [pathname]); // call useEffect if pathname changes
