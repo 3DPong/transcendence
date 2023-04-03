@@ -1,28 +1,28 @@
-import { GameType, PaddleState } from "./enum/GameEnum";
-import { GameRoomType } from "./enum/GameEnum";
+import { GameType, PaddleState } from "../enum/GameEnum";
+import { RoomType } from "../enum/GameEnum";
 import { GameSimulator, step} from "./GameSimulator";
 import { GamePlayer } from "./GamePlayer";
 import { v4 as uuidv4} from 'uuid';
 import { Server} from 'socket.io'
 import { GameService } from "../socket/services";
-import { MatchDto } from "../game_dto/createMatch.dto";
-import { MATCH_SCORE } from "./enum/GameEnv";
+import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
+import { MatchJoinData } from "../game_dto/socket.Data";
 
 
 export class GameManager {
   public readonly gameId : string;
-  public readonly gameRoomType : GameRoomType;
+  public readonly gameRoomType : RoomType;
   public readonly gameType : GameType;
   public playerCount : number;
   public player1 : GamePlayer;
   public player2 : GamePlayer;
   public simulator : GameSimulator;
 
-  constructor(matchDto : MatchDto)
+  constructor(matchJoinData : MatchJoinData)
   {
-    this.gameRoomType = matchDto.gameRoomType;
-    this.gameType = matchDto.gameType;
+    this.gameRoomType = matchJoinData.roomType;
+    this.gameType = matchJoinData.gameType;
     this.gameId = uuidv4();
     this.playerCount = 0;
   }
