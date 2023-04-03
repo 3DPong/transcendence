@@ -20,11 +20,12 @@ import ChatTemplate from "@/components/ChatTemplate";
 
 import GlobalContext from "@/context/GlobalContext";
 import useArray from "@/utils/CustomHooks/useArray";
-import { Room, User } from "@/types/chat";
+import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
-import { UserFriendRelationsDummyData } from "@/dummy/data";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
+import { ErrorProvider } from "@/context/ErrorContext";
+import AlertSnackbar from "./components/Molecule/AlertSnackbar";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -77,7 +78,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "rooms",
+        path: "channels",
         element: <L1Template organism={<LocalChatList />} />,
         children: [
           {
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
             element: <L2Template organism={<GlobalChatList />} />,
           },
           {
-            path: ":roomId",
+            path: ":channelId",
             element: <ChatTemplate organism={<ChatDetail />} />,
           },
         ],
@@ -106,26 +107,29 @@ function App() {
   // GLOBAL CONTEXTS
   // ---------------------------------------------------------------------------
   // Chat Rooms
-  const [user, setUser] = useState<User>();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [channels, setChannels] = useArray<Channel>([]);
   // Friend List
   const [friends, setFriends] = useArray<friendData_t>();
+  // logged userId
+  const [loggedUserId, setLoggedUserId] = useState<number | null>();
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="App">
-      <header className="App-header">
-        {/* APP */}
-        <GlobalContext.Provider
-          value={{ user, setUser, rooms, setRooms, friends, setFriends }}
-        >
-          <RouterProvider router={router} />
-        </GlobalContext.Provider>
-
-        {/* GAME */}
+      <div>
+        <ErrorProvider>
+          <div className="App">
+            <header className="App-header">
+              <GlobalContext.Provider
+                  value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+              >
+                <RouterProvider router={router} />
+              </GlobalContext.Provider>
+            </header>
+          </div>
+          <AlertSnackbar />
+        </ErrorProvider>
         <Game />
-      </header>
-    </div>
+      </div>
   );
 }
 

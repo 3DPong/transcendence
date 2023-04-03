@@ -150,7 +150,7 @@ export default function Controller() {
                     <div className={BUTTON_STYLE}>
                         <ListItemButtonLink
                             sx={sx}
-                            to={ (clickState !== eClickedBtn.ROOMS) ? "./rooms" : "/"}
+                            to={ (clickState !== eClickedBtn.ROOMS) ? "./channels " : "/"}
                             tooltipTitle="Rooms"
                             children={<Chat fontSize="large" />}
                             onClick={() => toggleClickState(eClickedBtn.ROOMS)}

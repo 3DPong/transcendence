@@ -4,12 +4,13 @@ import MediaCard from "@/components/Molecule/MediaCard";
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
-import VirtualizedChatList from '@/components/Molecule/Chat/ChatList'
-import { Room } from "@/types/chat";
-import * as Dummy from "@/dummy/data";
+import VirtualizedChatList from '@/components/Molecule/Chat/List/ChannelList'
+import { Channel } from "@/types/chat";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/../config/backend";
+import { useError } from "@/context/ErrorContext";
 
 
 interface ChatListProps {
@@ -17,37 +18,54 @@ interface ChatListProps {
 
 const LocalChatList : FC<ChatListProps> = () => {
   const navigate = useNavigate();
-  const {rooms, setRooms} = useContext(GlobalContext);
+  const {channels, setChannels} = useContext(GlobalContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
- 
+  const {handleError} = useError();
+
   useEffect(() => {
-    async function fetchRooms() {
-    };
     setIsLoading(true);
-    setTimeout(() => {
-      setRooms(Dummy.dummy_chatrooms);
+    async function fetchChannels() {
+      const response = await fetch(API_URL + "/chat");
+      const fetchChannels = await response.json();
+      setChannels(fetchChannels.map((ch : any) => ({
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.name,
+        thumbnail: ch.type === "dm" ? ch.owner.profile_url : null,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      })));
+      if (!response.ok) {
+        const errorData = await response.json();
+        handleError("Fetch MyChannels", errorData.message);
+        return;
+      }
       setIsLoading(false);
-    }, 2000);
+    };
+    fetchChannels();
   }, []);
 
-  function findRoomsByString(rooms: Room[], searchString : string) {
+  function findChannelsByString(channels: Channel[], searchString : string) {
     if (searchString)
-      return rooms.filter((room) => { return room.channelName.includes(searchString); });
+      return channels.filter((channel) => { return channel.title.includes(searchString); });
     else
-      return rooms;
+      return channels;
   }
 
   function handleCardClick(id:number) {
-    navigate(`/rooms/${id}`)
+    navigate(`/channels/${id}`)
   }
 
   return (
     <>
       <MediaCard
         imageUrl="https://cdn.dribbble.com/userupload/2416463/file/original-ff769e3101b39c1e474e018cd1874138.png?compress=1&resize=640x480&vertical=top"
-        title="My Chatrooms"
+        title="My Channels"
         body="body2 text"
       />
 
@@ -67,7 +85,7 @@ const LocalChatList : FC<ChatListProps> = () => {
           placeholder={"참여채팅 검색"}/>
       </div>
 
-      <VirtualizedChatList rooms={findRoomsByString(rooms, searchString)} isLoading={isLoading} handleCardClick={handleCardClick} />
+      <VirtualizedChatList channels={findChannelsByString(channels, searchString)} isLoading={isLoading} handleCardClick={handleCardClick} />
     </>
   );
 }

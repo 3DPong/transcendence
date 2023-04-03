@@ -1,16 +1,16 @@
 import React, { FC } from "react";
 import { Box, ListItemButton, Skeleton } from "@mui/material";
-import { ChatType, Room } from "@/types/chat";
+import { ChannelType, Channel, defaultThumbnail } from "@/types/chat";
 import { Lock, LockOpen, Public, Sms } from "@mui/icons-material";
 
-interface ChatCardProps {
-  room: Room;
+interface ChannelCardProps {
+  channel: Channel;
   isLoading: boolean;
-  handleCardClick: (id: number, type: ChatType) => void;
+  handleCardClick: (id: number, type: ChannelType) => void;
 };
 
 interface LoadedCardProps {
-  room: Room;
+  channel: Channel;
 }
 
 const SkeletonCard : React.FunctionComponent = () => {
@@ -25,8 +25,8 @@ const SkeletonCard : React.FunctionComponent = () => {
   );
 };
 
-const LoadedCard : FC<LoadedCardProps> = ({room}) => {
-  function getIcon(type: ChatType) {
+const LoadedCard : FC<LoadedCardProps> = ({channel}) => {
+  function getIcon(type: ChannelType) {
     switch(type){
     case "public":
       return <Public />;
@@ -44,7 +44,7 @@ const LoadedCard : FC<LoadedCardProps> = ({room}) => {
   return (
     <>
       <img
-        src={room.thumbnail || "https://pbs.twimg.com/profile_images/859429610248863744/mg7H1c7u_400x400.jpg"}
+        src={channel.thumbnail || defaultThumbnail}
         alt="thumbnail"
         className="w-12 h-12 rounded-full"
       />
@@ -52,27 +52,27 @@ const LoadedCard : FC<LoadedCardProps> = ({room}) => {
         <span
           className="text-md font-medium overflow-hidden whitespace-nowrap text-ellipsis"
           style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180}}>
-          {room.channelName}
+          {channel.title}
         </span>
         <span className="text-gray-500">
-          {getIcon(room.channelType)}  {room.channelType}
+          {getIcon(channel.type)}  {channel.type}
         </span>
       </div>
     </>
   );
 };
 
-const ChatCard : FC<ChatCardProps> = ({room, isLoading, handleCardClick}) => {
+const ChannelCard : FC<ChannelCardProps> = ({channel, isLoading, handleCardClick}) => {
   return (
     isLoading ?
     <ListItemButton disabled>
       <SkeletonCard />
     </ListItemButton>
     :
-    <ListItemButton title={room.channelName} onClick={() => handleCardClick(room.channelId, room.channelType)}>
-      <LoadedCard room={room} />
+    <ListItemButton title={channel.title} onClick={() => handleCardClick(channel.id, channel.type)}>
+      <LoadedCard channel={channel} />
     </ListItemButton>
   );
 }
 
-export default ChatCard;
+export default ChannelCard;
