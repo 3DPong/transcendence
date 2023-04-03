@@ -2,9 +2,11 @@ import { createContext } from 'react';
 import { Room, User } from '@/types/chat';
 import { friendData_t } from '@/types/user';
 import { UpdateFunctionOverload } from "@/utils/CustomHooks/useArray";
-import * as API from "@/api/API";
 
 interface GlobalContextProps {
+// user id (Logged User)
+    loggedUserId?: number | null;
+    setLoggedUserId: (id: number | null) => void;
 // chat list
     user: User | undefined;
     setUser: (user: User) => void;
@@ -16,6 +18,9 @@ interface GlobalContextProps {
 };
 
 const GlobalContext = createContext<GlobalContextProps>({
+    // user id (Logged User)
+    loggedUserId: 0,
+    setLoggedUserId: () => {},
 // chat list
     user : undefined,
     setUser: () => {},
