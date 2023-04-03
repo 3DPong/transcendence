@@ -207,12 +207,9 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
   // Log-out
   // ---------------------------------------------------------------------
-  const handleLogout = () => {
-    console.log("Logging out...");
-    // 1. send server API logout call (delete session)
-    // 2. delete user_id (option).
-    // 3. go to /login page
+  const handleLogout = async () => {
     setOpen(false); // close dialog
+    await API.requestLogOut();
   };
 
 
@@ -255,28 +252,28 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
             />
         </DialogContent>
 
-        {/* 2차 인증 */}
-        <DialogContent sx={{ paddingBottom: 2 }}>
-            <DialogContentText>2-Factor Auth</DialogContentText>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>Off</Typography>
-              <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
-              <Typography>On</Typography>
-            </Stack>
-        </DialogContent>
-
         <DialogContent sx={{ paddingBottom: 4, display:"flex", justifyContent:"space-between" }}>
             {/* 설정 저장 버튼 */}
             <LoadingButton color="info" variant="outlined" loading={isLoading} disabled={!isNicknameOk} onClick={handleClickSave}>
               Save Settings
             </LoadingButton>
-            {/* 로그아웃 버튼 */}
-            <Button color="error" variant="contained" onClick={handleLogout}>
-              Logout
-            </Button>
         </DialogContent>
 
-      
+        {/* 2차 인증 */}
+        <DialogContent sx={{ paddingBottom: 2 }}>
+          <DialogContentText>2-Factor Auth</DialogContentText>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography>Off</Typography>
+            <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
+            <Typography>On</Typography>
+          </Stack>
+        </DialogContent>
+
+        {/* 로그아웃 버튼 */}
+        <Button color="error" variant="contained" onClick={handleLogout}>
+          Logout
+        </Button>
+
       </Dialog>
     </Container>
   );

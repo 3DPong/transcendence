@@ -84,24 +84,12 @@ export function SignUp() {
       console.log("handle submit");
       // 1. 서버에 가입 요청.
       setIsLoading(true);
-      const response = await API.requestSignUp( nickname, imageFile );
+      const user_id = await API.requestSignUp( nickname, imageFile );
       setIsLoading(false);
-      // 2. 만약 요청 status가 정상이 아니라면...?
-          // ...??
-
-      // 3. Success 201 : 받은 데이터로 전역 state 설정.
-      setLoggedUserId(response.user_id);
-
-      // 4. 이제 userId 세팅이 됬으니 "home" 으로 이동.
+      if (user_id) {
+        setLoggedUserId(user_id);
+      }
       navigate("/");
-      /*  아니 근데 왜 데이터 전달이 안되고 리렌더가 3회 이상 되고 요난리 나지..?
-      navigate("/", {
-        state: { // 만약 signUp을 통해 처음 들어온 User라면, Home 화면에서 Welcome 안내문이나 사용 방법 튜토리얼등을 렌더하기 위함.
-          nickname: response.nickname, // useLocation을 통해 해당 props를 받을 수 있음.
-        }
-      });
-      */
-
     })(/* IIFE */);
   }
 

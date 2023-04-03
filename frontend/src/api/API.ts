@@ -8,9 +8,9 @@ export {
 } from "@/api/user/userData";
 
 // User Relation
-export { 
-    getUsersListBySearchString,
-    getUserRelationsList, GET_RelationType,
+export {
+    getUserListBySearchString,
+    getUserListByRelationType, GET_RelationType,
     changeUserRelation, PUT_RelationActionType,
  } from "@/api/user/userRelation";
 
@@ -24,10 +24,14 @@ export { requestSignUp } from "@/api/login/signUp";
 export { uploadImageToServer } from "@/api/upload/upload";
 
 // 2FA Auth
-export { 
-    activate2FactorAuthAndGetQrCode,
-    deactivate2FactorAuth
+export {
+    getQrCodeToActivate2FactorAuth,
+    submitOtpTokenToServer,
+    deactivate2FactorAuth,
 } from "./auth/auth";
 
 // Me
 export { getMySettings } from "@/api/me/settings";
+
+// Logout
+export { requestLogOut } from "@/api/logout/logout";

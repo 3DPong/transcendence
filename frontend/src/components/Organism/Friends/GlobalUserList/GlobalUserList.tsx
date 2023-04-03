@@ -34,8 +34,10 @@ export default function GlobalUserList() {
 
     (async () => {
       setIsLoading(true);
-      const receivedData = await API.getUsersListBySearchString(searchString);
-      setGlobalUsers(receivedData.relations);
+      const userList = await API.getUserListBySearchString(searchString);
+      if (userList) {
+        setGlobalUsers(userList);
+      }
       setIsLoading(false);
     })(/* IIFE */);
   };

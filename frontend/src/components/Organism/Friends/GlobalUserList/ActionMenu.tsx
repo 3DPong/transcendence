@@ -62,7 +62,7 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.addFriend);
-      if (RESPONSE.status !== "friend") { // server handle error
+      if (RESPONSE?.status !== "friend") { // server handle error
         alert("[SERVER]: 친구가 추가 되지 않았습니다.")
         return ;
       }
@@ -99,10 +99,10 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
       }
       // (2) check API response
       const RESPONSE = await API.changeUserRelation(user.user_id, action);
-      if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE.status === "block") { // block handle error (no change)
+      if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE?.status === "block") { // block handle error (no change)
         alert("[SERVER]: 유저의 차단관계 처리 에러")
         return ; 
-      } else if (action === API.PUT_RelationActionType.blockUser && RESPONSE.status !== "block") { // block handle error (no change)
+      } else if (action === API.PUT_RelationActionType.blockUser && RESPONSE?.status !== "block") { // block handle error (no change)
         alert("[SERVER]: 유저의 차단관계 처리 에러")
         return ; 
       }
@@ -117,7 +117,9 @@ export default function UserActionMenu( { user, setGlobalUsers }: userActionMenu
       setGlobalUsers((draft) => {
         const targetUser = draft.find((m) => m.user_id === user.user_id);
         Assert.NonNullish(targetUser, "리스트 검색 오류"); // 같은 리스트상에서는 반드시 있어야 함.
-        targetUser.status = RESPONSE.status;
+        if (RESPONSE) {
+          targetUser.status = RESPONSE.status;
+        }
       });
     })(/* IIFE */);
   };
