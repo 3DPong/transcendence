@@ -5,13 +5,11 @@ import { UserModule } from './models/user/api';
 import { AuthModule } from './auth/api';
 import { ChatModule } from './models/chat/api';
 import { MatchModule } from './models/game/api';
-import { AlarmModule } from './models/alarm/socket';
 import { PostgresDatabaseProviderModule } from './providers/database/postgres/provider.module';
 import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
-import { GameModule } from './models/game/socket';
 import { SessionConfigModule } from './config/session/config.module';
 import { FtConfigModule } from './config/ft/config.module';
 import { RedisConfigModule } from './config/redis/config.module';
@@ -19,6 +17,9 @@ import { DevModule, EmptyModule } from './models/dev/dev.module';
 import { ImageModule } from './models/image/image.module';
 import { OtpModule } from './common/otp/otp.module';
 import { OtpConfigModule } from './config/otp/config.module';
+import { NotifyModule } from './models/notify/socket/notify.module';
+import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
+import { RedisConfigService } from './config/redis/config.service';
 
 @Module({
   imports: [
@@ -26,8 +27,7 @@ import { OtpConfigModule } from './config/otp/config.module';
     AuthModule,
     ChatModule,
     MatchModule,
-    AlarmModule,
-    GameModule,
+    NotifyModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
@@ -42,9 +42,20 @@ import { OtpConfigModule } from './config/otp/config.module';
   controllers: [AppController],
   providers: [
     AppService,
+    // HttpExceptionFilter 를 사용하기 위한 설정
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
+    },
+    // RedisIoAdapter 를 사용하기 위한 설정
+    {
+      provide: RedisIoAdapter,
+      useFactory: (redisConfigService: RedisConfigService) => {
+        const adapter = new RedisIoAdapter(redisConfigService);
+        adapter.connectToRedis();
+        return adapter;
+      },
+      inject: [RedisConfigService],
     },
   ],
 })
