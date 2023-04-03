@@ -4,15 +4,17 @@ import { GameSkill } from "./GameSkill.js";
 
 export class GamePlayer{
   public readonly sid : string;
+  public dbId : number;
   public directionButton : PaddleState = PaddleState.STOP;
   public directionReverse : Boolean = false;
   public paddle : Box2D.Body;
   public skill : GameSkill;
   public socore : number;
 
-  constructor (sid: string){
+  constructor (sid: string, dbId : number){
     this.skill = new GameSkill();
     this.sid = sid;
+    this.dbId = dbId;
     this.socore = 0;
   }
 }

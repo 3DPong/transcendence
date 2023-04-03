@@ -4,6 +4,7 @@ import { GameManager } from '../simul/GameManager';
 import { MatchDto } from '../game_dto/createMatch.dto';
 import { GameService } from './services';
 import { GameDto } from '../game_dto/GameDto';
+import { GameRoomType, GameType } from '../simul/enum/GameEnum';
 
 @WebSocketGateway(4242, {
   namespace : 'game',
@@ -54,12 +55,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, dto);
     if (gameManager === undefined){
       gameManager = new GameManager(dto);
-      gameManager.createPlayer(client.id);
+      //gameManager.createPlayer(client.id);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
       console.log('gameCreate', gameManager.gameId);
     } else {
-      gameManager.createPlayer(client.id);
+      //gameManager.createPlayer(client.id);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.server.to(gameManager.gameId).emit('gameStart', gameManager);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
@@ -81,5 +82,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gameService.socketLeaveRoom(client, gameManager.gameId);
     this.server.to(client.id).emit('gameExit', 'player is exit gameRoom');
     this.gameRooms.delete(gameManager.gameId);
+  }
+
+  @SubscribeMessage('dbTest')
+  dbTest(
+    @MessageBody() dto : GameDto,
+    @ConnectedSocket() client : Socket,
+  ) {
+    const matchDto = new MatchDto();
+    matchDto.gameRoomType = GameRoomType.RANDOM;
+    matchDto.gameType = GameType.NORMAL;
+    const gameManager : GameManager = new GameManager(matchDto);
+    gameManager.createPlayer(client.id, 1000);
+    gameManager.createPlayer(client.id, 2000);
+    gameManager.player1.socore = 15;
+    gameManager.player2.socore = 10;
+    this.gameService.createMatch(gameManager);
   }
 }

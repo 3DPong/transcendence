@@ -16,11 +16,11 @@ export class Match {
   @Column({ type: 'enum', enum: GameRoomType, default: GameRoomType.RANDOM })
   match_type: GameRoomType;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 0, max: 20 }))
   @Column({ type: 'int8', default: 0 })
   left_score: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 0, max: 20 }))
   @Column({ type: 'int8', default: 0 })
   right_score: number;
 

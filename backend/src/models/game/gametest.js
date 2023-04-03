@@ -1,30 +1,6 @@
 
 const socket = io('http://localhost:4242/game');
-/*
-const onKeyDown = (event) => {
-  console.log(`key ${event.key} down`);
-  switch(event.key)
-  {
-  case "q":
-      //...
-      break;
-  case "a":
-      //...
-      break;
-  case "ArrowUp":
-      //...
-      break;
-  case "ArrowDown":
-      //...
-      break;
-  case "Enter":
-      //...
-      break;
-  default:
-      //...
-      return;
-  }
-}*/
+
 
 const onKeyUp = (event) => {
   console.log(`key ${event.key} up`);
@@ -87,11 +63,11 @@ buttonB.addEventListener("click", (event) => {
 
 // Button C
 const buttonC = document.createElement("button");
-buttonC.innerHTML = "Button C";
+buttonC.innerHTML = "dbTest";
 root.appendChild(buttonC);
 buttonC.addEventListener("click", (event) => {
-  console.log("ButtonC Clicked!");
-  socket.emit('makeSimul');
+  console.log("Make Match end database");
+  socket.emit('dbTest');
   // ...
 })
 

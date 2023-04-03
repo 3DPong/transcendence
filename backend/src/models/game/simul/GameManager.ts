@@ -27,14 +27,14 @@ export class GameManager {
     this.playerCount = 0;
   }
 
-  public createPlayer(sid : string) {
+  public createPlayer(sid : string, dbId : number) {
     if (this.playerCount === 2){
       return ;
     }
     if (this.playerCount === 0){
-      this.player1 = new GamePlayer(sid);
+      this.player1 = new GamePlayer(sid, dbId);
     } else {
-      this.player2 = new GamePlayer(sid);
+      this.player2 = new GamePlayer(sid, dbId);
     }
     ++this.playerCount;
   }
