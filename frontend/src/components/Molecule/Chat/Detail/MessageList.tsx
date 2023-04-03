@@ -1,31 +1,25 @@
 
 // src/MessageList.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Message, ChatUser } from '@/types/chat';
+import { Message, ChatUser, defaultChatUser } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
 
 interface MessageListProps {
   myId: number;
   messages: Message[];
-  //users:{
-    //[k: string]: User;
-  //};
   users: ChatUser[];
 };
 
 const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState<number>(0);
+  const userMap = new Map<number, ChatUser>(users.map((user) => [user.id, user]));
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  function getUser(userId: number) {
-    return users.find((user)=>(user.id === userId)) || {"id": 0, "nickname" : "none", "profile" : "", "role":"user", "status": "none"};
-  }
 
   useEffect(() => {
     scrollToBottom();
@@ -37,8 +31,7 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
         onScroll={(event)=>setScrollY(event.currentTarget.scrollTop)}>
       {messages.map((message, index) => {
         const isMyMessage = message.senderId === myId;
-        //const sender = users[message.userId];
-        const sender = getUser(message.senderId);
+        const sender = userMap.get(message.senderId) || defaultChatUser;
         const isFirstMessage = index === 0 || messages[index - 1].senderId !== message.senderId;
         const isLastMessage = index === messages.length - 1 || messages[index + 1].senderId !== message.senderId;
 
