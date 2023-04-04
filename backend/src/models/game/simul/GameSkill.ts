@@ -6,6 +6,9 @@ export class GameSkill {
   public paddleDirectionSkillTimeOut ?: NodeJS.Timeout;
 
   public ReverseEnemyPaddleDirection(enemyUser : GamePlayer){
+    if (this.paddleDirectionSkillCount === 0){
+      return ;
+    }
     enemyUser.directionReverse = true;
     --this.paddleDirectionSkillCount;
     this.paddleDirectionSkillTimeOut = setTimeout(

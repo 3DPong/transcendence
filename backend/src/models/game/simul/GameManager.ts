@@ -1,4 +1,4 @@
-import { GameType, PaddleState } from "../enum/GameEnum";
+import { GameType, InputEnum, PaddleState } from "../enum/GameEnum";
 import { RoomType } from "../enum/GameEnum";
 import { GameSimulator, step} from "./GameSimulator";
 import { GamePlayer } from "./GamePlayer";
@@ -7,7 +7,7 @@ import { Server} from 'socket.io'
 import { GameService } from "../socket/services";
 import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
-import { MatchJoinData } from "../game_dto/socket.Data";
+import { MatchJoinData, ScoreData } from "../gameData";
 
 
 export class GameManager {
@@ -45,13 +45,16 @@ export class GameManager {
     gameRooms : Map<string, GameManager>
   ){
     this.simulator = new GameSimulator(this.player1, this.player2);
-    const timeStep = setInterval(step, 1000, server, this.gameId, this.simulator);
+    const renderDatas = gameService.initRenderDatas(this);
+    const scoreData = new ScoreData();
+    const timeStep = setInterval(step, 1000, server, this.gameId, this.simulator, renderDatas, scoreData);
     const timeEndCheck = setInterval(
     (
       simulator : GameSimulator,
       gameRooms : Map<string,GameManager>,
       gameManager : GameManager,
-      gameService : GameService
+      gameService : GameService,
+      server : Server
     ) => {
     if (
       simulator.ball.GetUserData().player1_score === MATCH_SCORE || 
@@ -63,11 +66,11 @@ export class GameManager {
       simulator.user1.socore = Min(simulator.ball.GetUserData().player1_score, simulator.user1.socore);
       simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
       console.log('allClear interval');
-      gameService.gameEnd(gameRooms, gameManager);
+      gameService.gameEnd(gameRooms, gameManager, server);
     }},1000, this.simulator, gameRooms, this, gameService)
   }
 
-  public Keyboard(key: string, sid : string) {
+  public Keyboard(key : InputEnum, sid : string) {
     let player : GamePlayer;
     let enemy : GamePlayer;
     if (this.player1.sid === sid){
@@ -78,36 +81,21 @@ export class GameManager {
       enemy = this.player1;
     }
     switch (key) {
-      case 'w':
-        player.directionButton = PaddleState.UP;
+      case InputEnum.UP:
+        if (player.directionButton === PaddleState.STOP){
+          player.directionButton = PaddleState.UP;
+        } else {
+          player.directionButton = PaddleState.STOP;
+        }
       break;
-      case 's':
-        player.directionButton = PaddleState.DOWN;
+      case InputEnum.DOWN:
+        if (player.directionButton === PaddleState.STOP){
+          player.directionButton = PaddleState.DOWN;
+        } else {
+          player.directionButton = PaddleState.STOP;
+        }
       break;
-      case 'q':
-        player.skill.ReverseEnemyPaddleDirection(enemy);
-      break;
-    }
-  }
-
-  public KeyboardUp(key: string, sid : string) {
-    let player : GamePlayer;
-    let enemy : GamePlayer;
-    if (this.player1.sid === sid){
-      player = this.player1;
-      enemy = this.player2;
-    } else {
-      player = this.player2;
-      enemy = this.player1;
-    }
-    switch (key) {
-      case 'w':
-        player.directionButton = PaddleState.STOP;
-      break;
-      case 's':
-        player.directionButton = PaddleState.STOP;
-      break;
-      case 'q':
+      case InputEnum.SKILL:
         player.skill.ReverseEnemyPaddleDirection(enemy);
       break;
     }

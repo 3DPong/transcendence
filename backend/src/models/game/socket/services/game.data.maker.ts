@@ -1,8 +1,8 @@
 import { PlayerLocation } from "../../enum/GameEnum";
-import { MatchStartData, ObjectData, RenderData } from "../../game_dto/socket.Data";
+import { MatchResultData, MatchStartData, ObjectData, RenderData } from "../../gameData";
 import { GameManager } from "../../simul/GameManager";
 import * as Box2D from "../../Box2D";
-export class gameDataMaker {
+export class GameDataMaker {
   public makeMatchStartData(
     gameManager : GameManager,
     sid : string
@@ -25,7 +25,7 @@ export class gameDataMaker {
     while (body != null)
     {
       const object : ObjectData = new ObjectData();
-      object.objectId = body.GetUserData();
+      object.objectId = body.GetUserData().id;
       object.shapeType = body.GetFixtureList().GetType();
       object.x = body.GetPosition().x;
       object.y = body.GetPosition().y;
@@ -63,5 +63,18 @@ export class gameDataMaker {
       body = body.GetNext();
     }
     return renderDatas;
+  }
+
+  public makeMatchResultData(
+    gameManager : GameManager
+  ) : MatchResultData {
+    const matchResult = new MatchResultData();
+    
+    matchResult.leftPlayerId = gameManager.player1.dbId;
+    matchResult.rightPlayerId = gameManager.player2.dbId;
+    matchResult.leftScore = gameManager.player1.socore;
+    matchResult.rightScore = gameManager.player2.socore;
+    matchResult.winner = matchResult.leftScore > matchResult.rightScore ? matchResult.leftPlayerId : matchResult.rightPlayerId;
+    return matchResult;
   }
 }
