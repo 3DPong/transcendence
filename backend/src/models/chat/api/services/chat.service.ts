@@ -203,15 +203,16 @@ export class ChatService {
         role: ChannelUserRoles.OWNER
       });
       await queryRunner.manager.save(cu);
-
-      for (const userId of inviteList) {
-        if (userId !== user.user_id) {
-          const cu = this.channelUserRepository.create({
-            channel_id: channel.channel_id,
-            user_id : userId,
-            role: ChannelUserRoles.USER
-          });
-          await queryRunner.manager.save(cu);       
+      if (inviteList !== null) {
+        for (const userId of inviteList) {
+          if (userId !== user.user_id) {
+            const cu = this.channelUserRepository.create({
+              channel_id: channel.channel_id,
+              user_id : userId,
+              role: ChannelUserRoles.USER
+            });
+            await queryRunner.manager.save(cu);       
+          }
         }
       }
       await queryRunner.commitTransaction();

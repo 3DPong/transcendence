@@ -22,7 +22,7 @@ export class ChatController {
   @Get()
   getMyChannels() : Promise<ChatChannel[]> {
     //const user = await this.userService.getUser(3);
-    return this.chatService.getMyChannels(82);
+    return this.chatService.getMyChannels(3);
   }
 
   @Get('/search')
@@ -62,7 +62,7 @@ export class ChatController {
 
   @Post('/')
   async createChatRoom(@Body() channelDto: ChannelDto) : Promise<ChatChannel> {
-    const user = await this.userService.getUser(82);
+    const user = await this.userService.getUser(3);
     return  this.chatService.createChatRoom(channelDto, user);
   }
 

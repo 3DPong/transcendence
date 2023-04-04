@@ -26,11 +26,12 @@ export class ChannelDto {
 	type: ChannelType;
 
 	@IsNumber()
-	inviteList: number[] | null;
+  @ValidateIf((object, value) => value !== null)
+	inviteList!: number[] | null;
 
-	@IsUrl()
-	thumbnail_url: string | null;
-
+  @IsUrl()
+  @ValidateIf((object, value) => value !== null)
+	thumbnail_url!: string | null;
 
 }
 

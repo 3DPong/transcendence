@@ -38,7 +38,7 @@ export class ChatChannel {
   @Column({ type: 'enum', enum: ChannelType, default: ChannelType.PUBLIC })
   type: ChannelType;
 
-  @ManyToOne(() => User, (user) => user.ownChannels, { eager: true })
+  @ManyToOne(() => User, (user) => user.ownChannels, { eager: false })
   @JoinColumn({ name: 'owner_id' })
   owner: User;
 
@@ -51,7 +51,7 @@ export class ChatChannel {
   password: string;
 
   @Factory((faker) => faker.image.nature())
-  @Column({ type: 'varchar', length: 150 })
+  @Column({ type: 'varchar', length: 150, nullable: true })
   thumbnail_url: string;
 
   @CreateDateColumn({ type: 'timestamp' })
