@@ -25,7 +25,6 @@ import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
 import { ErrorProvider } from "@/context/ErrorContext";
-import AlertSnackbar from "./components/Molecule/AlertSnackbar";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -50,7 +49,6 @@ const router = createBrowserRouter([
     // 홈화면 (로그인 후)
     path: "/",
     element: <L0Template organism={<Controller />} />,
-    // element: <L0Template organism={<div>test</div>}/>,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -126,7 +124,6 @@ function App() {
               </GlobalContext.Provider>
             </header>
           </div>
-          <AlertSnackbar />
         </ErrorProvider>
         <Game />
       </div>

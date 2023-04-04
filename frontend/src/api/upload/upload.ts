@@ -1,5 +1,5 @@
 import {API_URL} from "../../../config/backend";
-import {useError} from "@/context/ErrorContext";
+import {handleErrorFunction, useError} from "@/context/ErrorContext";
 
 export interface POST_uploadImageResponseFormat {
   body: string;
@@ -7,8 +7,7 @@ export interface POST_uploadImageResponseFormat {
 
 
 // 최종 편집이 완료된 이미지 바이너리를 보냄.
-export async function uploadImageToServer(clientSideImageUrl: string) {
-  const {handleError} = useError();
+export async function uploadImageToServer(handleError: handleErrorFunction, clientSideImageUrl: string) {
 
   const formData = new FormData();
   formData.append("file", clientSideImageUrl);

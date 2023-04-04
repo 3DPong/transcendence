@@ -4,10 +4,8 @@ import { useError } from '@/context/ErrorContext';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router";
 
-interface AlertSnackbarProps {
-};
 
-const AlertSnackbar: FC<AlertSnackbarProps> = ({}) => {
+function AlertSnackbar() {
   const { errorTitle, errorMessage, handleError, action } = useError();
   const navigate = useNavigate();
   const open = errorTitle !== null;

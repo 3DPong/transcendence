@@ -1,5 +1,5 @@
 export const ENV_FILE = {
   prod: '.env.prod',
-  dev: '.env.dev',
+  dev: '.env',
   test: '.env.test',
 };

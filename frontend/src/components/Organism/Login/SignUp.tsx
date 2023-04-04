@@ -20,6 +20,7 @@ import GlobalContext from "@/context/GlobalContext";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
 import * as API from '@/api/API';
+import {useError} from "@/context/ErrorContext";
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -59,6 +60,7 @@ export function SignUp() {
   const [ nickname, setNickname ] = useState<string>("");
   const [ submitDisabled, setSubmitDisabled ] = useState<boolean>(false);
   const [ isLoading, setIsLoading ] = useState<boolean>(false);
+  const { handleError } = useError();
 
   const navigate = useNavigate();
   
@@ -84,7 +86,7 @@ export function SignUp() {
       console.log("handle submit");
       // 1. 서버에 가입 요청.
       setIsLoading(true);
-      const user_id = await API.requestSignUp( nickname, imageFile );
+      const user_id = await API.requestSignUp( handleError, nickname, imageFile );
       setIsLoading(false);
       if (user_id) {
         setLoggedUserId(user_id);

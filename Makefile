@@ -34,4 +34,9 @@ backend:
 all:
 	@make create-volume-directory
 	@make wait-for-docker
-	@docker-compose up -d
+	@docker-compose up
+
+.PHONY: fclean
+fclean:
+	@docker-compose down
+	docker images -a | awk 'NR>1 {print $3}' | xargs docker rmi

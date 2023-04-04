@@ -2,7 +2,7 @@
 
 import { uploadImageToServer } from "@/api/upload/upload";
 import { API_URL } from "../../../config/backend";
-import {useError} from "@/context/ErrorContext";
+import {handleErrorFunction, useError} from "@/context/ErrorContext";
 import GlobalContext from "@/context/GlobalContext";
 import {useContext} from "react";
 
@@ -17,13 +17,12 @@ export interface POST_SignUpResponseFormat {
 
 type user_id = number;
 // SUCCESS = 201 Created
-export async function requestSignUp(_nickname: string, clientSideImageUrl: string)
+export async function requestSignUp(handleError: handleErrorFunction, _nickname: string, clientSideImageUrl: string)
     : Promise<user_id | void>
 {
-  const {handleError} = useError();
-
   // 1. 서버에 프로필 이미지부터 전송.
-  const serverSideImageUrl = await uploadImageToServer(clientSideImageUrl);
+  const serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
+  if (!serverSideImageUrl) return; // 여기서 에러나면 걍 끝내ㅓ기
 
   // 2. 서버의 이미지 src를 받은 후 그걸로 회원가입 처리 진행.
   const requestUrl = `${API_URL}/api/user`;
