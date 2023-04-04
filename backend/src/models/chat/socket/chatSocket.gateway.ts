@@ -10,7 +10,7 @@ import {
 import { Logger} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
-import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/create-channel.dto';
+import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
 import { WsException } from '@nestjs/websockets';
 
 @WebSocketGateway({

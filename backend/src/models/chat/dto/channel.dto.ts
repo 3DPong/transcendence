@@ -1,4 +1,4 @@
-import { isDate, IsDate, isDateString, IsNotEmpty, IsNumber, IsNumberString, IsString, IsUrl, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { IsNotEmpty, IsNumber, IsNumberString, IsString, IsUrl, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
 import { ChannelUserRoles } from "../entities";
 import { ChannelType } from "../entities/chatChannel.entity";
 
@@ -51,13 +51,13 @@ export class JoinDto {
 	password!: string | null;
 }
 
-export class LogDto {
+// export class LogDto {
 
-	@IsNotEmpty()
-	@IsString()
-	@MaxLength(80)
-	content: string;
-}
+// 	@IsNotEmpty()
+// 	@IsString()
+// 	@MaxLength(80)
+// 	content: string;
+// }
 
 export class UserIdDto {
 
@@ -71,57 +71,19 @@ export class UserIdDto {
 	role: ChannelUserRoles;
 }
 
-export class User {
-	@IsNotEmpty()
-	@IsNumber()
-  user_id: number;
+// export class User {
+// 	@IsNotEmpty()
+// 	@IsNumber()
+//   user_id: number;
 
-	@IsNotEmpty()
-	@IsString()
-  nickname: string;
+// 	@IsNotEmpty()
+// 	@IsString()
+//   nickname: string;
 
-	@IsNotEmpty()
-	@IsNumber()
-  socket_id: string;
-}
+// 	@IsNotEmpty()
+// 	@IsNumber()
+//   socket_id: string;
+// }
 
-export class MessageDto {
 
-	@IsNotEmpty()
-	@IsString()
-  message: string;
 
-	@IsNotEmpty()
-	@IsNumber()
-  channel_id: number;
-
-}
-
-export class toggleTimeDto {
-	@IsNotEmpty()
-	@IsNumber()
-  user_id: number;
-
-	@IsNotEmpty()
-	@IsNumber()
-  channel_id: number;
-  
-  end_at: Date | null;
-}
-
-export class toggleDto {
-	@IsNotEmpty()
-	@IsNumber()
-  user_id: number;
-
-	@IsNotEmpty()
-	@IsNumber()
-  channel_id: number;
-
-}
-
-export  class ChannelIdDto {
-	@IsNotEmpty()
-	@IsNumber()
-  channel_id: number;
-}

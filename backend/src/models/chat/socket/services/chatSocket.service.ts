@@ -3,7 +3,7 @@ import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChann
 import { ChatChannel } from '../../entities/chatChannel.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/create-channel.dto';
+import { MessageDto, toggleTimeDto } from '../../dto/socket.dto';
 
 
 @Injectable()
