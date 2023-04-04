@@ -1,9 +1,30 @@
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './services';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User, UserRelation } from '../entities';
+import { SessionGuard } from '../../../common/guards/session/session.guard';
+import { SessionStrategy } from '../../../common/guards/session/session.strategy';
+import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
+import { UserCreationStrategy } from '../../../common/guards/userCreation/userCreation.strategy';
+import { UserRelationController } from './userRelation.controller';
+import { UserRelationService } from './services/userRelation.service';
+import { SessionService } from '../../../common/session/session.service';
+import { TwoFactorService } from './services/twoFactor.service';
+import { OtpModule } from '../../../common/otp/otp.module';
 
 @Module({
-  controllers: [UserController],
-  providers: [UserService],
+  imports: [TypeOrmModule.forFeature([User, UserRelation]), OtpModule],
+  controllers: [UserController, UserRelationController],
+  providers: [
+    UserService,
+    UserRelationService,
+    SessionService,
+    SessionGuard,
+    SessionStrategy,
+    UserCreationGuard,
+    UserCreationStrategy,
+    TwoFactorService,
+  ],
 })
 export class UserModule {}

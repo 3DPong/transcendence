@@ -3,8 +3,8 @@
 .vscode/
 .vscode
 ../.idea/
-../.idea
-backend/node_modules/
+.idea
+./node_modules/
 
 
 # Logs
@@ -120,3 +120,6 @@ dist
 
 # docker
 docker-volume/
+/storage/
+/src/models/user/api/services/test.png
+/src/models/user/api/services/qrcode.png
