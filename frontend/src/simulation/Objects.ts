@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Simulation.ts                                      :+:      :+:    :+:   */
+/*   Objects.ts                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/28 00:25:48 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/02/28 02:09:25 by minkyeki         ###   ########.fr       */
+/*   Created: 2023/02/28 21:52:37 by minkyeki          #+#    #+#             */
+/*   Updated: 2023/02/28 21:53:40 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-export { Object } from "./GameObjects/AbstractObject";
-export { Ball } from "./GameObjects/Ball";
-export { Ground } from "./GameObjects/Ground";
-export { Paddle } from "./GameObjects/Paddle";
-export { PongSimulator } from "./Pong";
+export { b2Object, b2PolygonObject, b2PrismaticJointedObject } from "./PongObjects/AbstractObject";
+export { b2Paddle } from "./PongObjects/Paddle";
+export { b2Ball } from "./PongObjects/Ball";
+export { b2Ground } from "./PongObjects/Ground";
+export { b2RandomPolygon } from "./PongObjects/RandomPolygon";
