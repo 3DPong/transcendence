@@ -39,6 +39,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
           password: password === "" ? null : password,
           type: type,
           inviteList: null,
+          thumbnail_url: thumbnail,
         })
       });
       if (!response.ok) {
@@ -50,7 +51,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
         const target = draft.find((tchannel) => tchannel.id === channel.id);
         if (target) {
           target.title = title;
-          //target.thumbnail = thumbnail;
+          target.thumbnail = thumbnail;
           target.type = type;
         }
       });
