@@ -1,5 +1,5 @@
 
-const socket = io('http://localhost:4242/game');
+const socket = io('http://localhost:3000/game');
 
 
 const onKeyUp = (event) => {
@@ -43,7 +43,7 @@ buttonA.innerHTML = "game room join";
 root.appendChild(buttonA);
 buttonA.addEventListener("click", (event) => {
   console.log("ButtonA Clicked!");
-  socket.emit('Match',{
+  socket.emit('MatchJoin',{
     gameRoomType : 1,
     gameMod : 0,
   })
