@@ -1,4 +1,4 @@
-import { isDate, IsDate, isDateString, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { isDate, IsDate, isDateString, IsNotEmpty, IsNumber, IsNumberString, IsString, IsUrl, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
 import { ChannelUserRoles } from "../entities";
 import { ChannelType } from "../entities/chatChannel.entity";
 
@@ -25,8 +25,13 @@ export class ChannelDto {
 	@IsNotEmpty()
 	type: ChannelType;
 
-	// @IsNumber()
+	@IsNumber()
 	inviteList: number[] | null;
+
+	@IsUrl()
+	thumbnail_url: string | null;
+
+
 }
 
 export class JoinDto {

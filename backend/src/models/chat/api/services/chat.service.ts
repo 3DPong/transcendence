@@ -171,7 +171,7 @@ export class ChatService {
   }
 
   async createChatRoom(channelDto: ChannelDto, user: User) : Promise<ChatChannel> {
-    const { name, password, type, inviteList } = channelDto;
+    const { name, password, type, inviteList, thumbnail_url } = channelDto;
     let hashedPassword = null;
     
     const queryRunner = this.dataSource.createQueryRunner();
@@ -192,7 +192,8 @@ export class ChatService {
         password: hashedPassword,
         type,
         owner: user,
-        owner_id: user.user_id
+        owner_id: user.user_id,
+        thumbnail_url
       })
       await queryRunner.manager.save(channel);
       
@@ -229,7 +230,7 @@ export class ChatService {
 
   async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
 
-    const { name, password, type } = channelDto;
+    const { name, password, type, thumbnail_url } = channelDto;
     const channel = await this.channelRepository.findOne({where :{channel_id}});
     if (!channel)
       throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
@@ -246,7 +247,7 @@ export class ChatService {
       hashedPassword = await bcrypt.hash(password, salt);
     }
     try {
-      await this.channelRepository.update(channel_id, {name, type, password: hashedPassword});
+      await this.channelRepository.update(channel_id, {name, type, password: hashedPassword, thumbnail_url});
     } catch (error) {
       throw new InternalServerErrorException();
     }
