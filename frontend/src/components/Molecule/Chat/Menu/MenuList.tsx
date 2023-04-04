@@ -6,11 +6,12 @@ import UserCard from "./UserCard";
 
 interface MenuListProps {
   title : string;
+  titleColor : string;
   users : ChatUser[];
   scrollY : number;
 }
 
-const MenuList : FC<MenuListProps> = ({title, users, scrollY}) => {
+const MenuList : FC<MenuListProps> = ({title, titleColor, users, scrollY}) => {
   const [open, setOpen] = useState(true);
   users.sort((a, b) => {
     switch (a.role) {
@@ -31,18 +32,28 @@ const MenuList : FC<MenuListProps> = ({title, users, scrollY}) => {
 
   return (
     <List
-      sx={{ width: '100%'}}
+      sx={{ width: '100%' }}
       component="nav"
       aria-labelledby="nested-list-subheader"
       subheader={
         <ListSubheader
           component="div"
           id="nested-list-subheader"
-          sx={{ bgcolor: 'gray.200', padding: '0px' }}
+          sx={{ padding: '0px' }}
         >
-          <ListItemButton onClick={handleClick} sx={{ paddingTop: '4px', paddingBottom: '4px'}}>
-            <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', width: '100%' }}>
-              <ListItemText primary={title} />
+          <ListItemButton onClick={handleClick}
+            sx={{ paddingTop: '4px', paddingBottom: '4px',
+              border: '1px solid gray'
+            }}>
+            <Box
+              sx={{ display: 'flex',
+                justifyContent: 'end',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <ListItemText primary={title} sx={{ backgroundColor: ""}}
+                primaryTypographyProps={{color: titleColor, fontSize: '1rem'/*, fontWeight: 'bold'*/}} />
               {open ? <ExpandLess /> : <ExpandMore />}
             </Box>
           </ListItemButton>
