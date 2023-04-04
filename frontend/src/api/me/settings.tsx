@@ -4,7 +4,7 @@
  * */
 
 import {API_URL} from "../../../config/backend";
-import {useError} from "@/context/ErrorContext";
+import {handleErrorFunction, useError} from "@/context/ErrorContext";
 import {useNavigate} from "react-router";
 
 interface GET_responseFormat {
@@ -19,12 +19,13 @@ interface GET_responseFormat {
 // 지금 작업 하고 있는 브랜치에서 하겠습니다.
 // 일단
 
-export async function getMySettings() {
-  const {handleError} = useError();
+export async function getMySettings(handleError: handleErrorFunction) {
 
+  // const {handleError} = useError();
+  // const navigate = useNavigate();
   const requestUri = `${API_URL}/api/user/me/settings`;
   const settingResponse = await fetch(requestUri, { method: "GET" });
-
+  // return (settingResponse);
   // on error
   if (!settingResponse.ok) {
     const errorData = await settingResponse.json();
@@ -34,8 +35,8 @@ export async function getMySettings() {
         () => {
           if (settingResponse.status === 401) { // if status code is 401, then session is invalid. login again.
             console.log("[401 Error] redirecting to login page...")
-            const navigate = useNavigate();
-            navigate("/login");
+            // navigate("/login");
+            history.pushState({}, "", "/login");
           }
     }); // redirect to /login page
     return ;

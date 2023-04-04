@@ -37,6 +37,7 @@ import { RepeatOneSharp } from "@mui/icons-material";
 import { Container, Stack } from "@mui/material";
 import { Typography } from "@mui/material";
 import { useNavigate } from "react-router";
+import {useError} from "@/context/ErrorContext";
 
 /**
  * 1. [ How to Re-fresh ]
@@ -111,10 +112,10 @@ interface settingDialogProps {
 
 export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
-  const [ isLoading, setIsLoading ] = useState<boolean>(false);
+  const { handleError } = useError();
+  const navigate = useNavigate();
 
-  // Preload. 세팅을 누르는 순간 현재 User정보를 서버로부터 load 해야 한다. (input 기본값으로 기존 데이터를 사용하기 위함)
-  // ---------------------------------------------------------------------
+  const [ isLoading, setIsLoading ] = useState<boolean>(false);
   const [ imageFile, setImageFile ] = useState<string>("");
   const [ nickname, setNickname ] = useState<string>("");
   const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
@@ -125,13 +126,13 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const loadedSettings = await API.getMySettings();
-      setIsLoading(false);
+      const loadedSettings = await API.getMySettings(handleError);
       if (loadedSettings) {
         setImageFile(loadedSettings.profile_url);
         setNickname(loadedSettings.nickname);
         setTwoFactorAuth(loadedSettings.two_factor);
       }
+      setIsLoading(false);
     })(/* IIFE */);
   }, []);
   // ---------------------------------------------------------------------
@@ -167,7 +168,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // off 에서 on이 된 경우 "로그아웃 됩니다. 정말 활성화 하시겠습니끼? 경고모달 띄우고 no하면 false로 하기"
   useEffect(() => {
     if (!twoFactorAuth) return ;
-    if ((initialTwoFactorAuth === false) && (twoFactorAuth === true)) {
+    if (!initialTwoFactorAuth && twoFactorAuth) {
       console.log("2차 인증이 off 에서 on으로 변경됨.");
       alert("")
       // ... 경고 모달 활성화

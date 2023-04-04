@@ -4,13 +4,15 @@ interface ErrorContextValue {
   errorTitle: string | null;
   errorMessage: string | null;
   action: (() => void) | null;
-  handleError: (tilte:string | null, message: string | null, action?: ()=>void) => void;
+  handleError: (title:string | null, message: string | null, action?: ()=>void) => void;
 
 }
+export type handleErrorFunction = (title:string | null, message: string | null, action?: ()=>void) => void;
 
 const ErrorContext = createContext<ErrorContextValue | null>(null);
 
-export function useError(): ErrorContextValue {
+// Custom Hook
+export function useError() {
   const context = useContext(ErrorContext);
   if (!context) {
     throw new Error('useError must be used within an ErrorProvider');

@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 import { uploadImageToServer } from "@/api/upload/upload";
-import {useError} from "@/context/ErrorContext";
+import {handleErrorFunction, useError} from "@/context/ErrorContext";
 import {API_URL} from "../../../config/backend";
 import {useNavigate} from "react-router";
 
@@ -86,15 +86,16 @@ export interface PUT_UserDataResponseFormat {
 
 // POST, 내 정보 수정하기
 export async function updateUserData(
-  nickname?: string,
-  clientSideImageUrl?: string,
+    handleError: handleErrorFunction,
+    nickname?: string,
+    clientSideImageUrl?: string,
 ) {
-  const {handleError} = useError();
 
   // 1. 서버에 프로필 이미지부터 전송.
   let serverSideImageUrl: string | undefined;
   if (clientSideImageUrl) {
-    serverSideImageUrl = await uploadImageToServer(clientSideImageUrl);
+    serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
+    if (!serverSideImageUrl) return ;
   }
 
   // 2. 정보 수정 Request 생성.

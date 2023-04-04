@@ -1,6 +1,6 @@
 const { merge } = require("webpack-merge");
 const common = require("./webpack.common");
-const apiMocker = require("connect-api-mocker");
+
 
 module.exports = merge(common, {
   mode: "development",
@@ -13,10 +13,6 @@ module.exports = merge(common, {
     port: 8081,
     historyApiFallback: true,
     liveReload: true,
-
-    // Webpack API 목킹
-    // https://jeonghwan-kim.github.io/series/2020/01/02/frontend-dev-env-webpack-intermediate.html
-    // https://www.npmjs.com/package/connect-api-mocker
   },
 
   output: {
