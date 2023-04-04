@@ -4,7 +4,8 @@ import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services/chat.service';
 import { ChannelUser, ChannelUserRoles } from '../entities/channelUser.entity';
 import { ChannelBanList, ChannelMuteList } from '../entities';
-import { ChannelDto, JoinDto, UserIdDto } from '../dto/create-channel.dto';
+import { ChannelDto, JoinDto, UserIdDto } from '../dto/channel.dto';
+import { DmDto } from '../dto/dm.dto';
 
 
 @Controller('/chat')
@@ -91,5 +92,15 @@ export class ChatController {
   deleteChatRoom(@Param('channelId', ParseIntPipe) channelId): Promise<void> {
     return this.chatService.deleteChatRoom(channelId);
   }
+
+  @Post('/dm')
+  async createDmRoom(@Body() dmDto: DmDto) :Promise<ChatChannel> {
+    const first_user = await this.userService.getUser(3);
+    const second_user_id = await this.userService.getUser(dmDto.user_id);
+    return  this.chatService.createDmRoom(second_user_id, first_user);
+  }
+
+
+
   
 }

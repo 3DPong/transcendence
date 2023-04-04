@@ -5,7 +5,7 @@ import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { User } from 'src/models/user/entities/user.entity';
 import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { ChannelDto, JoinDto, UserIdDto } from '../../dto/create-channel.dto';
+import { ChannelDto, JoinDto, UserIdDto } from '../../dto/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
 
@@ -252,6 +252,48 @@ export class ChatService {
     } catch (error) {
       throw new InternalServerErrorException();
     }
+  }
+
+  async createDmRoom(second_user: User, first_user : User) :Promise<ChatChannel>{
+    
+    const dmChannel = await this.dmRepository
+        .findOne({where: {first_user_id: first_user.user_id, second_user_id: second_user.user_id}});
+    if (dmChannel !== null) {
+      return dmChannel.channel;
+    }
+    const queryRunner = this.dataSource.createQueryRunner();
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+
+    const name : string = first_user.nickname + " " + second_user.nickname;
+      try {
+      const channel = this.channelRepository.create({
+        name,
+        type: ChannelType.DM,
+        owner: first_user,
+        owner_id: first_user.user_id
+      });
+      await queryRunner.manager.save(channel);
+      
+      const dmChannel = this.dmRepository.create({
+        first_user_id: first_user.user_id,
+        second_user_id: second_user.user_id,
+        channel_id: channel.channel_id
+      });
+      await queryRunner.manager.save(dmChannel);
+
+      await queryRunner.commitTransaction();
+    
+      delete channel.password;
+      delete channel.owner.email;
+    
+      return channel;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+			throw new InternalServerErrorException();
+		} finally {
+			await queryRunner.release();
+		}
   }
 
 
