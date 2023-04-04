@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { Box, ListItemButton, Skeleton } from "@mui/material";
 import { ChannelType, Channel, defaultThumbnail } from "@/types/chat";
-import { Lock, LockOpen, Public, Sms } from "@mui/icons-material";
+import { Lock, LockOpen, Person, Public, Sms } from "@mui/icons-material";
 import { RiVipCrown2Fill } from 'react-icons/ri';
 
 interface ChannelCardProps {
@@ -52,17 +52,21 @@ const LoadedCard : FC<LoadedCardProps> = ({channel}) => {
     <div className="flex flex-col pl-2 pr-2 w-full">
       <span
         className="text-md font-medium overflow-hidden whitespace-nowrap text-ellipsis"
-        style={{textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180}}>
-        {channel.type === "dm" ? channel.owner.nickname + "님 과의 DM" : channel.title}
+        style={{textOverflow: 'ellipsis', whiteSpace: "pre", maxWidth: 180}}>
+        {channel.title}
       </span>
       <div className="text-gray-500 flex items-center w-full">
-        <div style={{width: '50%'}}>
+        <div style={{width: '55%'}}>
           {getIcon(channel.type)} {channel.type}
         </div>
-        <div style={{width: '50%'}} className="flex items-center half-width justify-start">
-          <RiVipCrown2Fill size="1.2em" color="Blue" style={{paddingRight: '4px'}}/>
+        <div style={{width: '45%'}} className="flex items-center half-width justify-start">
+          {
+            channel.type === "dm" ?
+            <Person fontSize="small" /> :
+            <RiVipCrown2Fill size="1.2em" color="Blue" style={{paddingRight: '4px'}}/>
+          }
           <span
-            style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 70}}>
+            style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 60}}>
             {channel.owner.nickname}
           </span>
         </div>
@@ -79,7 +83,7 @@ const ChannelCard : FC<ChannelCardProps> = ({channel, isLoading, handleCardClick
       <SkeletonCard />
     </ListItemButton>
     :
-    <ListItemButton title={channel.title} onClick={() => handleCardClick(channel.id, channel.type)}>
+    <ListItemButton title={channel.type === "dm" ? channel.owner.nickname + "님 과의 DM" : channel.title} onClick={() => handleCardClick(channel.id, channel.type)}>
       <LoadedCard channel={channel} />
     </ListItemButton>
   );

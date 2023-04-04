@@ -32,8 +32,8 @@ const LocalChatList : FC<ChatListProps> = () => {
       setChannels(fetchChannels.map((ch : any) => ({
         id: ch.channel_id,
         type: ch.type,
-        title: ch.name,
-        thumbnail: ch.type === "dm" ? ch.owner.profile_url : null,
+        title: ch.type === "dm" ? ch.owner.nickname + "님 과의 DM" : ch.name,
+        thumbnail: ch.type === "dm" ? ch.owner.profile_url : ch.thumbnale_url,
         owner: {
           id: ch.owner.user_id,
           nickname: ch.owner.nickname,
