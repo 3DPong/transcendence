@@ -19,7 +19,7 @@ export enum PlayerLocation {
 	LEFT,
 }
 
-export enum inputEnum{
+export enum InputEnum{
 	UP,
 	DOWN,
 	SKILL,
