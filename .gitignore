@@ -3,4 +3,4 @@ package-lock.json
 dist
 .idea/
 .vscode/
-.env
+secrete_delete_later.env
