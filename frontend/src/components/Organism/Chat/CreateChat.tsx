@@ -7,8 +7,7 @@ import {
 } from "@mui/material";
 import { ChannelType, defaultThumbnail, User } from "@/types/chat";
 import CreateChatTypeToggle from "@/components/Molecule/Chat/Create/ChatTypeToggle";
-import SearchTextField from "@/components/Molecule/SearchTextField";
-import CreateChatInviteList from "@/components/Molecule/Chat/Create/InviteList";
+import InviteList from "@/components/Molecule/Chat/InviteList";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 
 import {TextField} from "@/components/Molecule/Chat/TextField";
@@ -26,36 +25,11 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ChannelType>("public");
   const [password, setPassword] = useState("");
-  const [searchString, setSearchString] = useState("");
-  const [searchUsers, setSearchUsers] = useState<User[]>([]);
-  const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+  const [inviteUsers, setInviteUsers] = useState<User[]>([]);
   const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
   const navigate = useNavigate();
   const { channels, setChannels } = useContext(GlobalContext);
   const { handleError } = useError();
-
-  function searchButtonClick() {
-    async function searchUser() {
-      const response = await fetch(API_URL + "/chat/users/" + searchString);
-      if (!response.ok) {
-        const error = await response.json();
-        handleError("Search User", error.message);
-        return;
-      }
-      const fetchUsers = await response.json();
-      setSearchUsers(fetchUsers.map((u : any) => ({
-        id: u.user_id,
-        nickname: u.nickname,
-        profile: "",
-      })));
-    }
-    searchUser();
-  }
-
-  function searchButtonKeyup(event: React.KeyboardEvent) {
-    if (event.key === 'Enter')
-      searchButtonClick();
-  }
 
   const handleCreate = () => {
     async function createChat() {
@@ -68,7 +42,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           name: title,
           password: password === "" ? null : password,
           type: type,
-          inviteList: invitedUsers,
+          inviteList: inviteUsers.map((user)=>(user.id)),
           thumbnail_url: thumbnail,
         })
       });
@@ -96,14 +70,16 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
 
   return (
     <>
-      <Container sx={{pb:2, pt:2, border:1}} maxWidth="sm" >
-        <Typography variant="h4" component="h1" gutterBottom>
-          채팅방 생성
+      <Container sx={{pb:2, pt:2}} maxWidth="sm"
+        className={"border border-gray-200"}
+      >
+        <Typography variant="h6" component="h3" gutterBottom>
+        채팅방 생성
         </Typography> 
         <ImageUpload width={200} height={200} thumbnail={thumbnail} setThumbnail={setThumbnail}/>
         <Box component="form" sx={{ mt: 1 }}>
           <div className="mb-6" >
-            <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle}/>
+            <TextField label="채팅방 제목" placeholder="제목을 입력하세요" state={title} setState={setTitle}/>
           </div>
           <CreateChatTypeToggle type={type} setType={setType}/>
           { "protected" === type &&
@@ -111,17 +87,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
               <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
             </div>
           }
-
-          <div className=" m-0 p-0">
-            <label className="inline-block mb-2 text-gray-700 form-label">
-              초대 리스트
-            </label>
-            <SearchTextField placeholder={"초대할 유저 검색"} state={searchString} setState={setSearchString} onClick={searchButtonClick} onKeyUp={searchButtonKeyup} />
-          </div>
-
-          <Box sx={{mt:2}}>
-            <CreateChatInviteList users={searchUsers} invitedUsers={invitedUsers} setInvitedUsers={setInvitedUsers} />
-          </Box>
+          <InviteList inviteUsers={inviteUsers} setInviteUsers={setInviteUsers}/>
 
           <Button fullWidth variant="contained" color="primary" onClick={handleCreate}> 
             채팅방 생성

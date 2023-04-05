@@ -107,10 +107,11 @@ const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
   return (
     <AvatarBadge user={user} isNone={isNone}>
       <Avatar
-          src={user.profile}
-          alt={user.nickname}
-          className="cursor-pointer"
-          onClick={handleAvatarClick}
+        sx={{border: '2px gray solid'}}
+        src={user.profile}
+        alt={user.nickname}
+        className="cursor-pointer"
+        onClick={handleAvatarClick}
       />
       {Boolean(anchorEl) && <AvatarPopper
         anchorEl={anchorEl}
