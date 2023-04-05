@@ -126,6 +126,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
+      console.log("[DEV] 사용자의 세팅을 불러오는 중입니다.");
       const loadedSettings = await API.getMySettings(handleError);
       if (loadedSettings) {
         setImageFile(loadedSettings.profile_url);
@@ -210,7 +211,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   // ---------------------------------------------------------------------
   const handleLogout = async () => {
     setOpen(false); // close dialog
-    await API.requestLogOut();
+    await API.requestLogOut(handleError);
   };
 
 
