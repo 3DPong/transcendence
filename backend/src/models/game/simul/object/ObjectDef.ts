@@ -1,6 +1,5 @@
 import * as Box2D from "../../Box2D";
 import { MAP_HEIGHT, MAP_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH } from "../../enum/GameEnv";
-import {InGameData } from "./InGameObjectData.js";
 import { v4 as uuidv4} from 'uuid';
 
 export class ObjectDefBase {
@@ -9,7 +8,7 @@ export class ObjectDefBase {
   constructor (){
     this.objectBodyDef = new Box2D.BodyDef();
     this.objectFixtureDef = new Box2D.FixtureDef();
-    this.objectBodyDef.userData = uuidv4();
+    this.objectBodyDef.userData.id = uuidv4();
   }
 }
 

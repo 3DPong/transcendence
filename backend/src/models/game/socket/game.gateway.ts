@@ -1,15 +1,12 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io'
 import { GameManager } from '../simul/GameManager';
-import { MatchDto } from '../game_dto/createMatch.dto';
 import { GameService } from './services';
-import { GameDto } from '../game_dto/GameDto';
 import { RoomType, GameType } from '../enum/GameEnum';
-import { MatchJoinData } from '../game_dto/socket.Data';
+import { InputData, MatchJoinData, ObserveData } from '../gameData';
 
-@WebSocketGateway(4242, {
+@WebSocketGateway({
   namespace : 'game',
-  cors : {origin : '*'}, 
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
@@ -63,19 +60,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
-      this.server.to(gameManager.gameId).emit('gameStart', gameManager);
+      
+      this.gameService.gameStart(gameManager, this.server);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
-      console.log('gameStart');
     }
   }
 
   //game 시작전 나가기 누르면 매칭시스템에서 탈출
   @SubscribeMessage('exit')
   matchExit(
-    @MessageBody() dto : GameDto,
     @ConnectedSocket() client : Socket,
   ) {
-    const gameManager : GameManager = this.gameRooms.get(dto.gameId);
+    const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
     if (gameManager === undefined || gameManager.player1.sid !== client.id){
       this.server.to(client.id).emit('gameExit', 'player is not in gameRoom');
       return;
@@ -85,13 +81,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gameRooms.delete(gameManager.gameId);
   }
 
+  @SubscribeMessage('observeJoin')
+  observerJoin(
+    @MessageBody() observeData : ObserveData,
+    @ConnectedSocket() client : Socket,
+  ) {
+    this.gameService.socketJoinRoom(client, observeData.gameId);
+  }
+
+  @SubscribeMessage('keyInput')
+  keyInput(
+    @MessageBody() inputData : InputData,
+    @ConnectedSocket() client : Socket
+  ) {
+    const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
+    gameManager.Keyboard(inputData.key, client.id);
+  }
+
   @SubscribeMessage('dbTest')
   dbTest(
     @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,
   ) {
-    const matchDto = new MatchDto();
-    matchDto.gameRoomType = RoomType.RANDOM;
+    const matchDto = new MatchJoinData();
+    matchDto.roomType = RoomType.RANDOM;
     matchDto.gameType = GameType.NORMAL;
     const gameManager : GameManager = new GameManager(matchJoinData);
     gameManager.createPlayer(client.id, 1000);
