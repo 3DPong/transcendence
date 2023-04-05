@@ -150,17 +150,19 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       <ChatContext.Provider
         value={{
           isAdmin, setIsAdmin,
-          userList: users, setUserList: setUsers,
           muteList, setMuteList,
           banList, setBanList
         }}>
         <MessageList
           channelId={channelIdNumber}
           myId={userId}
+          users={users}
           messages={messages}
           setMessages={setMessages}
         />
         <MenuDrawer
+          users={users.filter((user)=>(user.deleted_at === null))}
+          setUsers={setUsers}
           open={drawerOpen}
           handleClose={()=>{setDrawerOpen(false)}}
           channel={channel}

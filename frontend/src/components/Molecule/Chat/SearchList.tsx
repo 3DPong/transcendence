@@ -1,10 +1,12 @@
 import { useError } from "@/context/ErrorContext";
 import { User } from "@/types/chat";
-import { Avatar, Checkbox, ClickAwayListener, FormControl, InputLabel, List, ListItem, ListItemAvatar, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select } from "@mui/material";
+import {
+  Avatar, Checkbox, ClickAwayListener,
+  List, ListItemAvatar, ListItemButton, ListItemIcon, ListItemText
+} from "@mui/material";
 import { API_URL } from "@/../config/backend";
-import { FC, useContext, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import SearchTextField from "../SearchTextField";
-import ChatContext from "@/context/ChatContext";
 
 interface SearchListProps {
   inviteUsers: User[];
@@ -16,7 +18,6 @@ const SearchList : FC<SearchListProps> = ({inviteUsers, setInviteUsers}) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [searchString, setSearchString] = useState("");
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
-  const {userList} = useContext(ChatContext);
   const {handleError} = useError();
 
   function searchButtonClick() {
@@ -37,7 +38,6 @@ const SearchList : FC<SearchListProps> = ({inviteUsers, setInviteUsers}) => {
     }
     searchUser();
     setIsOpen(true);
-    console.log(isOpen);
   }
 
   function searchButtonKeyup(event: React.KeyboardEvent) {

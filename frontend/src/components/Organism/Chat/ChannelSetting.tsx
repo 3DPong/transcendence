@@ -8,14 +8,15 @@ import GlobalContext from "@/context/GlobalContext";
 import { API_URL } from "@/../config/backend";
 import { useError } from "@/context/ErrorContext";
 import InviteList from "@/components/Molecule/Chat/InviteList";
-import ChatContext from "@/context/ChatContext";
 
 interface ChannelSettingProps {
   handleClose : () => void;
   channel: Channel;
+  userList: ChatUser[];
+  setUserList: (users: ChatUser[]) => void; 
 };
 
-const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
+const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel, userList, setUserList}) => {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ChannelType>("none");
   const [password, setPassword] = useState("");
@@ -23,7 +24,6 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
   const [inviteUsers, setInviteUsers] = useState<User[]>([]); 
 
   const {setChannels} = useContext(GlobalContext);
-  const {userList, setUserList} = useContext(ChatContext);
   const {handleError} = useError();
 
   useEffect(()=>{

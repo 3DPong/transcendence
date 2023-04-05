@@ -1,26 +1,24 @@
-
-import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Message, ChatUser, defaultChatUser } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
 import { API_URL } from '@/../config/backend';
 import { useError } from '@/context/ErrorContext';
-import ChatContext from '@/context/ChatContext';
 
 interface MessageListProps {
   channelId: number
   myId: number;
+  users: ChatUser[];
   messages: Message[];
   setMessages: (messages : Message[]) => void;
 };
 
-const MessageList: React.FC<MessageListProps> = ({ channelId, myId, messages, setMessages }) => {
+const MessageList: React.FC<MessageListProps> = ({ channelId, users, myId, messages, setMessages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState<number>(0);
   const [prevScrollHeight, setPrevScrollHeight] = useState<number>(0);
   const [fetchCount, setFetchCount] = useState<number>(0);
   const [scrollState, setScrollState] = useState<number>(1);
-  const { userList } = useContext(ChatContext);
-  const userMap = new Map<number, ChatUser>(userList.map((user) => [user.id, user]));
+  const userMap = new Map<number, ChatUser>(users.map((user) => [user.id, user]));
   const {handleError} = useError();
 
   async function fetchMessagesByChannelId(skip:number) {
