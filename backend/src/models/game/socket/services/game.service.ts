@@ -75,6 +75,7 @@ export class GameService {
   public initRenderDatas(gameManager : GameManager) : RenderData[] {
     return this.gameDataMaker.makeRenderDatas(gameManager);
   }
+  
   async createMatch(gameManager : GameManager){
     const newMatch = new Match();
     newMatch.game_type = gameManager.gameType;

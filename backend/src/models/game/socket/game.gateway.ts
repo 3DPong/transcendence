@@ -97,20 +97,4 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
     gameManager.Keyboard(inputData.key, client.id);
   }
-
-  @SubscribeMessage('dbTest')
-  dbTest(
-    @MessageBody() matchJoinData : MatchJoinData,
-    @ConnectedSocket() client : Socket,
-  ) {
-    const matchDto = new MatchJoinData();
-    matchDto.roomType = RoomType.RANDOM;
-    matchDto.gameType = GameType.NORMAL;
-    const gameManager : GameManager = new GameManager(matchJoinData);
-    gameManager.createPlayer(client.id, 1000);
-    gameManager.createPlayer(client.id, 2000);
-    gameManager.player1.socore = 15;
-    gameManager.player2.socore = 10;
-    this.gameService.createMatch(gameManager);
-  }
 }
