@@ -118,8 +118,8 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
       <Box
         sx={{
           position: "relative",
-          width: width,
-          height: height,
+          width: 250,
+          height: 250,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

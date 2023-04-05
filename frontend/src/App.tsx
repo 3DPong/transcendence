@@ -49,7 +49,12 @@ const router = createBrowserRouter([
   {
     // 홈화면 (로그인 후)
     path: "/",
-    element: <L0Template organism={<Controller />} />,
+    element:
+        <div>
+          <L0Template organism={<Controller />} />
+          <AlertSnackbar />
+          <Game />
+        </div>,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -125,9 +130,7 @@ function App() {
               </GlobalContext.Provider>
             </header>
           </div>
-          <AlertSnackbar />
         </ErrorProvider>
-        <Game />
       </div>
   );
 }

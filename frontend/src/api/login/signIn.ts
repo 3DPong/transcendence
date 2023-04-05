@@ -9,6 +9,8 @@ export interface GET_SignInResponseFormat {
 }
 
 export async function requestSignIn() {
-    const requestUri = `${API_URL}/api/auth/signin/42`;
-    // 이 부분은 성준님 코드를 기반으로 작성할 예정.
+  // 이 부분은 성준님 코드를 기반으로 작성할 예정.
+  // location.href = `${API_URL}/api/auth/signin/42`;
+
+  // 이제 서버에서 보내준 상태 처리
 };

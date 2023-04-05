@@ -21,7 +21,7 @@ interface GET_responseFormat {
 
 export async function getMySettings(handleError: handleErrorFunction) {
 
-  const requestUri = `${API_URL}/user/me/settings`;
+  const requestUri = `${API_URL}/api/user/me/settings`;
 
   const settingResponse = await fetch(requestUri, { method: "GET" });
   console.log("GET", requestUri);
@@ -31,15 +31,10 @@ export async function getMySettings(handleError: handleErrorFunction) {
     console.log("Response", settingResponse.status);
     const errorData = await settingResponse.json();
     handleError(
-        "Sign Up",
+        "Get User Settings",
         errorData.message,
-        () => {
-          if (settingResponse.status === 401) { // if status code is 401, then session is invalid. login again.
-            console.log("[401 Error] redirecting to login page...")
-            // navigate("/login");
-            history.pushState({}, "", "/login");
-          }
-    }); // redirect to /login page
+        "/signin",
+    ); // redirect to /login page
     return ;
   }
   // on success

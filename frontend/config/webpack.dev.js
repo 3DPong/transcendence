@@ -1,6 +1,6 @@
 const { merge } = require("webpack-merge");
 const common = require("./webpack.common");
-
+// const isLocal = process.env.NODE_ENV === 'local';
 
 module.exports = merge(common, {
   mode: "development",
@@ -18,7 +18,10 @@ module.exports = merge(common, {
   },
 
   output: {
-    filename: "[name].[contenthash].js",
+    // https://evan-moon.github.io/2019/08/08/fix-webpack-dev-memory-leak/
+    // filename: isLocal ? 'client-bundle.[name].js' : 'client-bundle.[chunkhash].js',
+    // filename: "[name].[contenthash].js",
+    filename: "client-bundle.[name].js",
     publicPath: "/",
   },
   module: {
