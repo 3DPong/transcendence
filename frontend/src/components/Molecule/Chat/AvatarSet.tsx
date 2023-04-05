@@ -116,7 +116,7 @@ const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
       {Boolean(anchorEl) && <AvatarPopper
         anchorEl={anchorEl}
         handleClose={()=>{setAnchorEl(null);}}
-        targetId={user.id}
+        target={user}
         scrollY={scrollY}
       />
       }

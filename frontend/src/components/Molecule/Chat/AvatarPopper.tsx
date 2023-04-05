@@ -1,22 +1,23 @@
 import { FC, useEffect, useRef, useState, useContext } from "react";
 import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/material';
 import ChatContext from "@/context/ChatContext";
+import { ChatUser } from "@/types/chat";
 
 interface AvatarPopperProps {
   anchorEl : HTMLElement | null;
   handleClose: () => void;
-  targetId : number;
+  target : ChatUser;
   scrollY : number;
 };
 
-const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, scrollY}) => {
+const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, scrollY}) => {
   const [muteTime, setMuteTime] = useState("10");
   const [banTime, setBanTime] = useState("10");
   const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
   const { isAdmin, muteList, banList } = useContext(ChatContext);
-  const isTargetMuted = muteList.includes(targetId);
-  const isTargetBanned = banList.find((u)=>(u.id === targetId)) !== undefined;
+  const isTargetMuted = muteList.includes(target.id);
+  const isTargetBanned = banList.find((u)=>(u.id === target.id)) !== undefined;
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -33,6 +34,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
       handleClose();
   }, [scrollY]);
 
+  // 여기선 보내기만하고 상태 변경은 최상단에서 
   function handleProfileClick(id: number) {
     console.log(id + " is profile");
     handleClose();
@@ -61,6 +63,14 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
     console.log(id + " is kick");
     handleClose();
   }
+  function handleGrantClick(id: number) {
+    console.log(id + " is Grant");
+    handleClose();
+  }
+  function handleRevokeClick(id: number) {
+    console.log(id + " is Revoke");
+    handleClose();
+  }
 
   const modifiers = [
     {
@@ -87,21 +97,21 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
               disablePadding
               className="border-gray-700 bg-slate-100 text-slate-800"
             >
-              <MenuItem key={6} sx={menuItemStyles} onClick={()=>{handleProfileClick(targetId);}}>
+              <MenuItem key={1} sx={menuItemStyles} onClick={()=>{handleProfileClick(target.id);}}>
                 See Profile
               </MenuItem>
-              <MenuItem key={7} sx={menuItemStyles} onClick={()=>{handleDMClick(targetId);}}>
+              <MenuItem key={2} sx={menuItemStyles} onClick={()=>{handleDMClick(target.id);}}>
                 Send DM
               </MenuItem>
               { isAdmin && [
-                  <MenuItem key={5} sx={menuItemStyles} onClick={()=>{handleKickClick(targetId);}}>
+                  <MenuItem key={3} sx={menuItemStyles} onClick={()=>{handleKickClick(target.id);}}>
                     Kick
                   </MenuItem>,
                   isTargetMuted ? 
-                  <MenuItem key={1} sx={menuItemStyles} onClick={()=>{handleUnMuteClick(targetId);}}>
+                  <MenuItem key={4} sx={menuItemStyles} onClick={()=>{handleUnMuteClick(target.id);}}>
                     UnMute
                   </MenuItem> :
-                  <MenuItem key={2} sx={menuItemStyles}>
+                  <MenuItem key={5} sx={menuItemStyles}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -117,13 +127,13 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
                         }
                       }}
                     /> 
-                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleMuteClick(targetId, Number(muteTime));}}>m Mute</div>
+                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleMuteClick(target.id, Number(muteTime));}}>m Mute</div>
                   </MenuItem>,
                   isTargetBanned ?
-                  <MenuItem key={3} sx={menuItemStyles} onClick={()=>{handleUnBanClick(targetId);}}>
+                  <MenuItem key={6} sx={menuItemStyles} onClick={()=>{handleUnBanClick(target.id);}}>
                     UnBan
                   </MenuItem> :
-                  <MenuItem key={4} sx={menuItemStyles}>
+                  <MenuItem key={7} sx={menuItemStyles}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -139,7 +149,14 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, targetId, 
                         }
                       }}
                     /> 
-                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleBanClick(targetId, Number(banTime));}}>m Ban</div>
+                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleBanClick(target.id, Number(banTime));}}>m Ban</div>
+                  </MenuItem>,
+                  target.role === "user" ?
+                  <MenuItem key={8} sx={menuItemStyles} onClick={()=>{handleGrantClick(target.id);}}>
+                    Grant Admin
+                  </MenuItem> :
+                  <MenuItem key={9} sx={menuItemStyles} onClick={()=>{handleRevokeClick(target.id);}}>
+                    Revoke Admin
                   </MenuItem>,
                 ]}
             </MenuList>

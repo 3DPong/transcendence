@@ -11,14 +11,16 @@ import { useError } from "@/context/ErrorContext";
 
 interface MenuDrawerProps {
   open : boolean;
+  users : ChatUser[];
+  setUsers: (users: ChatUser[]) => void;
   handleClose : () => void;
   channel: Channel;
 };
 
-const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, channel}) => {
+const MenuDrawer : FC<MenuDrawerProps> = ({open, users, setUsers, handleClose, channel}) => {
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
-  const { userList, isAdmin, banList } = useContext(ChatContext);
+  const { isAdmin, banList } = useContext(ChatContext);
   const { channels, setChannels } = useContext(GlobalContext);
   const navigate = useNavigate();
   const {handleError} = useError();
@@ -51,10 +53,16 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, channel}) => {
             onScroll={(event)=>{setScrollY(event.currentTarget.scrollTop)}}
           >
             {
-              settingOpen ? <ChannelSetting handleClose={()=>setSettingOpen(false)} channel={channel}/> :
+              settingOpen ?
+              <ChannelSetting
+                handleClose={()=>setSettingOpen(false)}
+                channel={channel}
+                userList={users}
+                setUserList={setUsers}
+              /> :
               <>
                 <MenuList title="User List" titleColor={"black"}
-                  users={userList.filter((user)=>(user.deleted_at === null))}
+                  users={users}
                   scrollY={scrollY}
                 />
                 {isAdmin && <MenuList title="Ban List" titleColor={"black"} users={banList} scrollY={scrollY}/> }
