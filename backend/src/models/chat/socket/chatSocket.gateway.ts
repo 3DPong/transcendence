@@ -7,11 +7,12 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger} from '@nestjs/common';
+import { Logger, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
 import { WsException } from '@nestjs/websockets';
+import { ChannelType } from '../entities';
 
 @WebSocketGateway({
   cors: {
@@ -40,6 +41,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
     } catch (error) {
+      console.log(error)
       socket.disconnect();
       throw new WsException(error);
     }
@@ -100,13 +102,30 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
-    this.logger.log(md.channel_id + "  :" +md.message);
-    try {
-      const user_id = this.getUserIdBySocketId(socket.id);
-      if (!user_id || !(await this.chatSocketService.checkChannelUser(md.channel_id, user_id)))
-        throw { error: 'No permission!' };
-      await this.chatSocketService.createMessageLog(user_id, md);
+    this.logger.log(md.channel_id + "  :" +md.message + " ");
+    let dmUser;
+    const user_id = this.getUserIdBySocketId(socket.id);
+    if (!user_id)
+      throw { error: 'No permission!' };
 
+    const channel = await this.chatSocketService.getChannelType(md.channel_id);
+    if (!channel) {
+      throw new NotFoundException(`can't find  ${ md.channel_id}`);
+    } else if (channel.type === ChannelType.DM && !(dmUser = await this.chatSocketService.getDmUser(md.channel_id, user_id))) {
+      throw new NotFoundException(`can't find  DM user ${user_id}`);
+    } else if (channel.type !== ChannelType.DM && !await this.chatSocketService.checkChannelUser(md.channel_id, user_id)) {
+      throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
+    }
+
+    if (await this.chatSocketService.checkMuteUser(md.channel_id, user_id)) {
+      throw new UnauthorizedException('muted User!');
+    }
+ 
+    try {
+      await this.chatSocketService.createMessageLog(user_id, md, channel.type);
+      if (channel.type === ChannelType.DM) {
+        await this.chatSocketService.updateDmUser(dmUser);
+      }
       socket.broadcast
       .to(`chat_${md.channel_id}`)
       .emit('chat', md);

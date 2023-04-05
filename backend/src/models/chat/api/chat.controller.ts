@@ -23,7 +23,7 @@ export class ChatController {
   @Get()
   getMyChannels() : Promise<ChatChannel[]> {
     //const user = await this.userService.getUser(3);
-    return this.chatService.getMyChannels(3);
+    return this.chatService.getMyChannels(16);
   }
 
   @Get('/search')
@@ -63,7 +63,7 @@ export class ChatController {
 
   @Post('/')
   async createChatRoom(@Body() channelDto: ChannelDto) : Promise<ChatChannel> {
-    const user = await this.userService.getUser(3);
+    const user = await this.userService.getUser(18);
     return  this.chatService.createChatRoom(channelDto, user);
   }
 
@@ -95,7 +95,7 @@ export class ChatController {
 
   @Post('/dm')
   async createDmRoom(@Body() dmDto: DmDto) :Promise<ChatChannel> {
-    const first_user = await this.userService.getUser(3);
+    const first_user = await this.userService.getUser(18);
     const second_user_id = await this.userService.getUser(dmDto.user_id);
     return  this.chatService.createDmRoom(second_user_id, first_user);
   }

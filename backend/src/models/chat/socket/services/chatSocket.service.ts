@@ -1,9 +1,10 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChannel, MessageLog } from '../../entities';
-import { ChatChannel } from '../../entities/chatChannel.entity';
+import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageDto, toggleTimeDto } from '../../dto/socket.dto';
+import { date } from 'joi';
 
 
 @Injectable()
@@ -31,30 +32,33 @@ export class ChatSocketService {
   
   ) {}
 
-  async createMessageLog(user_id: number, md: MessageDto) :Promise<MessageLog> {
-    try {
-      console.log("start create!!!!!!!!!!");
-      const existingUser = await this.channelUserRepository
-        .find({select: {user_id:true}, where: {channel_id: md.channel_id, user_id}});
-      if (!existingUser)
-        throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
-      
-      if (await this.checkMuteUser(md.channel_id, user_id))
-        throw new UnauthorizedException('muted User!');
+  async createMessageLog(user_id: number, md: MessageDto, type: ChannelType) :Promise<MessageLog> {
 
+    // if (md.type === ChannelType.DM) {
+    //   const dmChannel = await this.dmRepository.findOne({where: {channel_id: md.channel_id}});
+    //   if (!dmChannel)
+    //     throw new NotFoundException(`can't find`);
+    // }
+    // else if (this.checkChannelUser(md.channel_id, user_id))
+    //   throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
     
-      const newLog = this.messageLogRepository.create({
-        channel_id: md.channel_id,
-        user_id,
-        content: md.message
-      });
+
+    const newLog = this.messageLogRepository.create({
+      channel_id: md.channel_id,
+      user_id,
+      content: md.message
+    });
+    try {
       await this.messageLogRepository.save(newLog);
       return newLog;
-      } catch (error) {
-        console.log("\n\n22error\n\n")
+    } catch (error) {
         console.log(error)
         throw new InternalServerErrorException();
     }
+  }
+
+  async updateDmUser(dmUser: DmChannel){
+   await this.dmRepository.update({first_user_id: dmUser.first_user_id, second_user_id:dmUser.second_user_id}, {updated_at: new Date()});
   }
 
   async muteUser(muteDto: toggleTimeDto) :Promise<ChannelMuteList> {
@@ -114,8 +118,9 @@ export class ChatSocketService {
   }
 
   async checkChannelUser(channel_id: number, user_id: number) :Promise <boolean>   {
-
-  const chatUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+    const chatUser = await this.channelUserRepository
+    .findOne({select: {user_id:true}, where: {channel_id, user_id}});
+  //const chatUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
     if (chatUser)
       return true;
     return false;
@@ -134,6 +139,20 @@ export class ChatSocketService {
     if (!channelUser || channelUser.role === ChannelUserRoles.USER)
       return false;
     return true;
+  }
+
+  async getDmUser(channel_id: number, user_id: number)  : Promise <DmChannel>{
+    const dmChannel = await this.dmRepository.findOne({where: {channel_id}});
+    if (dmChannel.first_user_id !== user_id && dmChannel.second_user_id !== user_id)
+      return null;
+    return dmChannel;
+  }
+
+  async getChannelType(channel_id: number) : Promise<ChatChannel>{
+    const channel = await this.channelRepository.findOne({select: {type:true}, where: {channel_id}})
+    if (!channel)
+      return null;
+    return channel;
   }
 
 }

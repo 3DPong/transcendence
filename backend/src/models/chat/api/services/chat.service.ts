@@ -72,11 +72,18 @@ export class ChatService {
       .select("cu.channel_id")
       .where('cu.user_id = :user_id', {user_id})
       .getMany();
-    
     const userIds = channelUsers.map((user)=>user.channel_id)
-    // var userIds = [];
-    // channelUsers.map((cu) =>userIds.push(cu.channel_id));
 
+    const dmChannels : DmChannel[] = await this.dmRepository
+      .createQueryBuilder("dm")
+      .select("dm.channel_id")
+      .where('dm.first_user_id = :user_id', {user_id})
+      .orWhere('dm.second_user_id = :user_id', {user_id})
+      .orderBy("dm.updated_at", "DESC")
+      .take(5)
+      .getMany();
+    dmChannels.map((dm) => userIds.push(dm.channel_id));
+  
     const channel: ChatChannel[] = await this.channelRepository
       .createQueryBuilder("channel")
       .innerJoin("channel.owner", "owner")
@@ -222,6 +229,7 @@ export class ChatService {
     
       return channel;
     } catch (error) {
+      console.log(error)
       await queryRunner.rollbackTransaction();
 			throw new InternalServerErrorException();
 		} finally {
@@ -256,9 +264,14 @@ export class ChatService {
 
   async createDmRoom(second_user: User, first_user : User) :Promise<ChatChannel>{
     
-    const dmChannel = await this.dmRepository
-        .findOne({where: {first_user_id: first_user.user_id, second_user_id: second_user.user_id}});
-    if (dmChannel !== null) {
+    let dmChannel = await this.dmRepository
+      .findOne({where: {first_user_id: first_user.user_id, second_user_id: second_user.user_id}});
+    if (!dmChannel) {
+      dmChannel= await this.dmRepository
+       .findOne({where: {first_user_id: second_user.user_id, second_user_id: first_user.user_id}});
+    }
+    if (dmChannel) {
+      this.dmRepository.update({first_user_id: first_user.user_id, second_user_id:second_user.user_id}, {updated_at: new Date()});
       return dmChannel.channel;
     }
     const queryRunner = this.dataSource.createQueryRunner();

@@ -25,7 +25,7 @@ export class ChannelDto {
 	@IsNotEmpty()
 	type: ChannelType;
 
-	@IsNumber()
+
   @ValidateIf((object, value) => value !== null)
 	inviteList!: number[] | null;
 
