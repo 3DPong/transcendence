@@ -48,6 +48,7 @@ const LoadedCard : FC<LoadedCardProps> = ({channel}) => {
       src={channel.thumbnail || defaultThumbnail}
       alt="thumbnail"
       className="w-12 h-12 rounded-full"
+      style={{ border: '2px solid gray' }}
     />
     <div className="flex flex-col pl-2 pr-2 w-full">
       <span
