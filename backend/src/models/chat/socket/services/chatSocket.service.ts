@@ -33,16 +33,6 @@ export class ChatSocketService {
   ) {}
 
   async createMessageLog(user_id: number, md: MessageDto, type: ChannelType) :Promise<MessageLog> {
-
-    // if (md.type === ChannelType.DM) {
-    //   const dmChannel = await this.dmRepository.findOne({where: {channel_id: md.channel_id}});
-    //   if (!dmChannel)
-    //     throw new NotFoundException(`can't find`);
-    // }
-    // else if (this.checkChannelUser(md.channel_id, user_id))
-    //   throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
-    
-
     const newLog = this.messageLogRepository.create({
       channel_id: md.channel_id,
       user_id,
@@ -58,7 +48,8 @@ export class ChatSocketService {
   }
 
   async updateDmUser(dmUser: DmChannel){
-   await this.dmRepository.update({first_user_id: dmUser.first_user_id, second_user_id:dmUser.second_user_id}, {updated_at: new Date()});
+   await this.dmRepository
+    .update({first_user_id: dmUser.first_user_id, second_user_id:dmUser.second_user_id}, {updated_at: new Date()});
   }
 
   async muteUser(muteDto: toggleTimeDto) :Promise<ChannelMuteList> {
