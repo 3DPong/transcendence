@@ -21,13 +21,14 @@ interface GET_responseFormat {
 
 export async function getMySettings(handleError: handleErrorFunction) {
 
-  // const {handleError} = useError();
-  // const navigate = useNavigate();
-  const requestUri = `${API_URL}/api/user/me/settings`;
+  const requestUri = `${API_URL}/user/me/settings`;
+
   const settingResponse = await fetch(requestUri, { method: "GET" });
-  // return (settingResponse);
-  // on error
+  console.log("GET", requestUri);
+  console.dir(settingResponse);
+
   if (!settingResponse.ok) {
+    console.log("Response", settingResponse.status);
     const errorData = await settingResponse.json();
     handleError(
         "Sign Up",

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --max_old_space_size=4096 node_modules/.bin/webpack-dev-server --progress --color --config config/webpack.dev.js",
-    "build": "webpack --config config/webpack.prod.js"
+    "build": "webpack --progress --color --config config/webpack.prod.js"
   },
   "files": [
     "dist/**/*.d.ts",

@@ -26,7 +26,6 @@ export default function L0Template({organism}: templateProps) {
         <div> 
             {organism}
             <Outlet />
-            <AlertSnackbar/>
         </div>
     );
 }
