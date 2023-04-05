@@ -26,8 +26,18 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
     paddingRight: '10px',
     '&:hover': {
       textDecoration: 'underline',
+      backgroundColor: '#c5cae9',
     },
+    backgroundColor: '#e8eaf6',
+
   };
+
+  const adminItemStyles = {
+    backgroundColor: '#ffebee',
+    '&:hover': {
+      backgroundColor: '#ffcdd2',
+    },
+  }
 
   useEffect(() => {
     if (scrollY != openScrollY.current)
@@ -104,14 +114,17 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                 Send DM
               </MenuItem>
               { isAdmin && [
-                  <MenuItem key={3} sx={menuItemStyles} onClick={()=>{handleKickClick(target.id);}}>
+                  <MenuItem key={3} sx={[menuItemStyles, adminItemStyles]}
+                    onClick={()=>{handleKickClick(target.id);}}>
                     Kick
                   </MenuItem>,
                   isTargetMuted ? 
-                  <MenuItem key={4} sx={menuItemStyles} onClick={()=>{handleUnMuteClick(target.id);}}>
+                  <MenuItem key={4} sx={[menuItemStyles, adminItemStyles]}
+                    onClick={()=>{handleUnMuteClick(target.id);}}
+                  >
                     UnMute
                   </MenuItem> :
-                  <MenuItem key={5} sx={menuItemStyles}>
+                  <MenuItem key={5} sx={[menuItemStyles, adminItemStyles]}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -127,13 +140,19 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                         }
                       }}
                     /> 
-                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleMuteClick(target.id, Number(muteTime));}}>m Mute</div>
+                    <div style={{paddingLeft:'2px'}}
+                      onClick={()=>{handleMuteClick(target.id, Number(muteTime));}}
+                    >
+                      m Mute
+                    </div>
                   </MenuItem>,
                   isTargetBanned ?
-                  <MenuItem key={6} sx={menuItemStyles} onClick={()=>{handleUnBanClick(target.id);}}>
+                  <MenuItem key={6} sx={[menuItemStyles, adminItemStyles]}
+                    onClick={()=>{handleUnBanClick(target.id);}}
+                  >
                     UnBan
                   </MenuItem> :
-                  <MenuItem key={7} sx={menuItemStyles}>
+                  <MenuItem key={7} sx={[menuItemStyles, adminItemStyles]}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -149,13 +168,21 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                         }
                       }}
                     /> 
-                    <div style={{paddingLeft:'2px'}} onClick={()=>{handleBanClick(target.id, Number(banTime));}}>m Ban</div>
+                    <div style={{paddingLeft:'2px'}}
+                      onClick={()=>{handleBanClick(target.id, Number(banTime));}}
+                    >
+                      m Ban
+                    </div>
                   </MenuItem>,
                   target.role === "user" ?
-                  <MenuItem key={8} sx={menuItemStyles} onClick={()=>{handleGrantClick(target.id);}}>
+                  <MenuItem key={8} sx={[menuItemStyles, adminItemStyles]}
+                    onClick={()=>{handleGrantClick(target.id);}}
+                  >
                     Grant Admin
                   </MenuItem> :
-                  <MenuItem key={9} sx={menuItemStyles} onClick={()=>{handleRevokeClick(target.id);}}>
+                  <MenuItem key={9} sx={[menuItemStyles, adminItemStyles]}
+                    onClick={()=>{handleRevokeClick(target.id);}}
+                  >
                     Revoke Admin
                   </MenuItem>,
                 ]}
