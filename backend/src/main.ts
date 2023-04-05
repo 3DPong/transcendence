@@ -28,9 +28,7 @@ declare module 'express-session' {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets('./src/models/game/');
-  //const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule);
   app.useWebSocketAdapter(new IoAdapter(app));
   const appConfig = app.get(AppConfigService);
   const sessionConfig = app.get(SessionConfigService);
