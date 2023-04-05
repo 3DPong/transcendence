@@ -53,7 +53,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       profile: usr.user.profile_url,
       nickname: usr.user.nickname,
       role: usr.role,
-      status: "online",
+      status: "none",
       deleted_at: usr.deleted_at,
     }));
     return usrs;
@@ -147,18 +147,22 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         channel={channel}
         memberCount={users.filter((u)=>(u.deleted_at === null)).length}
         handleMenuButton={()=>{setDrawerOpen(true)}}/>
-      <ChatContext.Provider value={{isAdmin, setIsAdmin, muteList, setMuteList, banList, setBanList}}>
+      <ChatContext.Provider
+        value={{
+          isAdmin, setIsAdmin,
+          userList: users, setUserList: setUsers,
+          muteList, setMuteList,
+          banList, setBanList
+        }}>
         <MessageList
           channelId={channelIdNumber}
           myId={userId}
-          users={users}
           messages={messages}
           setMessages={setMessages}
         />
         <MenuDrawer
           open={drawerOpen}
           handleClose={()=>{setDrawerOpen(false)}}
-          userlist={users.filter((u)=>(u.deleted_at === null))}
           channel={channel}
         />
       </ChatContext.Provider>

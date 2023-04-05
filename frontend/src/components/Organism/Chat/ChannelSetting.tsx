@@ -3,10 +3,12 @@ import ImageUpload from "@/components/Molecule/ImageUpload";
 import { TextField } from "@/components/Molecule/Chat/TextField";
 import { Box, Button, Container, Typography } from "@mui/material";
 import { FC, useContext, useEffect, useState } from "react";
-import { Channel, ChannelType, defaultThumbnail } from "@/types/chat";
+import { Channel, ChannelType, ChatUser, User, defaultThumbnail } from "@/types/chat";
 import GlobalContext from "@/context/GlobalContext";
 import { API_URL } from "@/../config/backend";
 import { useError } from "@/context/ErrorContext";
+import InviteList from "@/components/Molecule/Chat/InviteList";
+import ChatContext from "@/context/ChatContext";
 
 interface ChannelSettingProps {
   handleClose : () => void;
@@ -18,7 +20,10 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
   const [type, setType] = useState<ChannelType>("none");
   const [password, setPassword] = useState("");
   const [thumbnail, setThumbnail] = useState<string>(""); 
+  const [inviteUsers, setInviteUsers] = useState<User[]>([]); 
+
   const {setChannels} = useContext(GlobalContext);
+  const {userList, setUserList} = useContext(ChatContext);
   const {handleError} = useError();
 
   useEffect(()=>{
@@ -38,7 +43,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
           name: title,
           password: password === "" ? null : password,
           type: type,
-          inviteList: null,
+          inviteList: inviteUsers.map((user)=>(user.id)),
           thumbnail_url: thumbnail,
         })
       });
@@ -55,6 +60,23 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
           target.type = type;
         }
       });
+
+      function setUsersWithoutExist() {
+        const newUserList = [...userList];
+        for (const user of inviteUsers) {
+          if (!newUserList.some((u) => u.id === user.id)) {
+            const newUser: ChatUser = {
+              ...user,
+              role: "user",
+              status: "none",
+              deleted_at: null,
+            };
+            newUserList.push(newUser);
+          }
+        }
+        setUserList(newUserList);
+      }
+      setUsersWithoutExist();
     }
     updateChannel();
     handleClose();
@@ -75,6 +97,9 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel}) => {
           <div className="mb-6">
             <TextField type="password" label="비밀번호" state={password} setState={setPassword} placeholder="비밀번호를 입력하세요" />
           </div>}
+
+        <InviteList inviteUsers={inviteUsers} setInviteUsers={setInviteUsers}/>
+        
         <Button fullWidth variant="contained" color="primary" onClick={handleSave}>
           설정 저장
         </Button>

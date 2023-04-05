@@ -12,14 +12,13 @@ import { useError } from "@/context/ErrorContext";
 interface MenuDrawerProps {
   open : boolean;
   handleClose : () => void;
-  userlist: ChatUser[];
   channel: Channel;
 };
 
-const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}) => {
+const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, channel}) => {
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
-  const { isAdmin, banList } = useContext(ChatContext);
+  const { userList, isAdmin, banList } = useContext(ChatContext);
   const { channels, setChannels } = useContext(GlobalContext);
   const navigate = useNavigate();
   const {handleError} = useError();
@@ -54,17 +53,22 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}
             {
               settingOpen ? <ChannelSetting handleClose={()=>setSettingOpen(false)} channel={channel}/> :
               <>
-                <MenuList title="User List" titleColor={"black"} users={userlist} scrollY={scrollY}/>
+                <MenuList title="User List" titleColor={"black"}
+                  users={userList.filter((user)=>(user.deleted_at === null))}
+                  scrollY={scrollY}
+                />
                 {isAdmin && <MenuList title="Ban List" titleColor={"black"} users={banList} scrollY={scrollY}/> }
               </>
             }
           </div>
           <div className="flex-shrink-0 h-50">
-            <MenuFooter
+          {
+            channel.type !== "dm" && <MenuFooter
               handleLeave={leaveChannel}
               handleSetting={()=>{setSettingOpen(!settingOpen)}}
               settingOpen={settingOpen}
             />
+          }
           </div>
         </div>
       </div>
