@@ -6,6 +6,7 @@ module.exports = merge(common, {
   mode: "development",
   devtool: "inline-source-map",
 
+  // https://webpack.kr/configuration/dev-server/#devserverallowedhosts
   devServer: {
     open: false,
     hot: true,
@@ -13,6 +14,7 @@ module.exports = merge(common, {
     port: 8081,
     historyApiFallback: true,
     liveReload: true,
+    allowedHosts: "all",
   },
 
   output: {
