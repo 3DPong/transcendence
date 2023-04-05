@@ -14,6 +14,7 @@ import * as process from 'process';
 import { colorist } from './common/logger/utils';
 import { GameSocketIoAdapter } from './models/game/socket/game.socket.adapter';
 import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 declare module 'express-session' {
   interface SessionData {
@@ -26,7 +27,10 @@ declare module 'express-session' {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  //app.useWebSocketAdapter(new GameSocketIoAdapter);
+  app.useStaticAssets('./src/models/game/');
+  //const app = await NestFactory.create(AppModule);
   app.useWebSocketAdapter(new GameSocketIoAdapter);
   const appConfig = app.get(AppConfigService);
   const sessionConfig = app.get(SessionConfigService);
