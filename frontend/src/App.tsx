@@ -25,6 +25,7 @@ import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
 import { ErrorProvider } from "@/context/ErrorContext";
+import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -124,6 +125,7 @@ function App() {
               </GlobalContext.Provider>
             </header>
           </div>
+          <AlertSnackbar />
         </ErrorProvider>
         <Game />
       </div>

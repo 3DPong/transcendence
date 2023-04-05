@@ -129,6 +129,7 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
       console.log("[DEV] 사용자의 세팅을 불러오는 중입니다.");
       const loadedSettings = await API.getMySettings(handleError);
       if (loadedSettings) {
+        console.log(loadedSettings);
         setImageFile(loadedSettings.profile_url);
         setNickname(loadedSettings.nickname);
         setTwoFactorAuth(loadedSettings.two_factor);

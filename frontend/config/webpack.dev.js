@@ -14,7 +14,7 @@ module.exports = merge(common, {
     port: 8081,
     historyApiFallback: true,
     liveReload: true,
-    allowedHosts: "all",
+    allowedHosts: ['all'],
   },
 
   output: {
