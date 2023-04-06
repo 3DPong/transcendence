@@ -10,16 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+
 import { useState, useEffect, useContext, useMemo, useLayoutEffect } from "react";
 import { LoadingButton } from "@mui/lab";
-import TextField from "@mui/material/TextField";
+import TextField from '@mui/material/TextField';
 import { useNavigate } from "react-router";
 
 import GlobalContext from "@/context/GlobalContext";
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
-import * as API from "@/api/API";
-import { useError } from "@/context/ErrorContext";
+import * as API from '@/api/API';
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -31,38 +31,37 @@ export interface TextFieldWrapperProps {
   disabledHelperText?: string; // 오류시 표기할 내용.
 }
 
+
 function TextFieldWrapper(props: TextFieldWrapperProps) {
-  {
-    /* https://mui.com/material-ui/react-text-field/ */
-  }
+  {/* https://mui.com/material-ui/react-text-field/ */}
   return (
-    <TextField
-      sx={{ flex: 1 }} // 가득 채우기
-      id="standard-basic"
-      variant="standard"
-      type={props.type}
-      label={props.label}
-      onChange={(event) => {
-        props.onChange(event.target.value);
-      }}
-      placeholder={props.placeholder}
-      error={props.disabled}
-      helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
-      required={true}
-    />
+      <TextField
+          sx={{ flex: 1 }} // 가득 채우기
+          id="standard-basic"
+          variant="standard"
+          type={props.type}
+          label={props.label}
+          onChange={(event) => {
+            props.onChange(event.target.value);
+          }}
+          placeholder={props.placeholder}
+          error={props.disabled}
+          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+          required={true}
+        />
   );
 }
 
 export function SignUp() {
+
   const { setLoggedUserId } = useContext(GlobalContext);
-  const [imageFile, setImageFile] = useState<string>("");
-  const [nickname, setNickname] = useState<string>("");
-  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleError } = useError();
+  const [ imageFile, setImageFile ] = useState<string>("");
+  const [ nickname, setNickname ] = useState<string>("");
+  const [ submitDisabled, setSubmitDisabled ] = useState<boolean>(false);
+  const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
   const navigate = useNavigate();
-
+  
   const WIDTH = 250;
   const HEIGHT = WIDTH;
 
@@ -75,9 +74,9 @@ export function SignUp() {
     if (sessionStorage.getItem("user_id") !== null) {
       console.log(2);
       navigate("/"); // home 경로로 이동한다.
-      return;
+      return ;
     }
-  }, []);
+  }, [])
 
   const handleSubmit = () => {
     if (submitDisabled) return;
@@ -85,20 +84,32 @@ export function SignUp() {
       console.log("handle submit");
       // 1. 서버에 가입 요청.
       setIsLoading(true);
-      const user_id = await API.requestSignUp(handleError, nickname, imageFile);
+      const response = await API.requestSignUp( nickname, imageFile );
       setIsLoading(false);
-      if (user_id) {
-        setLoggedUserId(user_id);
-      }
+      // 2. 만약 요청 status가 정상이 아니라면...?
+          // ...??
+
+      // 3. Success 201 : 받은 데이터로 전역 state 설정.
+      setLoggedUserId(response.user_id);
+
+      // 4. 이제 userId 세팅이 됬으니 "home" 으로 이동.
       navigate("/");
+      /*  아니 근데 왜 데이터 전달이 안되고 리렌더가 3회 이상 되고 요난리 나지..?
+      navigate("/", {
+        state: { // 만약 signUp을 통해 처음 들어온 User라면, Home 화면에서 Welcome 안내문이나 사용 방법 튜토리얼등을 렌더하기 위함.
+          nickname: response.nickname, // useLocation을 통해 해당 props를 받을 수 있음.
+        }
+      });
+      */
+
     })(/* IIFE */);
-  };
+  }
 
   // Validator instance with useMemo. V-dom update랑 관계없이 항상 보유.
-  const _validator = useMemo(() => {
+  const _validator = useMemo(() => { 
     console.log("setting validator...");
     return new Utils.Validator();
-  }, []); // calculate only on first render.
+  }, []) // calculate only on first render.
 
   // nickname이 바뀔 때 마다 검증 시도 --> 통과시 submit 버튼 활성화
   useEffect(() => {
@@ -107,10 +118,11 @@ export function SignUp() {
     } else {
       setSubmitDisabled(true);
     }
-  }, [nickname]);
+  }, [nickname])
 
   // navigate 함수 사용시 컴포넌트 깜빡임 문제 해결을 위한 시도.
-  if (sessionStorage.getItem("user_id") !== null) return <></>;
+  if (sessionStorage.getItem("user_id") !== null) 
+    return <></>;
   else
     return (
       <div className=" w-screen h-screen flex justify-center items-center">
@@ -131,17 +143,11 @@ export function SignUp() {
             type={"text"}
             label={"nickname"}
             disabled={submitDisabled}
-            disabledHelperText={_validator.getRuleHint("@Nickname")}
+            disabledHelperText={ _validator.getRuleHint("@Nickname") }
           />
 
           {/* Submit Button */}
-          <LoadingButton
-            loading={isLoading}
-            disabled={submitDisabled}
-            sx={{ marginTop: 2 }}
-            variant="outlined"
-            onClick={handleSubmit}
-          >
+          <LoadingButton loading={isLoading} disabled={submitDisabled} sx={{marginTop: 2}} variant="outlined" onClick={handleSubmit}>
             Sign Up
           </LoadingButton>
         </div>

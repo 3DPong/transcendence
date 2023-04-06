@@ -3,8 +3,8 @@
 .vscode/
 .vscode
 ../.idea/
-.idea
-./node_modules/
+../.idea
+backend/node_modules/
 
 
 # Logs
@@ -113,13 +113,10 @@ dist
 .tern-port
 
 # Database ENV file
-../.env.dev
+.env*
 
 # finder
 .DS_Store
 
 # docker
 docker-volume/
-/storage/
-/src/models/user/api/services/test.png
-/src/models/user/api/services/qrcode.png

@@ -1,10 +1,10 @@
 import { FC, useEffect, useRef, useState, useContext } from "react";
-import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from "@mui/material";
+import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/material';
 import ChatContext from "@/context/ChatContext";
 import { ChatUser } from "@/types/chat";
 
 interface AvatarPopperProps {
-  anchorEl: HTMLElement | null;
+  anchorEl : HTMLElement | null;
   handleClose: () => void;
   target : ChatUser;
   scrollY : number;
@@ -40,7 +40,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
   }
 
   useEffect(() => {
-    if (scrollY != openScrollY.current) handleClose();
+    if (scrollY != openScrollY.current)
+      handleClose();
   }, [scrollY]);
 
   // 여기선 보내기만하고 상태 변경은 최상단에서 
@@ -83,7 +84,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
 
   const modifiers = [
     {
-      name: "offset",
+      name: 'offset',
       options: {
         offset: [12, 0],
       },
@@ -91,24 +92,20 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
   ];
 
   return (
-    <Popper
-      open={open}
-      anchorEl={anchorEl}
-      style={{
-        zIndex: 200,
-      }}
-      placement="bottom-start"
-      modifiers={modifiers}
-    >
-      <ClickAwayListener onClickAway={handleClose}>
-        <Paper>
-          <MenuList disablePadding className="border-gray-700 bg-slate-100 text-slate-800">
-            <MenuItem
-              key={6}
-              sx={menuItemStyles}
-              onClick={() => {
-                handleProfileClick(targetId);
-              }}
+      <Popper
+        open={open}
+        anchorEl={anchorEl}
+        style={{
+          zIndex: 200,
+        }}
+        placement="bottom-start"
+        modifiers={modifiers}
+      >
+        <ClickAwayListener onClickAway={handleClose} >
+          <Paper>
+            <MenuList
+              disablePadding
+              className="border-gray-700 bg-slate-100 text-slate-800"
             >
               <MenuItem key={1} sx={menuItemStyles} onClick={()=>{handleProfileClick(target.id);}}>
                 See Profile

@@ -1,21 +1,17 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Timestamp } from 'typeorm';
 import { User } from '../../user/entities';
 import { ChatChannel } from './chatChannel.entity';
-import { Factory } from 'nestjs-seeder';
 
 @Entity()
 export class ChannelMuteList {
-  @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @PrimaryColumn({ type: 'int' })
   user_id: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @PrimaryColumn({ type: 'int' })
   channel_id: number;
 
-  @Factory((faker) => faker.date.future())
   @Column({ type: 'timestamp' })
-  end_at: Date;
+  end_at: Timestamp;
 
   @ManyToOne(() => User, (user) => user.mutedChannels)
   @JoinColumn({ name: 'user_id' })

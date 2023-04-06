@@ -82,6 +82,7 @@ export abstract class b2Object extends ObjectBase {
     }
 
     public RegisterTo(world: Box2D.b2World) {
+        console.log("Object : registerTo() called");
         this.m_Fixture = world
             .CreateBody(this.m_BodyDef)
             .CreateFixture(this.m_FixtureDef);

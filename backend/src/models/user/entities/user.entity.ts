@@ -11,55 +11,39 @@ import {
 import { UserRelation } from './userRelation.entity';
 import { ChatChannel, ChannelUser, DmChannel, ChannelMuteList, ChannelBanList } from '../../chat/entities';
 import { Match } from '../../game/entities';
-import { Factory } from 'nestjs-seeder';
 
 @Entity()
-@Unique(['nickname', 'email'])
+@Unique(['nickname'])
 export class User {
   @PrimaryGeneratedColumn()
   user_id: number;
 
-  @Factory((faker) => faker.helpers.unique(faker.word.noun))
   @Column({ type: 'varchar', length: 20, unique: true })
   nickname: string;
 
-  @Factory((faker) => faker.helpers.unique(faker.internet.email))
-  @Column({ type: 'varchar', length: 100, unique: true })
-  email: string;
-
-  @Factory((faker) => faker.image.people())
-  @Column({ type: 'varchar', length: 150 })
+  @Column({ type: 'varchar', length: 150, unique: true })
   profile_url: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Timestamp;
 
-  @Factory((faker) => faker.helpers.arrayElement([null, faker.date.future()]))
   @DeleteDateColumn({ type: 'timestamp' })
   deleted_at: Timestamp;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
   @Column({ type: 'int', default: 0, nullable: false })
   wins: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
   @Column({ type: 'int', default: 0, nullable: false })
   losses: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 200 }))
   @Column({ type: 'int', default: 0, nullable: false })
   total: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 200 }))
   @Column({ type: 'float', default: 0, nullable: false })
   level: number;
 
-  @Factory((faker) => faker.datatype.boolean())
   @Column({ type: 'boolean', default: false, nullable: false })
   two_factor: boolean;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  two_factor_secret: string;
 
   // 추가로 authenticator 반영해야함
 

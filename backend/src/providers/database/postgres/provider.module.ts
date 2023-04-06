@@ -37,7 +37,6 @@ import { PostgresConfigModule } from '../../../config/database/postgres/config.m
           MessageLog,
         ],
         synchronize: true,
-        logging: process.env.NODE_ENV === 'dev',
         //        entities: [__dirname + '/../../../*/*{.entity.ts,.entity.js}'],
       }),
       inject: [PostgresConfigService],

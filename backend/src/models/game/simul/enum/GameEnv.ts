@@ -1,9 +1,0 @@
-export const MAP_WIDTH = 50;
-export const MAP_HEIGHT = 25;
-export const PADDLE_OFFSET = 7;
-export const MATCH_SCORE = 10;
-export const BALL_SPEED = 2000;//sqrt(m/s^2);
-export const SKILL_COLL = 5000;//ms
-export const PADDLE_WIDTH = 1;
-export const PADDLE_HEIGHT = 5;
-export const PADDLE_SPEED = 1;
