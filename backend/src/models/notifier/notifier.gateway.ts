@@ -5,7 +5,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 
 @WebSocketGateway()
-export class UserNotifyGateway {
+export class NotifierGateway {
   @WebSocketServer()
   private readonly server: Server;
   private readonly redisClient: Redis;
