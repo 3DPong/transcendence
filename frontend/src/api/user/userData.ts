@@ -112,7 +112,7 @@ export async function updateUserData(
     handleError(
         "UserData",
         errorData.message,
-        "/login"
+        updateResponse.status === 401 ? "/signin" : null,
     );
     return ;
   }

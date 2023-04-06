@@ -5,10 +5,10 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import DialogContentText from '@mui/material/DialogContentText';
+import DialogContentText from "@mui/material/DialogContentText";
 import Button from "@mui/material/Button";
 import AvatarEditor from "react-avatar-editor";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 
 /** [ Avater editor library ]
  * --------------------------------------------------------
@@ -31,7 +31,6 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThumbnail, width, height }) => {
-
   const editor = useRef<AvatarEditor>(null);
   const [openEditor, setOpenEditor] = useState<boolean>(false);
   const [isEditDone, setIsEditDone] = useState<boolean>(false);
@@ -61,15 +60,15 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
     } else {
       setScale(scale - 0.1);
     }
-  }
-  
+  };
+
   const isValidFormat = (file: File) => {
     return ALLOWED_FILE_FORMAT.some((format) => file.type.endsWith(format));
   };
 
   const isValidSize = (file: File) => {
-    return (file.size <= ALLOWED_FILE_MAX_SIZE);
-  }
+    return file.size <= ALLOWED_FILE_MAX_SIZE;
+  };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log("handleImageChange");
@@ -98,11 +97,10 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
     }
   };
 
-
   const handleEditorClose = () => {
     setOpenEditor(false);
     setIsEditDone(true);
-  }
+  };
 
   // if thumnail data set, then open modal (이미지 편집)
   /*

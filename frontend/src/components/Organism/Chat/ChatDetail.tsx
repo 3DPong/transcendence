@@ -1,27 +1,24 @@
-import React, { FC, useContext, useEffect, useState } from 'react';
-import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
+import React, { FC, useContext, useEffect, useState } from "react";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
-import { Channel, ChatUser, defaultChannel, Message } from '@/types/chat'
+import { Channel, ChatUser, defaultChannel, Message } from "@/types/chat";
 
-import { useParams } from 'react-router-dom';
-import MessageSender from '@/components/Molecule/Chat/Detail/MessageSender';
-import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
-import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
-import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
-import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
-import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
-import { API_URL } from '@/../config/backend';
-import GlobalContext from '@/context/GlobalContext';
-import ChatContext from '@/context/ChatContext';
-import { useError } from '@/context/ErrorContext';
+import { useParams } from "react-router-dom";
+import MessageSender from "@/components/Molecule/Chat/Detail/MessageSender";
+import MessageList from "@/components/Molecule/Chat/Detail/MessageList";
+import MessageHeader from "@/components/Molecule/Chat/Detail/MessageHeader";
+import BattleRequestModal from "@/components/Molecule/Chat/Detail/BattleRequestModal";
+import BattleNotification from "@/components/Molecule/Chat/Detail/BattleNotification";
+import MenuDrawer from "@/components/Organism/Chat/MenuDrawer";
+import { API_URL } from "@/../config/backend";
+import GlobalContext from "@/context/GlobalContext";
+import ChatContext from "@/context/ChatContext";
+import { useError } from "@/context/ErrorContext";
 
-
-interface ChatDetailProps {
-}
+interface ChatDetailProps {}
 
 const ChatDetail: FC<ChatDetailProps> = () => {
-
-  const {channels, setChannels} = useContext(GlobalContext);
+  const { channels, setChannels } = useContext(GlobalContext);
   const { channelId } = useParams();
   const channelIdNumber = Number(channelId);
   const [channel, setChannel] = useState<Channel>(defaultChannel);
@@ -33,41 +30,41 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [skip, setSkip] = useState(0);
-  
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [battleModalOpen, setBattleModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
-  const { handleError} = useError();
+  const { handleError } = useError();
 
-  async function fetchMessagesByChannelId(_channelId : number, _skip : number) {
+  async function fetchMessagesByChannelId(_channelId: number, _skip: number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/log?take=20&skip=" + _skip, {
-      cache: 'no-cache'
+      cache: "no-cache",
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Unknown error occurred');
+      throw new Error(errorData.message || "Unknown error occurred");
     }
     const fetchMessages = await response.json();
-    const msgs : Message[] = fetchMessages.map((msg : any) => ({
+    const msgs: Message[] = fetchMessages.map((msg: any) => ({
       id: msg.message_id,
       senderId: msg.user_id,
       content: msg.content,
-      created_at: new Date(Date.parse(msg.created_at)).toISOString().replace('T', ' ').slice(0, -5),
+      created_at: new Date(Date.parse(msg.created_at)).toISOString().replace("T", " ").slice(0, -5),
     }));
     setSkip(_skip + 20);
     return msgs;
   }
 
-  async function fetchUsersByChannelId(_channelId : number) {
+  async function fetchUsersByChannelId(_channelId: number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/users", {
-      cache: 'no-cache'
+      cache: "no-cache",
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Unknown error occurred');
+      throw new Error(errorData.message || "Unknown error occurred");
     }
     const fetchUsers = await response.json();
-    const usrs : ChatUser[] = fetchUsers.map((usr : any) => ({
+    const usrs: ChatUser[] = fetchUsers.map((usr: any) => ({
       id: usr.user.user_id,
       profile: usr.user.profile_url,
       nickname: usr.user.nickname,
@@ -78,7 +75,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     return usrs;
   }
 
-  async function fetchBanListByChannelId(_channelId : number) {
+  async function fetchBanListByChannelId(_channelId: number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/banlist");
     if (!response.ok) {
       const errorData = await response.json();
@@ -86,7 +83,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
     const fetchBanList = await response.json();
 
-    const banlist : ChatUser[] = fetchBanList.map((usr : any) => ({
+    const banlist: ChatUser[] = fetchBanList.map((usr: any) => ({
       id: usr.user.user_id,
       profile: usr.user.profile_url,
       nickname: usr.user.nickname,
@@ -97,7 +94,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     return banlist;
   }
 
-  async function fetchMuteListByChannelId(_channelId : number) {
+  async function fetchMuteListByChannelId(_channelId: number) {
     const response = await fetch(API_URL + "/chat/" + _channelId + "/mutelist");
     if (!response.ok) {
       const errorData = await response.json();
@@ -105,8 +102,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
     const fetchMuteList = await response.json();
 
-    const mutelist : number[] = fetchMuteList.map((usr : any) => {
-      return (usr.user.user_id);
+    const mutelist: number[] = fetchMuteList.map((usr: any) => {
+      return usr.user.user_id;
     });
     return mutelist;
   }
@@ -119,24 +116,24 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   /* dummyData */
   function sendMessage(textContent: string) {
-    const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-    const message : Message = {id: getMessageId(), senderId:userId, content:textContent, created_at:formattedTime};
+    const formattedTime = new Date(Date.now()).toISOString().replace("T", " ").slice(0, -5);
+    const message: Message = { id: getMessageId(), senderId: userId, content: textContent, created_at: formattedTime };
     setMessages([...messages, message]);
   }
 
   const userId = 63;
   const [messageId, setMessageId] = useState(200);
 
-  function getMessageId () {
-    setMessageId(messageId+1);
+  function getMessageId() {
+    setMessageId(messageId + 1);
     return messageId;
   }
   /* dummyData */
 
   useEffect(() => {
     async function init() {
-        setShowNotification(false);
-        setDrawerOpen(false);
+      setShowNotification(false);
+      setDrawerOpen(false);
       try {
         const [usrs, msgs, bans, mutes] = await Promise.all([
           fetchUsersByChannelId(channelIdNumber),
@@ -148,43 +145,52 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         setMessages(msgs);
         setBanList(bans);
         setMuteList(mutes);
-        setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === userId))?.role || "none"))
+        setIsAdmin(["admin", "owner"].includes(usrs.find((u) => u.id === userId)?.role || "none"));
       } catch (error) {
-          handleError("Init Fetch", (error as Error).message);
+        handleError("Init Fetch", (error as Error).message);
       }
-    };
+    }
     init();
   }, [channelId]);
 
   useEffect(() => {
-    const channel = channels.find((ch)=>(ch.id === channelIdNumber));
-    if (channel)
-      setChannel(channel);
-  }, [channelId, channels])
+    const channel = channels.find((ch) => ch.id === channelIdNumber);
+    if (channel) setChannel(channel);
+  }, [channelId, channels]);
 
   return (
     <div className="flex flex-col h-full">
       <MessageHeader
         channel={channel}
-        memberCount={users.filter((u)=>(u.deleted_at === null)).length}
-        handleMenuButton={()=>{setDrawerOpen(true)}}/>
-      <ChatContext.Provider value={{isAdmin, setIsAdmin, muteList, setMuteList, banList, setBanList}}>
+        memberCount={users.filter((u) => u.deleted_at === null).length}
+        handleMenuButton={() => {
+          setDrawerOpen(true);
+        }}
+      />
+      <ChatContext.Provider value={{ isAdmin, setIsAdmin, muteList, setMuteList, banList, setBanList }}>
         <MessageList myId={userId} users={users} messages={messages} />
         <MenuDrawer
           open={drawerOpen}
-          handleClose={()=>{setDrawerOpen(false)}}
-          userlist={users.filter((u)=>(u.deleted_at === null))}
+          handleClose={() => {
+            setDrawerOpen(false);
+          }}
+          userlist={users.filter((u) => u.deleted_at === null)}
           channel={channel}
-          />
+        />
       </ChatContext.Provider>
-      <MessageSender sendMessage={sendMessage} handleBattleButton={()=>{setBattleModalOpen(true)}} />
+      <MessageSender
+        sendMessage={sendMessage}
+        handleBattleButton={() => {
+          setBattleModalOpen(true);
+        }}
+      />
 
       <BattleRequestModal
         open={battleModalOpen}
         onClose={() => setBattleModalOpen(false)}
         onGameCreate={handleGameCreate}
       />
-      { showNotification && (
+      {showNotification && (
         <div className="absolute top-14 left-0 right-0 ">
           <BattleNotification onClose={() => setShowNotification(false)} />
         </div>

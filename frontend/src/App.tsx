@@ -49,12 +49,13 @@ const router = createBrowserRouter([
   {
     // 홈화면 (로그인 후)
     path: "/",
-    element:
-        <div>
-          <L0Template organism={<Controller />} />
-          <AlertSnackbar />
-          <Game />
-        </div>,
+    element: (
+      <div>
+        <L0Template organism={<Controller />} />
+        <AlertSnackbar />
+        <Game />
+      </div>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {
@@ -119,19 +120,19 @@ function App() {
   // ---------------------------------------------------------------------------
 
   return (
-      <div>
-        <ErrorProvider>
-          <div className="App">
-            <header className="App-header">
-              <GlobalContext.Provider
-                  value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-              >
-                <RouterProvider router={router} />
-              </GlobalContext.Provider>
-            </header>
-          </div>
-        </ErrorProvider>
-      </div>
+    <div>
+      <ErrorProvider>
+        <div className="App">
+          <header className="App-header">
+            <GlobalContext.Provider
+              value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+            >
+              <RouterProvider router={router} />
+            </GlobalContext.Provider>
+          </header>
+        </div>
+      </ErrorProvider>
+    </div>
   );
 }
 

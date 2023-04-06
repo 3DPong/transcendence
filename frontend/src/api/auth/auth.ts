@@ -51,12 +51,6 @@ export async function submitOtpTokenToServer(handleError: handleErrorFunction, t
     handleError("2FA", errorData.message);
     return ;
   }
-  // on success
-  // 1. response payload는 없으며, 세션 및 쿠기가 삭제되고 로그아웃처리된다.
-  // 2. 따라서 /login 페이지로 라우팅시켜야 함.
-  const navigate = useNavigate();
-  console.log("[Success] 2Factor setting is finished!");
-  navigate("/login");
 }
 
 /** --------------------------------------

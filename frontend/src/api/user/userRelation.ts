@@ -34,7 +34,7 @@ const validateSessionStatus = async (handleError: handleErrorFunction, res: Resp
     handleError(
         "UserData",
         errorData.message,
-        "/login",
+       errorData.status === 401 ? "/login" : null,
         ); // redirect to /login page
     return;
   }

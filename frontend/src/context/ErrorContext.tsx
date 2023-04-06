@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
-export type handleErrorFunction = (title:string | null, message: string | null, redirectUrl?: string | null) => void;
+export type handleErrorFunction = (title: string | null, message: string | null, redirectUrl?: string | null) => void;
 
 interface ErrorContextValue {
   errorTitle: string | null;
@@ -17,7 +17,7 @@ const ErrorContext = createContext<ErrorContextValue | null>(null);
 export function useError() {
   const context = useContext(ErrorContext);
   if (!context) {
-    throw new Error('useError must be used within an ErrorProvider');
+    throw new Error("useError must be used within an ErrorProvider");
   }
   return context;
 }

@@ -14,69 +14,64 @@ import React, { useState, useEffect, useRef, MutableRefObject, forwardRef, RefOb
 
 import { PongSimulator } from "@/simulation/PongSimulator";
 import { DebugDraw } from "@/simulation/DebugDraw/DebugDraw";
-import { Renderer3D } from '@/components/Organism/Game/Renderer/Renderer';
-
+import { Renderer3D } from "@/components/Organism/Game/Renderer/Renderer";
 
 // https://forum.babylonjs.com/t/react-ui-babylon-js-how-to-avoid-usestate-re-rendering-canvas/35154/3
 // Game Component가 계속 Rerender되는 걸 방지.
 // export default React.memo(Game);
 
 export interface GameProps {
-    // gameState : GlobalContext.eGameState;
-    // gameState : MutableRefObject<GlobalContext.eGameState>;
-    gameRef : RefObject<any>;
-    setGameState? : () => void;
+  // gameState : GlobalContext.eGameState;
+  // gameState : MutableRefObject<GlobalContext.eGameState>;
+  gameRef: RefObject<any>;
+  setGameState?: () => void;
 }
 
 export interface GameForwardRef {
-    // gameState : GlobalContext.eGameState;
+  // gameState : GlobalContext.eGameState;
 }
 
-export function Game({state} : any) {
-// export default function Game({gameState, setGameState}: GameProps) {
+export function Game({ state }: any) {
+  // export default function Game({gameState, setGameState}: GameProps) {
 
-    // const gameContext = useContext(GlobalContext.gameContext);
-    // UseMemo를 쓰지 않은 이유는, component destory때 simulator의 자원을 수거하기 위함.
-    const [simulator, setSimulator] = useState<PongSimulator | null>(null);
+  // const gameContext = useContext(GlobalContext.gameContext);
+  // UseMemo를 쓰지 않은 이유는, component destory때 simulator의 자원을 수거하기 위함.
+  const [simulator, setSimulator] = useState<PongSimulator | null>(null);
 
-    useEffect(() => {
-        // On Mount
-        (async () => {
-            // (1) * Load Simulator
-            const loadedSimulator = await new PongSimulator();
-            setSimulator(loadedSimulator);
-        })(/* IIFE */);
+  useEffect(() => {
+    // On Mount
+    (async () => {
+      // (1) * Load Simulator
+      const loadedSimulator = await new PongSimulator();
+      setSimulator(loadedSimulator);
+    })(/* IIFE */);
 
-        // On Component Unmount, clean-up simulator.
-        return () => {
-            simulator?.destroy();
-        };
-    }, []);
+    // On Component Unmount, clean-up simulator.
+    return () => {
+      simulator?.destroy();
+    };
+  }, []);
 
-    useEffect(() => {
-        console.log("gameState changed");
-    }, [state]);
+  useEffect(() => {
+    console.log("gameState changed");
+  }, [state]);
 
-    return (
-        <>
-            {/* <div className=" absolute -z-50 w-0 h-0"> --> [Background canvas] */}
-            <div> {/* Babylon JS Renderer */}
-                {simulator && (
-                    <Renderer3D
-                        simulator={simulator}
-                        width={window.innerWidth}
-                        height={window.innerHeight}
-                    />
-                )}
-            </div>
+  return (
+    <>
+      {/* <div className=" absolute -z-50 w-0 h-0"> --> [Background canvas] */}
+      <div>
+        {" "}
+        {/* Babylon JS Renderer */}
+        {simulator && <Renderer3D simulator={simulator} width={window.innerWidth} height={window.innerHeight} />}
+      </div>
 
-            {/* <div>
+      {/* <div>
                 {simulator && (
                     <DebugDraw simulator={simulator} width={700} height={700} />
                 )}
             </div> */}
-        </>
-    );
+    </>
+  );
 }
 
 export default React.memo(Game);

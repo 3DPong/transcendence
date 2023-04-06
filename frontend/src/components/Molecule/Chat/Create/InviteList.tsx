@@ -6,9 +6,9 @@ interface InviteListProps {
   users: User[];
   invitedUsers: string[];
   setInvitedUsers: (user: string[]) => void;
-};
+}
 
-const InviteList : FC<InviteListProps> = ({users, invitedUsers, setInvitedUsers}) => {
+const InviteList: FC<InviteListProps> = ({ users, invitedUsers, setInvitedUsers }) => {
   return (
     <FormControl fullWidth sx={{ mb: 2 }}>
       <InputLabel id="user-list-label">선택</InputLabel>
@@ -19,11 +19,11 @@ const InviteList : FC<InviteListProps> = ({users, invitedUsers, setInvitedUsers}
         onChange={(event) => setInvitedUsers(event.target.value as string[])}
         sx={{ minWidth: 200 }}
       >
-        {
-          users.map(user => (
-            <MenuItem key={user.id} value={user.id}>{user.nickname}</MenuItem>
-          ))
-        }
+        {users.map((user) => (
+          <MenuItem key={user.id} value={user.id}>
+            {user.nickname}
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
   );

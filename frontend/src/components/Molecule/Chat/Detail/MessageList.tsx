@@ -1,14 +1,13 @@
-
 // src/MessageList.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import { Message, ChatUser, defaultChatUser } from '@/types/chat';
-import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
+import React, { useEffect, useRef, useState } from "react";
+import { Message, ChatUser, defaultChatUser } from "@/types/chat";
+import MessageCard from "@/components/Molecule/Chat/Detail/MessageCard";
 
 interface MessageListProps {
   myId: number;
   messages: Message[];
   users: ChatUser[];
-};
+}
 
 const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -17,7 +16,7 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -26,9 +25,11 @@ const MessageList: React.FC<MessageListProps> = ({ myId, messages, users }) => {
   }, [messages]);
 
   return (
-    <div className=" pl-2 pr-4 border-l border-r border-gray-200 flex-1 overflow-y-auto
+    <div
+      className=" pl-2 pr-4 border-l border-r border-gray-200 flex-1 overflow-y-auto
                     scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
-        onScroll={(event)=>setScrollY(event.currentTarget.scrollTop)}>
+      onScroll={(event) => setScrollY(event.currentTarget.scrollTop)}
+    >
       {messages.map((message, index) => {
         const isMyMessage = message.senderId === myId;
         const sender = userMap.get(message.senderId) || defaultChatUser;

@@ -18,7 +18,7 @@ import { Button, Icon } from "@mui/material";
 import { useState } from "react";
 import { SvgIcon } from "@mui/material";
 import { Box } from "@mui/material";
-import LoadingButton from '@mui/lab/LoadingButton';
+import LoadingButton from "@mui/lab/LoadingButton";
 
 import LOGO_42 from "@/assets/42_logo.svg";
 import { Assert } from "@/utils/Assert";
@@ -37,7 +37,7 @@ interface signInProps {}
 
 export function SignIn() {
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
-  const [ isLoading, setIsLoading ] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -48,17 +48,15 @@ export function SignIn() {
 
       if (!response) return;
 
-      if (response.status === "SUCCESS")
-      { // go to '/home'
+      if (response.status === "SUCCESS") {
+        // go to '/home'
         Assert.NonNullish(response.user_id);
         setLoggedUserId(response.user_id);
-      }
-      else if (response.status === "SIGNUP_MODE")
-      { // go to SignUp
+      } else if (response.status === "SIGNUP_MODE") {
+        // go to SignUp
         navigate("/signup");
-      }
-      else // 2FA
-      {
+      } // 2FA
+      else {
         // 1. qr코드 이미지를 받아온다.
         // 2. 이 이미지와 함께 입력할 창을 제공한다.
         // 3. click을 누르면 제출된다.
@@ -72,39 +70,38 @@ export function SignIn() {
     // 이 경우는 암것도 하지 않고 home으로 리다이렉트만 시킨다.
     if (sessionStorage.getItem("user_id") !== null) {
       navigate("/"); // home 경로로 이동한다.
-      return ;
+      return;
     }
-  }, [])
+  }, []);
 
   // save loggedUserId state to Session Storage
   useEffect(() => {
     if (loggedUserId && sessionStorage.getItem("user_id") === null) {
-        // 세션스토리지에 데이터가 없다면, 그건 이전에 로그인을 한 적이 없다는 얘기.
-        alert("[DEV] Login Success. state {loggedUserId} is set");
-        // 이 경우 브라우저 세션 스토리지에 해당 id를 저장한다. 이 데이터는 페이지 re-refresh 이후 App.tsx 에서 reload된다.
-        sessionStorage.setItem("user_id", loggedUserId.toString());
-        navigate("/"); // home 경로로 이동한다.
-        return ;
-      }
+      // 세션스토리지에 데이터가 없다면, 그건 이전에 로그인을 한 적이 없다는 얘기.
+      alert("[DEV] Login Success. state {loggedUserId} is set");
+      // 이 경우 브라우저 세션 스토리지에 해당 id를 저장한다. 이 데이터는 페이지 re-refresh 이후 App.tsx 에서 reload된다.
+      sessionStorage.setItem("user_id", loggedUserId.toString());
+      navigate("/"); // home 경로로 이동한다.
+      return;
+    }
   }, [loggedUserId]);
 
   // navigate 함수 사용시 컴포넌트 깜빡임 문제 해결을 위한 시도.
-  if (sessionStorage.getItem("user_id") !== null) 
-    return <></>;
+  if (sessionStorage.getItem("user_id") !== null) return <></>;
   else
     return (
       <>
-          <div className=" flex items-center justify-center h-screen">
-            <LoadingButton
-              onClick={handleClick}
-              loading={isLoading}
-              loadingPosition="start"
-              startIcon={<Icon42 />}
-              variant="contained"
-            >
-              SignIn
-            </LoadingButton>
-          </div>
+        <div className=" flex items-center justify-center h-screen">
+          <LoadingButton
+            onClick={handleClick}
+            loading={isLoading}
+            loadingPosition="start"
+            startIcon={<Icon42 />}
+            variant="contained"
+          >
+            SignIn
+          </LoadingButton>
+        </div>
       </>
     );
 }

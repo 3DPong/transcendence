@@ -19,7 +19,7 @@ import GlobalContext from "@/context/GlobalContext";
 import { Assert } from "@/utils/Assert";
 
 export default function Profile() {
-  const [ profileState, setProfileState ] = useState<API.GET_UserDataResponseFormat>();
+  const [profileState, setProfileState] = useState<API.GET_UserDataResponseFormat>();
   const { pathname } = useLocation();
   const { loggedUserId } = useContext(GlobalContext);
 

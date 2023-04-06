@@ -33,7 +33,7 @@ export async function getMySettings(handleError: handleErrorFunction) {
     handleError(
         "Get User Settings",
         errorData.message,
-        "/signin",
+        settingResponse.status === 401 ? "/signin" : null,
     ); // redirect to /login page
     return ;
   }

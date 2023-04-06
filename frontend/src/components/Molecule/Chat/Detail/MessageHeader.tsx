@@ -1,8 +1,8 @@
-import React from 'react';
-import { IconButton, Typography } from '@mui/material';
-import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from '@mui/icons-material';
-import { Channel, ChannelType } from '@/types/chat';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { IconButton, Typography } from "@mui/material";
+import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from "@mui/icons-material";
+import { Channel, ChannelType } from "@/types/chat";
+import { Link } from "react-router-dom";
 
 interface MessageHeaderProps {
   channel: Channel;
@@ -11,16 +11,15 @@ interface MessageHeaderProps {
 }
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, handleMenuButton }) => {
-
   const getChannelTypeIcon = (type: ChannelType) => {
     switch (type) {
-      case 'protected':
+      case "protected":
         return <LockOpen fontSize="small" />;
-      case 'private':
+      case "private":
         return <Lock fontSize="small" />;
-      case 'public':
+      case "public":
         return <Public fontSize="small" />;
-      case 'dm':
+      case "dm":
         return <Person fontSize="small" />;
       default:
         return null;
@@ -34,20 +33,19 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
       </IconButton>
       <div className="flex-grow flex items-center justify-center">
         <div className="flex items-center">
-          <span className="px-1.5 py-0.5 rounded text-blue-700 pr-2">
-            {getChannelTypeIcon(channel.type)}
-          </span>
+          <span className="px-1.5 py-0.5 rounded text-blue-700 pr-2">{getChannelTypeIcon(channel.type)}</span>
           <Typography
             variant="h6"
             title={channel.title}
             className="underline bold text-black-700 text-center
                         truncate overflow-ellipsis overflow-hidden
-                        max-w-[220px] min-w-[100px]">
+                        max-w-[220px] min-w-[100px]"
+          >
             {channel.title}
           </Typography>
         </div>
         <Typography variant="subtitle1" className="pl-2 text-gray-700">
-          {memberCount > 99 ? '99+' : memberCount}
+          {memberCount > 99 ? "99+" : memberCount}
         </Typography>
       </div>
       <IconButton edge="end" color="inherit" aria-label="menu" onClick={handleMenuButton}>
