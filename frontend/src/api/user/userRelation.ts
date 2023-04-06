@@ -6,54 +6,58 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 19:25:57 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/27 22:04:39 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 18:37:08 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 /**
- * User relations API
+ * User relations API 
+ * @link https://github.com/3DPong/transcendence/issues/43
  */
 
 import { Assert } from "@/utils/Assert";
 import { globalUserData_t } from "@/types/user";
+import { UserFriendRelationsDummyData, createUsersDummyByString } from "@/dummy/data";
+import { TryRounded } from "@mui/icons-material";
+import { fetchAndHandleResponseError } from "@/api/error/error";
 import { useNavigate } from "react-router";
-import {API_URL} from "../../../config/backend";
-import {handleErrorFunction, useError} from "@/context/ErrorContext";
 
-/*----------------------------------------*
- *    GET user_relations API              *
- *----------------------------------------*/
+/*----------------------------------*
+ *             GET API              *
+ *----------------------------------*/
+
+// GET /user/search/{string}
 
 export interface GET_GlobalSearchResponseFormat {
   relations: globalUserData_t[];
 }
 
-const validateSessionStatus = async (handleError: handleErrorFunction, res: Response) => {
-  if (!res.ok) {
-    const errorData = await res.json();
-    handleError(
-        "UserData",
-        errorData.message,
-       errorData.status === 401 ? "/login" : null,
-        ); // redirect to /login page
-    return;
-  }
-  return (res);
-}
 
-export async function getUserListBySearchString(handleError: handleErrorFunction, searchString: string) {
 
-  const requestUrl = `${API_URL}/api/user/search/${searchString}`;
-  const userListResponse = await fetch(requestUrl, { method: "GET" });
 
-  // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
-  if (!validatedResponse) {
-    return;
-  }
-  // on success
-  const userData: GET_GlobalSearchResponseFormat = await validatedResponse.json();
-  return (userData.relations);
+export async function getUsersListBySearchString(searchString: string) {
+  return new Promise<GET_GlobalSearchResponseFormat>(async (resolve, reject) => {
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
+
+    setTimeout(() => {
+      // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
+      const randomTestUsers = createUsersDummyByString(searchString, 50);
+      console.dir(randomTestUsers);
+      resolve({ relations: randomTestUsers });
+    }, 50);
+  });
+
+
 };
 
 
@@ -81,28 +85,39 @@ export interface GET_RelationResponseFormat {
   relations: Relation[]; // Array
 }
 
-export async function getUserListByRelationType(handleError: handleErrorFunction, type: GET_RelationType) {
-  let requestUrl;
-  switch(type) {
-    case GET_RelationType.none: // 전체 사용자 그룹.
-      requestUrl = `${API_URL}/api/user_relation`;
-      break;
-    case GET_RelationType.friend:
-      requestUrl = `${API_URL}/api/user_relation?relation=friend`;
-      break;
-    case GET_RelationType.block:
-      requestUrl = `${API_URL}/api/user_relation?relation=block`;
-      break;
-  }
-  const userListResponse = await fetch(requestUrl, { method: "GET" });
-  // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
-  if (!validatedResponse) {
-    return;
-  }
-  // on success
-  const userData: GET_RelationResponseFormat = await validatedResponse.json();
-  return (userData.relations);
+// GET /user_relation
+// GET /user_relation?relation=friend
+export const getUserRelationsList = (type: GET_RelationType) => {
+ return new Promise<GET_RelationResponseFormat>((resolve, reject) => {
+    let GET_URL;
+    switch(type) {
+      case GET_RelationType.none: // 전체 사용자 그룹.
+        GET_URL = `/user_relation`;
+        break;
+      case GET_RelationType.friend:
+        GET_URL = `/user_relation?relation=friend`;
+        break;
+      case GET_RelationType.block:
+        GET_URL = `/user_relation?relation=block`;
+        break;
+    }
+
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
+
+    // API MOCKUP (추후 바꿔야 함.)
+    setTimeout(() => {
+      resolve(UserFriendRelationsDummyData);
+    }, 50);
+  });
 }
 
 /*----------------------------------*
@@ -126,38 +141,44 @@ export enum PUT_RelationActionType {
 }
 
 // PUT /user_relation
-export async function changeUserRelation(handleError: handleErrorFunction, targetId: number, action: PUT_RelationActionType) {
+export const changeUserRelation = (targetId: number, action: PUT_RelationActionType) => {
+  return new Promise<PUT_RelationResponseFormat>((resolve, reject) => {
 
-  const requestUrl = `${API_URL}/api/user_relation`;
+    const PUT_URL = "/user_relation";
 
-  let requestPayload: PUT_RelationRequestFormat = { target_id: targetId, status: 'none'};
-  switch (action) {
-    case PUT_RelationActionType.addFriend:
-      requestPayload.status = "friend";
-      break;
-    case PUT_RelationActionType.blockUser:
-      requestPayload.status = "block";
-      break;
-    case PUT_RelationActionType.unBlockUser:
-      requestPayload.status = "none";
-      break;
-    default:
-      Assert.MustBeTrue(false, "No matching relation action");
-  }
+    let request: PUT_RelationRequestFormat = { target_id: targetId, status: 'none'};
+    switch (action) {
+      case PUT_RelationActionType.addFriend:
+        request.status = "friend";
+        break;
+      case PUT_RelationActionType.blockUser:
+        request.status = "block";
+        break;
+      case PUT_RelationActionType.unBlockUser:
+        request.status = "none";
+        break;
+      default:
+        Assert.MustBeTrue(false, "No matching relation action");
+    }
 
-  const userListResponse = await fetch(requestUrl, {
-    method: "PUT",
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestPayload),
+    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
+    /*
+    const URL = `/user/search/${searchString}`;
+    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
+    if (response) {
+      const jsonObjcet = response.json();
+      console.log("Response data JSON :"); console.dir(jsonObjcet);
+      resolve (jsonObjcet);
+    }
+    */
+
+    // API MOCKUP (추후 바꿔야 함.)
+    setTimeout(() => {
+      const response: PUT_RelationResponseFormat = {
+        target_id : request.target_id,
+        status : (request.status ? request.status : "none") 
+      }; // 정상 수행일 경우 res = req
+      resolve(response);
+    }, 50);
   });
-  // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
-  if (!validatedResponse) {
-    return;
-  }
-  // on success
-  const userData: PUT_RelationResponseFormat = await validatedResponse.json();
-  return (userData);
 };

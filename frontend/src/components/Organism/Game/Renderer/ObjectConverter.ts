@@ -36,9 +36,9 @@ export const convertVec2ArrayToVec3 = (vec2Arr: readonly Box2D.b2Vec2[], _floatP
 export const convertChainToLineMesh = (obj: b2Object, scene: Scene) => {
     const chain = <b2ChainObject>(obj);
     const verticiesArray2D = chain.getChainVertices();
-    // for (let v of verticiesArray2D) {
-        // console.log(v.x, v.y);
-    // }
+    for (let v of verticiesArray2D) {
+        console.log(v.x, v.y);
+    }
     const verticiesArray3D = convertVec2ArrayToVec3(verticiesArray2D, 2);
     verticiesArray3D.push(verticiesArray3D[0]); // end cap
     const lines = MeshBuilder.CreateLines("lines", {
