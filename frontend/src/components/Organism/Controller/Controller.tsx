@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/31 17:31:39 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/24 16:36:22 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,146 +28,165 @@ import ListItemButton from "@mui/material/ListItemButton";
 
 import { useEffect, useState } from "react";
 import { Button } from "@mui/material";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogActions from "@mui/material/DialogActions";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 
 import SettingDialog from "@/components/Organism/Setting/SettingDialog";
 
 interface welcomeDialogProps {
-  state: { nickname: string };
+    state: { nickname: string };
 }
 
-function WelcomeDialog({ state }: welcomeDialogProps) {
-  const [open, setOpen] = useState<boolean>(false);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+function WelcomeDialog({state}: welcomeDialogProps) {
 
-  const handleClose = () => {
-    setOpen(false);
-  };
+    const [open, setOpen] = useState<boolean>(false);
 
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">welcome {state.nickname}!</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          저희 게임에 처음 오셨군요! <br />
-          게임 진행에 관한 튜토리얼을 진행하시겠어요?
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>네</Button>
-        <Button onClick={handleClose} autoFocus>
-          아니요
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+    const handleClickOpen = () => {
+        setOpen(true);
+      };
+    
+      const handleClose = () => {
+        setOpen(false);
+      };
+
+    return (
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">welcome {state.nickname}!</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            저희 게임에 처음 오셨군요! <br/>
+            게임 진행에 관한 튜토리얼을 진행하시겠어요?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>네</Button>
+          <Button onClick={handleClose} autoFocus>아니요</Button>
+        </DialogActions>
+      </Dialog>
+    );
 }
+
 
 export enum eClickedBtn {
-  NONE,
-  PROFILE,
-  FRIENDS,
-  ROOMS,
-  SETTINGS,
+    NONE,
+    PROFILE,
+    FRIENDS,
+    ROOMS,
+    SETTINGS,
 }
 
 export default function Controller() {
-  const [clickState, setClickState] = React.useState<eClickedBtn>(0);
-  const [openSetting, setOpenSetting] = React.useState<boolean>(false);
 
-  // ---------------------------------------------------------------
-  // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
-  // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
-  const location = useLocation();
+    const [ clickState, setClickState ] = React.useState<eClickedBtn>(0);
+    const { loggedUserId, setLoggedUserId } = React.useContext(GlobalContext);
 
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    // TODO: 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
-  }, []);
-  // ---------------------------------------------------------------
+    const [openSetting, setOpenSetting] = React.useState<boolean>(false);
 
-  const toggleClickState = (srcState: eClickedBtn) => {
-    setClickState(clickState !== srcState ? srcState : eClickedBtn.NONE);
-  };
+    // ---------------------------------------------------------------
+    // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
+    // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
+    const location = useLocation();
 
-  const BUTTON_STYLE = "";
-  const sx: SxProps = { width: "100%", aspectRatio: "1/1", border: 0.5, borderColor: "gray" };
+    const navigate = useNavigate();
+    React.useEffect(() => {
+        // TODO: 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
+        if (!loggedUserId) { // 로그인 유저 데이터가 없다면 login page로 이동.
 
-  return (
-    <>
-      <Box>
-        <CssBaseline />
-        <Drawer
-          sx={{
-            width: "fit-content",
-            // flexShrink: 0,
-            "& .MuiDrawer-paper": {
-              width: "fit-content",
-              boxSizing: "border-box",
-            },
-          }}
-          variant="permanent"
-          anchor="left"
-        >
-          <Toolbar />
-          <Divider />
-          <List sx={{ padding: 0, margin: 0 }}>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.PROFILE ? "./profile" : "/"}
-                tooltipTitle="Profile"
-                children={<AccountBox fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.PROFILE)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.FRIENDS ? "./friends" : "/"}
-                tooltipTitle="Friends"
-                children={<Group fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-                badge={3} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.ROOMS ? "./channels " : "/"}
-                tooltipTitle="Rooms"
-                children={<Chat fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-                badge={5} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                tooltipTitle={"Settings"}
-                to={"/"}
-                onClick={() => setOpenSetting(true)}
-                children={<Settings fontSize="large" />}
-              />
-              {/* Dialog */}
-              <SettingDialog open={openSetting} setOpen={setOpenSetting} />
-            </div>
-          </List>
-        </Drawer>
-      </Box>
-    </>
-  );
+            const saved_user_id = sessionStorage.getItem("user_id");
+            if (saved_user_id) {
+                setLoggedUserId(parseInt(saved_user_id));
+                console.log("setting up user_id from sessionStorage");
+            } else {
+                alert("[DEV] Null user_id. redirecting to /signin");
+                navigate("/signin");
+            }
+        }
+    }, []);
+    // ---------------------------------------------------------------
+
+    const toggleClickState = (srcState: eClickedBtn) => {
+        setClickState( (clickState !== srcState) ? srcState : eClickedBtn.NONE);
+    }
+
+    const BUTTON_STYLE = ""
+    const sx: SxProps = {width: "100%", aspectRatio:"1/1", border:0.5, borderColor:"gray"};
+
+
+    return (
+        // <Box sx={{ display: "flex" }}>
+
+        <>
+        {/* { s && <WelcomeDialog state={s}/>} */}
+        <Box>
+            <CssBaseline />
+            <Drawer
+                sx={{
+                    width: "fit-content",
+                    // flexShrink: 0,
+                    "& .MuiDrawer-paper": {
+                        width: "fit-content",
+                        boxSizing: "border-box",
+                    },
+                }}
+                variant="permanent"
+                anchor="left"
+            >
+                <Toolbar />
+                <Divider />
+                <List sx={{padding:0, margin:0}}>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            sx={sx}
+                            to={ (clickState !== eClickedBtn.PROFILE) ? "./profile" : "/"}
+                            tooltipTitle="Profile"
+                            children={<AccountBox fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.PROFILE)}
+                            badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            sx={sx}
+                            to={ (clickState !== eClickedBtn.FRIENDS) ? "./friends" : "/"}
+                            tooltipTitle="Friends"
+                            children={<Group fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
+                            badge={3} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            sx={sx}
+                            to={ (clickState !== eClickedBtn.ROOMS) ? "./channels " : "/"}
+                            tooltipTitle="Rooms"
+                            children={<Chat fontSize="large" />}
+                            onClick={() => toggleClickState(eClickedBtn.ROOMS)}
+                            badge={5} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                        />
+                    </div>
+                    <div className={BUTTON_STYLE}>
+                        <ListItemButtonLink
+                            sx={sx}
+                            tooltipTitle={"Settings"}
+                            to={"/"}
+                            onClick={() => setOpenSetting(true)}
+                            children={<Settings fontSize="large" />}
+                        />
+                        {/* Dialog */}
+                        <SettingDialog open={openSetting} setOpen={setOpenSetting} />
+                    </div>
+                </List>
+            </Drawer>
+        </Box>
+        </>
+    );
 }

@@ -110,6 +110,7 @@ export class b2Paddle extends b2PrismaticJointedObject {
     }
 
     public override RegisterTo(world: Box2D.b2World): this {
+        console.log("Paddle : registerTo() called");
         const { b2EdgeShape, b2Vec2 } = this.__box2dModule;
 
         // (1) 일단 기존 box부터 world에 붙이고, 그 이후에 진행.
