@@ -48,12 +48,11 @@ export class NotifySocketService {
     let jsonUserSockets: UserSocketsDto;
     if (userSockets) {
       jsonUserSockets = JSON.parse(userSockets);
-      jsonUserSockets.notifySocket = socket.id;
+      jsonUserSockets.socketId = socket.id;
       this.redisClient.set(user_id.toString(), JSON.stringify(jsonUserSockets));
     } else {
       jsonUserSockets = {
-        notifySocket: socket.id,
-        chatSocket: null,
+        socketId: socket.id,
       };
       this.redisClient.set(user_id.toString(), JSON.stringify(jsonUserSockets));
     }
