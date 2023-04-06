@@ -17,7 +17,7 @@ import { DevModule, EmptyModule } from './models/dev/dev.module';
 import { ImageModule } from './models/image/image.module';
 import { OtpModule } from './common/otp/otp.module';
 import { OtpConfigModule } from './config/otp/config.module';
-import { UserStatusSocketModule } from './models/userStatusSocket/socket';
+import { NotifySocketModule } from './models/notifySocket/socket';
 import { RedisStorageProviderModule } from './providers/redis/provider.module';
 import { SessionMiddleware } from './common/middlewares/session/session.middleware';
 import { WsExceptionFilter } from './common/filters/socket/wsException.filter';
@@ -30,7 +30,7 @@ import { NotifierModule } from './models/notifier/notifier.module';
     AuthModule,
     ChatModule,
     MatchModule,
-    UserStatusSocketModule,
+    NotifySocketModule,
     NotifierModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,

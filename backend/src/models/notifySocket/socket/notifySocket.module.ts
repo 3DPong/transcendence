@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { UserStatusSocketService } from './services';
-import { UserStatusSocketGateway } from './userStatusSocket.gateway';
+import { NotifySocketService } from './services';
+import { NotifySocketGateway } from './notifySocket.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../user/entities';
 import { NotifierModule } from '../../notifier/notifier.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), NotifierModule],
-  providers: [UserStatusSocketGateway, UserStatusSocketService],
+  providers: [NotifySocketGateway, NotifySocketService],
 })
-export class UserStatusSocketModule {}
+export class NotifySocketModule {}
