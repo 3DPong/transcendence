@@ -10,6 +10,7 @@ import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
+import { GameModule } from './models/game/socket';
 import { SessionConfigModule } from './config/session/config.module';
 import { FtConfigModule } from './config/ft/config.module';
 import { RedisConfigModule } from './config/redis/config.module';
@@ -32,6 +33,7 @@ import { NotifierModule } from './models/notifier/notifier.module';
     MatchModule,
     NotifySocketModule,
     NotifierModule,
+    GameModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,

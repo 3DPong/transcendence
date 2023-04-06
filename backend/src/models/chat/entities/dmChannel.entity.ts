@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../../user/entities';
 import { ChatChannel } from './chatChannel.entity';
 import { Factory } from 'nestjs-seeder';
@@ -16,6 +16,9 @@ export class DmChannel {
   @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @Column({ type: 'int' })
   channel_id: number;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 
   @ManyToOne(() => User, (user) => user.dmList1)
   @JoinColumn({ name: 'first_user_id' })
