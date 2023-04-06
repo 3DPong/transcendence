@@ -23,6 +23,7 @@ import { SessionMiddleware } from './common/middlewares/session/session.middlewa
 import { WsExceptionFilter } from './common/filters/socket/wsException.filter';
 import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
 import { NotifierModule } from './models/notifier/notifier.module';
+import { GameModule } from './models/game/socket';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { NotifierModule } from './models/notifier/notifier.module';
     MatchModule,
     NotifySocketModule,
     NotifierModule,
+    GameModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
