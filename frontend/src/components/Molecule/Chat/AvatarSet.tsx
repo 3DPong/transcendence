@@ -57,28 +57,26 @@ interface AvatarBadgeProps {
 };
 
 const AvatarBadge : FC<AvatarBadgeProps> = ({user, children, isNone}) => {
-  if (isNone)
-    return (
-      <Box
-        sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
-      >
-        {children}
-      </Box>
-    );
-  else
-    return (
-      <Badge 
-        sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        overlap="circular"
-        badgeContent={ ["owner", "admin"].includes(user.role) ?
-                        <RiVipCrown2Fill size="1.5em" color={ user.role === "owner" ? "Blue" : "Crimson" }/>
-                        : <></>
-        }
-      >
+  return (
+    <Badge 
+      sx={{paddingLeft: "6px", paddingRight: "2px", zIndex: 2}}
+      anchorOrigin={{
+        vertical: 'top',
+        horizontal: 'left',
+      }}
+      overlap="circular"
+      badgeContent={ ["owner", "admin"].includes(user.role) ?
+                      <RiVipCrown2Fill size="1.5em" color={ user.role === "owner" ? "Blue" : "Crimson" }/>
+                      : <></>
+      }
+    >
+      {
+        isNone ? 
+          <Box
+          >
+            {children}
+          </Box>
+        :
         <StyledBadge
           status={user.status || 'none'}
           overlap="circular"
@@ -87,8 +85,9 @@ const AvatarBadge : FC<AvatarBadgeProps> = ({user, children, isNone}) => {
         >
           {children}
         </StyledBadge>
-      </Badge>
-    );
+      }
+    </Badge>
+  );
 }
 
 interface AvatarSetProps {
@@ -107,15 +106,16 @@ const AvatarSet : FC<AvatarSetProps> = ({user, scrollY}) => {
   return (
     <AvatarBadge user={user} isNone={isNone}>
       <Avatar
-          src={user.profile}
-          alt={user.nickname}
-          className="cursor-pointer"
-          onClick={handleAvatarClick}
+        sx={{border: '2px gray solid'}}
+        src={user.profile}
+        alt={user.nickname}
+        className="cursor-pointer"
+        onClick={handleAvatarClick}
       />
       {Boolean(anchorEl) && <AvatarPopper
         anchorEl={anchorEl}
         handleClose={()=>{setAnchorEl(null);}}
-        targetId={user.id}
+        target={user}
         scrollY={scrollY}
       />
       }

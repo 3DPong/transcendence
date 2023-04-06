@@ -11,12 +11,13 @@ import { useError } from "@/context/ErrorContext";
 
 interface MenuDrawerProps {
   open : boolean;
+  users : ChatUser[];
+  setUsers: (users: ChatUser[]) => void;
   handleClose : () => void;
-  userlist: ChatUser[];
   channel: Channel;
 };
 
-const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}) => {
+const MenuDrawer : FC<MenuDrawerProps> = ({open, users, setUsers, handleClose, channel}) => {
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
   const { isAdmin, banList } = useContext(ChatContext);
@@ -40,8 +41,8 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}
   return (
     <>
       <div
-        className={` border border-gray-200 absolute top-0 right-0
-          h-full w-72 bg-gray-100 z-50 transform duration-500 ease-in-out ${
+        className={` border border-gray-300 absolute top-0 right-0
+          h-full w-72 bg-gray-50 z-50 transform duration-500 ease-in-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -52,20 +53,35 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, handleClose, userlist, channel}
             onScroll={(event)=>{setScrollY(event.currentTarget.scrollTop)}}
           >
             {
-              settingOpen ? <ChannelSetting handleClose={()=>setSettingOpen(false)} channel={channel}/> :
+              settingOpen ?
+              <ChannelSetting
+                handleClose={()=>setSettingOpen(false)}
+                channel={channel}
+                userList={users}
+                setUserList={setUsers}
+              /> :
               <>
-                <MenuList title="참여 유저 리스트" users={userlist} scrollY={scrollY}/>
-                {isAdmin && <MenuList title="밴 리스트" users={banList} scrollY={scrollY}/> }
+                <MenuList title="User List" titleColor={"black"}
+                  users={users}
+                  scrollY={scrollY}
+                />
+                {isAdmin && <MenuList title="Ban List" titleColor={"black"} users={banList} scrollY={scrollY}/> }
               </>
             }
           </div>
           <div className="flex-shrink-0 h-50">
-            <MenuFooter handleLeave={leaveChannel} handleSetting={()=>{setSettingOpen(!settingOpen)}} settingOpen={settingOpen}/>
+          {
+            channel.type !== "dm" && <MenuFooter
+              handleLeave={leaveChannel}
+              handleSetting={()=>{setSettingOpen(!settingOpen)}}
+              settingOpen={settingOpen}
+            />
+          }
           </div>
         </div>
       </div>
       { open && <div
-            className="absolute top-0 left-0 w-full h-full bg-black opacity-50 z-40"
+            className="absolute top-0 left-0 w-full h-full bg-black opacity-30 z-40"
             onClick={handleClose}
           />
       }

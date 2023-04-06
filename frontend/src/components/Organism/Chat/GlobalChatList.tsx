@@ -1,4 +1,4 @@
-import React, {FC, useContext, useState} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import SearchTextField from "@/components/Molecule/SearchTextField";
 import MediaCard from "@/components/Molecule/MediaCard";
 
@@ -22,8 +22,18 @@ const GlobalChatList : FC<ChatListProps> = () => {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [selectChat, setSelectChat] = useState<Channel>();
 
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
+
   const {channels, setChannels} = useContext(GlobalContext);
   const {handleError} = useError();
+
+  useEffect(() => {
+    if (searchString.length < 3) {
+      setSubmitDisabled(true);
+    } else {
+      setSubmitDisabled(false);
+    }
+  }, [searchString]);
 
   function searchButtonClick() {
     setIsLoading(true);
@@ -107,6 +117,8 @@ const GlobalChatList : FC<ChatListProps> = () => {
           onClick={searchButtonClick}
           onKeyUp={searchButtonKeyup}
           placeholder={"공개 채팅방 검색"}
+          disabled={submitDisabled}
+          disabledHelperText={"3글자 이상 입력하세요"}
         />
       </div>
 

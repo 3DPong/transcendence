@@ -5,6 +5,9 @@ interface ChatContextProps {
   isAdmin: boolean;
   setIsAdmin: (tf: boolean) => void;
   
+  // userList: ChatUser[];
+  // setUserList: (users: ChatUser[]) => void;
+
   muteList: number[];
   setMuteList: (mutes: number[]) => void;
 
@@ -15,6 +18,8 @@ interface ChatContextProps {
 const ChatContext = createContext<ChatContextProps>({
   isAdmin: false,
   setIsAdmin: () => {},
+  // userList: [],
+  // setUserList: () => {},
   muteList: [],
   setMuteList: () => {},
   banList: [],
