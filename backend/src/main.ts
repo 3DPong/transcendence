@@ -1,18 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { AppConfigService } from './config/app/config.service';
-import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
-import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
-import * as session from 'express-session';
-import { SessionConfigService } from './config/session/config.service';
-import RedisStore from 'connect-redis';
-import { Redis } from 'ioredis';
-import { RedisConfigService } from './config/redis/config.service';
 import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
 import { colorist } from './common/logger/utils';
 import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
+import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
 
 declare module 'express-session' {
   interface SessionData {
@@ -27,35 +20,9 @@ declare module 'express-session' {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const appConfig = app.get(AppConfigService);
-  const sessionConfig = app.get(SessionConfigService);
-  const redisConfig = app.get(RedisConfigService);
-  const redisClient = new Redis({
-    port: redisConfig.port,
-    host: redisConfig.host,
-    db: redisConfig.sessionDB,
-    password: redisConfig.password,
-    keyPrefix: 'session:',
-  });
-  // @ts-ignore
-  const redisStore = new RedisStore({
-    client: redisClient,
-  } as any);
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalPipes(new ValidationPipe());
-  app.use(LoggerMiddleware);
-  app.use(
-    session({
-      store: redisStore,
-      secret: sessionConfig.secret,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        // secure: true, // https 아니라서 사용 못함.
-      },
-    })
-  );
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis();
+  app.useWebSocketAdapter(redisIoAdapter);
 
   await app.listen(appConfig.port);
   startLogging();
