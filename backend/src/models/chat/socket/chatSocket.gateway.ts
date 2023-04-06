@@ -46,7 +46,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id } = socket.data
+    const { user_id } = socket.data.user
     const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
     if (userIndex >= 0) {
       this.users.splice(userIndex, 1);
