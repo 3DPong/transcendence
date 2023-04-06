@@ -7,7 +7,7 @@ import { User } from '../../user/entities';
 import { RelationStatus } from '../../../common/enums/relationStatus.enum';
 import { ChatChannel } from '../../chat/entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserNotifyGateway } from '../userNotify.gateway';
+import { NotifierGateway } from '../notifier.gateway';
 
 @Injectable()
 export class NotifierService {
@@ -18,7 +18,7 @@ export class NotifierService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(ChatChannel) private readonly chatChannelRepository: Repository<ChatChannel>,
-    private readonly userNotifyGateway: UserNotifyGateway
+    private readonly userNotifyGateway: NotifierGateway
   ) {}
 
   async getUser(userId: number, relations: FindOptionsRelations<User>) {

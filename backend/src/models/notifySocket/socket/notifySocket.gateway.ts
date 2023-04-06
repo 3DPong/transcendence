@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { UseFilters } from '@nestjs/common';
-import { UserStatusSocketService } from './services';
+import { NotifySocketService } from './services';
 import { WsExceptionFilter } from '../../../common/filters/socket/wsException.filter';
 import { Server } from 'socket.io';
 
@@ -17,8 +17,8 @@ import { Server } from 'socket.io';
 // @UseGuards(SocketSessionGuard)
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({ namespace: 'notify' })
-export class UserStatusSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly notifyService: UserStatusSocketService) {}
+export class NotifySocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(private readonly notifyService: NotifySocketService) {}
   @WebSocketServer()
   server: Server;
   async handleConnection(@ConnectedSocket() socket) {

@@ -4,11 +4,11 @@ import { Notifier } from './services/notifier.class';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities';
 import { ChatChannel } from '../chat/entities';
-import { UserNotifyGateway } from './userNotify.gateway';
+import { NotifierGateway } from './notifier.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, ChatChannel])],
-  providers: [Notifier, NotifierService, UserNotifyGateway],
-  exports: [Notifier, NotifierService, UserNotifyGateway],
+  providers: [Notifier, NotifierService, NotifierGateway],
+  exports: [Notifier, NotifierService, NotifierGateway],
 })
 export class NotifierModule {}

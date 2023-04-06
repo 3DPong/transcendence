@@ -13,7 +13,7 @@ import { TopicEnum } from '../../../notifier/enums/topic.enum';
 import { ChannelEnum } from '../../../notifier/enums/channel.enum';
 
 @Injectable()
-export class UserStatusSocketService {
+export class NotifySocketService {
   private readonly logger = new Logger('NotifyGateway');
   private readonly redisClient: Redis;
   constructor(
