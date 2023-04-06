@@ -18,11 +18,11 @@ export class NotifierGateway {
   async notifyToUser(userId: number, event: string, data: any) {
     const userSockets: string = await this.redisClient.get(`${userId}`);
     if (!userSockets) return;
-    const { notifySocket } = JSON.parse(userSockets);
-    if (!notifySocket) return;
+    const { socketId } = JSON.parse(userSockets);
+    if (!socketId) return;
     const notifyNamespace: Namespace = await this.server.of('/notify');
 
-    notifyNamespace.to(notifySocket).emit(event, data);
+    notifyNamespace.to(socketId).emit(event, data);
     this.logger.log(`notify to user ${userId} with event ${event} and data ${data}`);
   }
 
