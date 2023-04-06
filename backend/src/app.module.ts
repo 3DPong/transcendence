@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './models/user/api';
@@ -8,7 +8,7 @@ import { MatchModule } from './models/game/api';
 import { PostgresDatabaseProviderModule } from './providers/database/postgres/provider.module';
 import { PostgresConfigModule } from './config/database/postgres/config.module';
 import { AppConfigModule } from './config/app/config.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
 import { SessionConfigModule } from './config/session/config.module';
 import { FtConfigModule } from './config/ft/config.module';
@@ -17,9 +17,12 @@ import { DevModule, EmptyModule } from './models/dev/dev.module';
 import { ImageModule } from './models/image/image.module';
 import { OtpModule } from './common/otp/otp.module';
 import { OtpConfigModule } from './config/otp/config.module';
-import { NotifyModule } from './models/notify/socket/notify.module';
-import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
-import { RedisConfigService } from './config/redis/config.service';
+import { UserStatusSocketModule } from './models/userStatusSocket/socket';
+import { RedisStorageProviderModule } from './providers/redis/provider.module';
+import { SessionMiddleware } from './common/middlewares/session/session.middleware';
+import { WsExceptionFilter } from './common/filters/socket/wsException.filter';
+import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
+import { NotifierModule } from './models/notifier/notifier.module';
 
 @Module({
   imports: [
@@ -27,7 +30,8 @@ import { RedisConfigService } from './config/redis/config.service';
     AuthModule,
     ChatModule,
     MatchModule,
-    NotifyModule,
+    UserStatusSocketModule,
+    NotifierModule,
     PostgresConfigModule,
     PostgresDatabaseProviderModule,
     AppConfigModule,
@@ -37,6 +41,7 @@ import { RedisConfigService } from './config/redis/config.service';
     OtpConfigModule,
     ImageModule,
     OtpModule,
+    RedisStorageProviderModule,
     process.env.NODE_ENV !== 'prod' ? DevModule : EmptyModule, // 개발용으로 사용하는 PATH 를 PRODUCTION MODE 에서 제외
   ],
   controllers: [AppController],
@@ -47,16 +52,21 @@ import { RedisConfigService } from './config/redis/config.service';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    // RedisIoAdapter 를 사용하기 위한 설정
+    // WsExceptionFilter 를 사용하기 위한 설정
     {
-      provide: RedisIoAdapter,
-      useFactory: (redisConfigService: RedisConfigService) => {
-        const adapter = new RedisIoAdapter(redisConfigService);
-        adapter.connectToRedis();
-        return adapter;
-      },
-      inject: [RedisConfigService],
+      provide: APP_FILTER,
+      useClass: WsExceptionFilter,
+    },
+    // ValidationPipe 를 사용하기 위한 설정
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(SessionMiddleware).forRoutes('*');
+  }
+}

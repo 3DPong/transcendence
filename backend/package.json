@@ -18,10 +18,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config test/jest-e2e.json",
-    "seed": "ts-node src/database/dummy/seeder",
-    "seed:refresh": "ts-node src/database/dummy/seeder --refresh"
+    "seed": "cross-env NODE_ENV=dev ts-node src/database/dummy/seeder",
+    "seed:refresh": "cross-env NODE_ENV=dev ts-node src/database/dummy/seeder --refresh"
   },
   "dependencies": {
+    "@liaoliaots/nestjs-redis": "^9.0.5",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
@@ -42,7 +43,6 @@
     "express-session": "^1.17.3",
     "ioredis": "^5.3.1",
     "joi": "^17.8.3",
-    "nestjs-redis": "^1.3.3",
     "node-mocks-http": "^1.12.2",
     "otplib": "^12.0.1",
     "passport": "^0.6.0",
