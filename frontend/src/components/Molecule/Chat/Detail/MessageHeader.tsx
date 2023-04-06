@@ -42,7 +42,9 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
             title={channel.title}
             className="underline bold text-black-700 text-center
                         truncate overflow-ellipsis overflow-hidden
-                        max-w-[220px] min-w-[100px]">
+                        max-w-[220px] min-w-[100px]"
+            style={{whiteSpace: "pre"}}
+            >
             {channel.title}
           </Typography>
         </div>
