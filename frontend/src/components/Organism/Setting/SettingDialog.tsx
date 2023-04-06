@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   SettingDialog.tsx                                  :+:      :+:    :+:   */
+/*   Setting.tsx                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/25 19:36:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/31 17:52:22 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/03/25 19:36:43 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect, useInsertionEffect } from "react";
+import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect } from "react";
 
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -18,25 +18,25 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
+import TextField from '@mui/material/TextField';
 import { LoadingButton } from "@mui/lab";
 
-import { alpha, styled, SxProps } from "@mui/material/styles";
-import { pink } from "@mui/material/colors";
-import Switch from "@mui/material/Switch";
+import { alpha, styled, SxProps } from '@mui/material/styles';
+import { pink } from '@mui/material/colors';
+import Switch from '@mui/material/Switch';
 import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from '@mui/icons-material/Close';
+
 
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
 import { Assert } from "@/utils/Assert";
-import * as API from "@/api/API";
+import * as API from '@/api/API';
 import GlobalContext from "@/context/GlobalContext";
 import { RepeatOneSharp } from "@mui/icons-material";
 import { Container, Stack } from "@mui/material";
 import { Typography } from "@mui/material";
 import { useNavigate } from "react-router";
-import { useError } from "@/context/ErrorContext";
 
 /**
  * 1. [ How to Re-fresh ]
@@ -65,83 +65,87 @@ export interface TextFieldWrapperProps {
   sx?: SxProps;
 }
 
+
 function TextFieldWrapper(props: TextFieldWrapperProps) {
-  {
-    /* https://mui.com/material-ui/react-text-field/ */
-  }
+  {/* https://mui.com/material-ui/react-text-field/ */}
   return (
-    <TextField
-      sx={props.sx}
-      value={props.value}
-      id="standard-basic"
-      variant="standard"
-      type={props.type}
-      label={props.label}
-      onChange={(event) => {
-        props.onChange(event.target.value);
-      }}
-      inputProps={{ style: { fontSize: props.fontSize } }} // font size of input text
-      InputLabelProps={{ style: { fontSize: props.labelSize } }} // font size of input label
-      placeholder={props.placeholder}
-      error={props.disabled}
-      helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
-    />
+      <TextField
+          sx={props.sx}
+          value={ props.value }
+          id="standard-basic"
+          variant="standard"
+          type={props.type}
+          label={props.label}
+          onChange={(event) => {
+            props.onChange(event.target.value);
+          }}
+          inputProps={{style: {fontSize: props.fontSize}}} // font size of input text
+          InputLabelProps={{style: {fontSize: props.labelSize}}} // font size of input label
+          placeholder={props.placeholder}
+          error={props.disabled}
+          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+        />
   );
 }
 
+
 const CustomSwitch = styled(Switch)(({ theme }) => ({
-  "& .MuiSwitch-switchBase.Mui-checked": {
+  '& .MuiSwitch-switchBase.Mui-checked': {
     color: pink[600],
-    "&:hover": {
+    '&:hover': {
       backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
     },
   },
-  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
     backgroundColor: pink[600],
   },
 }));
 
-const label = { inputProps: { "aria-label": "Color switch demo" } };
+
+const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
 interface settingDialogProps {
   open: boolean;
-  setOpen: (v: boolean) => void;
+  setOpen: (v:boolean) => void;
 }
 
-export default function SettingDialog({ open, setOpen }: settingDialogProps) {
-  const { handleError } = useError();
+export default function SettingDialog({open, setOpen}: settingDialogProps) {
+
   const navigate = useNavigate();
+  const [ isLoading, setIsLoading ] = useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [imageFile, setImageFile] = useState<string>("");
-  const [nickname, setNickname] = useState<string>("");
-  const [isNicknameOk, setIsNicknameOk] = useState<boolean>(false);
+  // Preload. 세팅을 누르는 순간 현재 User정보를 서버로부터 load 해야 한다. (input 기본값으로 기존 데이터를 사용하기 위함)
+  // ---------------------------------------------------------------------
 
-  let initialTwoFactorAuth: boolean; // 기존 사용자 설정
+  const [ imageFile, setImageFile ] = useState<string>("");
+  const [ nickname, setNickname ] = useState<string>("");
+  const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
+  const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
 
-  // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
   useEffect(() => {
+    if (!loggedUserId) return;
+    // 1. 페이지 첫 렌더링 전에 세션 검증하고 user_id 받아올것.
+    // Assert.NonNullish(loggedUserId, "이건 테스트용 코드입니다. 추후 서버에게 받는걸로 바꿀 예정입니다.");
+    // 2. 검증된 user_id를 이용해서 user_data 재요청.
     (async () => {
       setIsLoading(true);
-      console.log("[DEV] 사용자의 세팅을 불러오는 중입니다.");
-      const loadedSettings = await API.getMySettings(handleError);
-      if (loadedSettings) {
-        console.log(loadedSettings);
-        setImageFile(loadedSettings.profile_url);
-        setNickname(loadedSettings.nickname);
-        setTwoFactorAuth(loadedSettings.two_factor);
-      }
+      const response = await API.getUserDataById(loggedUserId);
+      console.log(response.profile_url);
       setIsLoading(false);
+
+      setImageFile(response.profile_url);
+      setNickname(response.nickname);
     })(/* IIFE */);
-  }, []);
+  }, [loggedUserId]);
   // ---------------------------------------------------------------------
 
+ 
   // Nickname Change handle
   // ---------------------------------------------------------------------
-  const _validator = useMemo(() => {
+  const _validator = useMemo(() => { 
     console.log("setting validator...");
     return new Utils.Validator();
-  }, []); // calculate only on first render.
+  }, []) // calculate only on first render.
 
   useEffect(() => {
     if (!nickname) return;
@@ -153,57 +157,55 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   }, [nickname]);
   // ---------------------------------------------------------------------
 
+
+
+
   // 2FactorAuto change Handle
   // ---------------------------------------------------------------------
-  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
+  const [ twoFactorAuth, setTwoFactorAuth ] = useState<boolean>(false);
+
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTwoFactorAuth(event.target.checked);
   };
-
-  // off 에서 on이 된 경우 "로그아웃 됩니다. 정말 활성화 하시겠습니끼? 경고모달 띄우고 no하면 false로 하기"
-  useEffect(() => {
-    if (!twoFactorAuth) return;
-    if (!initialTwoFactorAuth && twoFactorAuth) {
-      console.log("2차 인증이 off 에서 on으로 변경됨.");
-      alert("");
-      // ... 경고 모달 활성화
-    }
-  }, [twoFactorAuth]);
   // ---------------------------------------------------------------------
+
 
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
+    if (!loggedUserId) return ;
+
     (async () => {
       // 1. 서버에 변경 요청
-      // setIsLoading(true);
-      // const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
-      // setIsLoading(false);
-
-      // 2. 만약 요청 status가 정상이 아니라면, 경고 문구 날리기. (서버에서 정상적으로 처리되지 않았음. {DEV})
-      // ...??
-
+      setIsLoading(true);
+      const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
+      setIsLoading(false);
+      // 2. 만약 요청 status가 정상이 아니라면...?
+          // ...??
       // 3. Success 201 : 받은 데이터로 전역 state 설정.
       // setLoggedUserId(response.user_id);
-      // console.log("서버에 변경사항을 전달하였습니다.");
-
-      // 4. 2차 인증이 off였던 사용자가 on으로 켰다면, 로그아웃 시켜버리기.
-      handleLogout();
-      // ...
+      console.log("서버에 변경사항을 전달하였습니다.");
+      setOpen(false); // close dialog
     })(/* IIFE */);
   };
 
-  // Log-out
+
   // ---------------------------------------------------------------------
-  const handleLogout = async () => {
+
+  // Log-out
+  const handleClickLogout = () => {
+    console.log("Logging out...");
+    // 1. send server API logout call (delete session)
+    // 2. delete user_id (option).
+    // 3. go to /login page
+
     setOpen(false); // close dialog
-    await API.requestLogOut(handleError);
   };
 
-  // Dialog close
+  // Dialog cloas
   const handleClose = () => {
     setOpen(false); // close dialog
-  };
+  }; 
 
   return (
     // https://mui.com/material-ui/api/container/
@@ -221,49 +223,44 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
 
         {/* 프로필 변경 */}
         <DialogContent sx={{ paddingBottom: 2 }}>
-          {/* 이미지 변경 */}
-          <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
-          {/* 이름 변경 */}
-          <TextFieldWrapper
-            sx={{ maxWidth: "300px" }}
-            fontSize={24}
-            value={nickname}
-            onChange={setNickname}
-            type={"text"}
-            label={"Nickname"}
-            labelSize={18}
-            disabled={!isNicknameOk}
-            disabledHelperText={_validator.getRuleHint("@Nickname")}
-          />
-        </DialogContent>
-
-        <DialogContent sx={{ paddingBottom: 4, display: "flex", justifyContent: "space-between" }}>
-          {/* 설정 저장 버튼 */}
-          <LoadingButton
-            color="info"
-            variant="outlined"
-            loading={isLoading}
-            disabled={!isNicknameOk}
-            onClick={handleClickSave}
-          >
-            Save Settings
-          </LoadingButton>
+            {/* 이미지 변경 */}
+            <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
+            {/* 이름 변경 */}
+            <TextFieldWrapper
+              sx={{ maxWidth: "300px" }}
+              fontSize={24}
+              value={nickname}
+              onChange={setNickname}
+              type={"text"}
+              label={"Nickname"}
+              labelSize={18}
+              disabled={!isNicknameOk}
+              disabledHelperText={_validator.getRuleHint("@Nickname")}
+            />
         </DialogContent>
 
         {/* 2차 인증 */}
         <DialogContent sx={{ paddingBottom: 2 }}>
-          <DialogContentText>2-Factor Auth</DialogContentText>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography>Off</Typography>
-            <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
-            <Typography>On</Typography>
-          </Stack>
+            <DialogContentText>2-Factor Auth</DialogContentText>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography>Off</Typography>
+              <CustomSwitch {...label} checked={twoFactorAuth} onChange={handleSwitchChange} />
+              <Typography>On</Typography>
+            </Stack>
         </DialogContent>
 
-        {/* 로그아웃 버튼 */}
-        <Button color="error" variant="contained" onClick={handleLogout}>
-          Logout
-        </Button>
+        <DialogContent sx={{ paddingBottom: 4, display:"flex", justifyContent:"space-between" }}>
+            {/* 설정 저장 버튼 */}
+            <LoadingButton color="info" variant="outlined" loading={isLoading} disabled={!isNicknameOk} onClick={handleClickSave}>
+              Save Settings
+            </LoadingButton>
+            {/* 로그아웃 버튼 */}
+            <Button color="error" variant="contained" onClick={handleClickLogout}>
+              Logout
+            </Button>
+        </DialogContent>
+
+      
       </Dialog>
     </Container>
   );

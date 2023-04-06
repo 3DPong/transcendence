@@ -19,6 +19,7 @@ import useArray from "@/utils/CustomHooks/useArray";
 import * as API from "@/api/API";
 
 export default function GlobalUserList() {
+
   const [globalUsers, setGlobalUsers] = useArray<globalUserData_t>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>(""); // 검색할 문자열.
@@ -33,10 +34,8 @@ export default function GlobalUserList() {
 
     (async () => {
       setIsLoading(true);
-      const userList = await API.getUserListBySearchString(searchString);
-      if (userList) {
-        setGlobalUsers(userList);
-      }
+      const receivedData = await API.getUsersListBySearchString(searchString);
+      setGlobalUsers(receivedData.relations);
       setIsLoading(false);
     })(/* IIFE */);
   };
@@ -74,13 +73,18 @@ export default function GlobalUserList() {
           onClick={onClick}
           onKeyUp={onKeyUp}
           label={"친구를 찾아보세요"}
-          disabled={submitDisabled}
+          disabled={ submitDisabled }
           disabledHelperText={"3글자 이상 입력하세요"}
         />
+
       </div>
 
       {/*  */}
-      <VirtualizedUserList globalUsers={globalUsers} setGlobalUsers={setGlobalUsers} isLoading={isLoading} />
+      <VirtualizedUserList
+        globalUsers={globalUsers}
+        setGlobalUsers={setGlobalUsers}
+        isLoading={isLoading}
+      />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,9 +8,9 @@ import {
   FormControlLabel,
   Radio,
   Button,
-} from "@mui/material";
-import { SportsEsports } from "@mui/icons-material";
-import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+} from '@mui/material';
+import { SportsEsports } from '@mui/icons-material';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 interface BattleRequestModalProps {
   open: boolean;
@@ -19,7 +19,7 @@ interface BattleRequestModalProps {
 }
 
 const BattleRequestModal: React.FC<BattleRequestModalProps> = ({ open, onClose, onGameCreate }) => {
-  const [gameType, setGameType] = useState("normal");
+  const [gameType, setGameType] = useState('normal');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setGameType(event.target.value);
@@ -33,21 +33,19 @@ const BattleRequestModal: React.FC<BattleRequestModalProps> = ({ open, onClose, 
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>배틀 신청</DialogTitle>
       <DialogContent>
-        <RadioGroup row aria-label="gameType" name="gameType" value={gameType} onChange={handleChange}>
+        <RadioGroup
+          row
+          aria-label="gameType"
+          name="gameType"
+          value={gameType}
+          onChange={handleChange}
+        >
           <FormControlLabel
             value="normal"
             control={
               <Radio
-                icon={
-                  <IconButton color="default" aria-label="normal game">
-                    <SportsEsports />
-                  </IconButton>
-                }
-                checkedIcon={
-                  <IconButton color="primary" aria-label="normal game">
-                    <SportsEsports />
-                  </IconButton>
-                }
+                icon={<IconButton color="default" aria-label="normal game"><SportsEsports /></IconButton>}
+                checkedIcon={<IconButton color="primary" aria-label="normal game"><SportsEsports /></IconButton>}
               />
             }
             label="일반전"
@@ -57,16 +55,8 @@ const BattleRequestModal: React.FC<BattleRequestModalProps> = ({ open, onClose, 
             value="item"
             control={
               <Radio
-                icon={
-                  <IconButton color="default" aria-label="item game">
-                    <RocketLaunchIcon />
-                  </IconButton>
-                }
-                checkedIcon={
-                  <IconButton color="primary" aria-label="item game">
-                    <RocketLaunchIcon />
-                  </IconButton>
-                }
+                icon={<IconButton color="default" aria-label="item game"><RocketLaunchIcon /></IconButton>}
+                checkedIcon={<IconButton color="primary" aria-label="item game"><RocketLaunchIcon /></IconButton>}
               />
             }
             label="아이템전"

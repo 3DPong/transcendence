@@ -34,7 +34,8 @@ interface userActionMenuProps {
   setGlobalUsers: UpdateFunctionOverload<globalUserData_t>;
 }
 
-export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuProps) {
+export default function UserActionMenu( { user, setGlobalUsers }: userActionMenuProps) {
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate(); // React Router useNavigate hook (프로필 보기 클릭시 이동)
@@ -53,6 +54,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     // ...
   };
 
+ 
   // 친구 추가 버튼
   const handleAddFriend = () => {
     console.log("Add friend");
@@ -60,10 +62,9 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.addFriend);
-      if (RESPONSE?.status !== "friend") {
-        // server handle error
-        alert("[SERVER]: 친구가 추가 되지 않았습니다.");
-        return;
+      if (RESPONSE.status !== "friend") { // server handle error
+        alert("[SERVER]: 친구가 추가 되지 않았습니다.")
+        return ;
       }
       // (2) create user data format with POST response
       const NEW_FRIEND: friendData_t = {
@@ -73,14 +74,14 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         // status: user.status, // ?
       };
       // (3) add to friendList
-      setFriends((draft) => {
+      setFriends((draft) => { 
         draft.unshift(NEW_FRIEND);
       });
       // (4) delete from global-userList
       setGlobalUsers((draft) => {
         const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
         if (targetIndex !== -1) draft.splice(targetIndex, 1);
-      });
+      })
     })(/* IIFE */);
   };
 
@@ -91,27 +92,23 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       let action;
-      if (user.status === "block") {
-        // if block
+      if (user.status === 'block') { // if block
         action = API.PUT_RelationActionType.unBlockUser;
-      } else {
-        // friend or none
+      } else { // friend or none
         action = API.PUT_RelationActionType.blockUser;
       }
       // (2) check API response
       const RESPONSE = await API.changeUserRelation(user.user_id, action);
-      if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE?.status === "block") {
-        // block handle error (no change)
-        alert("[SERVER]: 유저의 차단관계 처리 에러");
-        return;
-      } else if (action === API.PUT_RelationActionType.blockUser && RESPONSE?.status !== "block") {
-        // block handle error (no change)
-        alert("[SERVER]: 유저의 차단관계 처리 에러");
-        return;
+      if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE.status === "block") { // block handle error (no change)
+        alert("[SERVER]: 유저의 차단관계 처리 에러")
+        return ; 
+      } else if (action === API.PUT_RelationActionType.blockUser && RESPONSE.status !== "block") { // block handle error (no change)
+        alert("[SERVER]: 유저의 차단관계 처리 에러")
+        return ; 
       }
       // (3) if user is friend, delete from friend list (전체 사용자 리스트와 친구 리스트에 동시에 보여지고 있을 수 있기 때문)
       if (user.status === "friend") {
-        setFriends((draft) => {
+        setFriends((draft) => { 
           const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
           if (targetIndex !== -1) draft.splice(targetIndex, 1);
         });
@@ -120,9 +117,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
       setGlobalUsers((draft) => {
         const targetUser = draft.find((m) => m.user_id === user.user_id);
         Assert.NonNullish(targetUser, "리스트 검색 오류"); // 같은 리스트상에서는 반드시 있어야 함.
-        if (RESPONSE) {
-          targetUser.status = RESPONSE.status;
-        }
+        targetUser.status = RESPONSE.status;
       });
     })(/* IIFE */);
   };
@@ -198,7 +193,9 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         <Divider sx={{ my: 0.5 }} />
 
         {/* Add friend handle  --> don't show if user is already a friend*/}
-        {user.status !== "friend" && <MenuItem onClick={handleAddFriend} children={"Add friend"} disableRipple />}
+        { user.status !== "friend" && 
+          <MenuItem onClick={handleAddFriend} children={"Add friend"} disableRipple />
+        }
 
         {/* Block User tooggle */}
         <MenuItem onClick={handleBlockUserToogle} disableRipple>

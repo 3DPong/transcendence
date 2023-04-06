@@ -101,6 +101,7 @@ export class b2Ground extends b2ChainObject {
     }
 
     public override RegisterTo(world: Box2D.b2World): this {
+        console.log("Ground : registerTo() called");
         Assert.NonNullish(
             this.m_ChainShape,
             "chainShape is null. Use setAsBox() function first."
