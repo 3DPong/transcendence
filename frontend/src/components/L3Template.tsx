@@ -12,19 +12,21 @@
 
 import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 
 export interface templateProps {
-    organism: ReactJSXElement
+  organism: ReactJSXElement;
 }
 
-export default function L3Template({organism}: templateProps) {
-    return (
-            <div className=" absolute left-96 top-0 shadow-lg w-72">
-                { organism }
-                <div className=" absolute right-2 top-1"> {/* 뒤로가기 버튼. */}
-                    <ButtonLink primary="close" to="../" children={ <CloseIcon fontSize="small" /> } />
-                </div>
-            </div>
-    );
+export default function L3Template({ organism }: templateProps) {
+  return (
+    <div className=" absolute left-96 top-0 shadow-lg w-72">
+      {organism}
+      <div className=" absolute right-2 top-1">
+        {" "}
+        {/* 뒤로가기 버튼. */}
+        <ButtonLink primary="close" to="../" children={<CloseIcon fontSize="small" />} />
+      </div>
+    </div>
+  );
 }

@@ -2,15 +2,15 @@ import { ChatUser } from "@/types/chat";
 import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from "@mui/material";
 import { FC, useContext } from "react";
 import AvatarSet from "../AvatarSet";
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import ChatContext from "@/context/ChatContext";
 
 interface UserCardProps {
-  user : ChatUser;
-  scrollY : number;
-};
+  user: ChatUser;
+  scrollY: number;
+}
 
-const UserCard : FC<UserCardProps> = ({user, scrollY}) => {
+const UserCard: FC<UserCardProps> = ({ user, scrollY }) => {
   const { muteList } = useContext(ChatContext);
   const isMuted = muteList.includes(user.id);
 
@@ -22,11 +22,11 @@ const UserCard : FC<UserCardProps> = ({user, scrollY}) => {
         </ListItemAvatar>
         <ListItemText title={user.nickname} primaryTypographyProps={{ noWrap: true }} primary={user.nickname} />
         <ListItemSecondaryAction>
-          { isMuted &&
-          <IconButton style={{color: 'darkorange'}} disabled edge="end" aria-label="mute">
-            <VolumeOffIcon/>
-          </IconButton>
-          }
+          {isMuted && (
+            <IconButton style={{ color: "darkorange" }} disabled edge="end" aria-label="mute">
+              <VolumeOffIcon />
+            </IconButton>
+          )}
         </ListItemSecondaryAction>
       </ListItem>
     </div>

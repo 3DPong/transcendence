@@ -30,7 +30,6 @@ export interface UserCardProps {
 }
 
 export default function UserListRow(props: UserCardProps) {
-
   return (
     // 부모 flex container에 꽉 채우기 위한 용도 div
     <div className="flex-1 border border-green-700">
@@ -41,7 +40,7 @@ export default function UserListRow(props: UserCardProps) {
             <Avatar variant="square" />
           </Skeleton>
         ) : (
-            <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
+          <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
         )}
         {/* (2) 프로필 이름 */}
         <div className="flex-1 ml-2 mr-2">

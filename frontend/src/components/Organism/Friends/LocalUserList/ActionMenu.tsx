@@ -28,8 +28,7 @@ interface userActionMenuProps {
   user: friendData_t;
 }
 
-export default function UserActionMenu({user}: userActionMenuProps) {
-
+export default function UserActionMenu({ user }: userActionMenuProps) {
   const { setFriends } = useContext(GlobalContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -43,7 +42,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
     setAnchorEl(null);
     // curr URL 1 = /home/friends
     // curr URL 2 = /home/friends/add
-    const index = currentUrl.lastIndexOf("/")
+    const index = currentUrl.lastIndexOf("/");
     const substr = currentUrl.substring(index + 1);
     let urlTo;
     if (substr === "friends") {
@@ -68,12 +67,13 @@ export default function UserActionMenu({user}: userActionMenuProps) {
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.blockUser);
-      if (RESPONSE.status === "friend") { // server handle error
-        alert("[SERVER]: 친구가 삭제 되지 않았습니다.")
-        return ;
+      if (RESPONSE?.status === "friend") {
+        // server handle error
+        alert("[SERVER]: 친구가 삭제 되지 않았습니다.");
+        return;
       }
       // (2) delete from friendList
-      setFriends((draft) => { 
+      setFriends((draft) => {
         const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
         if (targetIndex !== -1) draft.splice(targetIndex, 1);
       });
@@ -87,7 +87,6 @@ export default function UserActionMenu({user}: userActionMenuProps) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  
 
   return (
     <div>
@@ -142,7 +141,7 @@ export default function UserActionMenu({user}: userActionMenuProps) {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         {/* show profile route */}
-        <MenuItem onClick={ () => handleProfileRoute(currentUrl) } children={"See profile"} disableRipple />
+        <MenuItem onClick={() => handleProfileRoute(currentUrl)} children={"See profile"} disableRipple />
 
         <Divider sx={{ my: 0.5 }} />
 

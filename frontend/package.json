@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server --config config/webpack.dev.js",
-    "build": "webpack --config config/webpack.prod.js"
+    "dev": "node --max_old_space_size=4096 node_modules/.bin/webpack-dev-server --progress --color --config config/webpack.dev.js",
+    "build": "webpack --progress --color --config config/webpack.prod.js"
   },
   "files": [
     "dist/**/*.d.ts",
@@ -33,6 +33,7 @@
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
+    "@types/assert": "^1.5.6",
     "@types/react": "^18.0.27",
     "@types/react-avatar-editor": "^13.0.0",
     "@types/react-dom": "^18.0.10",
@@ -41,6 +42,7 @@
     "@types/react-router-dom": "^5.3.3",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^9.1.2",
+    "connect-api-mocker": "^1.10.0",
     "copy-webpack-plugin": "^11.0.0",
     "core-js": "^3.27.2",
     "css-loader": "^6.7.3",
@@ -76,24 +78,23 @@
     "@chatscope/chat-ui-kit-react": "^1.10.1",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@fontsource/roboto": "^4.5.8",
     "@mui/icons-material": "^5.11.11",
     "@mui/lab": "^5.0.0-alpha.123",
     "@mui/material": "^5.11.8",
     "@types/react-window": "^1.8.5",
     "assert": "^2.0.0",
     "babylonjs-gui": "^5.49.0",
-    "babylonjs-hook": "^0.1.1",
     "box2d-wasm": "^7.0.0",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-avatar-editor": "^13.0.0",
     "react-dom": "^18.2.0",
-    "react-dropzone": "^14.2.3",
+    "react-icons": "^4.8.0",
     "react-lazy-load-image-component": "^1.5.6",
     "react-router": "^6.8.2",
     "react-router-dom": "^6.8.2",
     "react-window": "^1.8.8",
+    "serve": "^14.2.0",
     "tw-elements": "^1.0.0-alpha13"
   }
 }

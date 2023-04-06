@@ -30,7 +30,6 @@ export interface UserCardProps {
 }
 
 export default function UserListRow(props: UserCardProps) {
-
   return (
     // 부모 flex container에 꽉 채우기 위한 용도 div
     <div className="flex-1 border border-green-700">
@@ -41,7 +40,7 @@ export default function UserListRow(props: UserCardProps) {
             <Avatar variant="square" />
           </Skeleton>
         ) : (
-            <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
+          <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
         )}
         {/* (2) 프로필 이름 */}
         <div className="flex-1 ml-2 mr-2">
@@ -50,16 +49,16 @@ export default function UserListRow(props: UserCardProps) {
           </Typography>
         </div>
         {/* (3) 차단 여부 등 상태 표기. */}
-        { (props.user.status === 'block') &&
+        {props.user.status === "block" && (
           <Tooltip title="User is blocked. [Add description here]">
             <Chip label="Blocked" size="small" color="error" variant="outlined" />
           </Tooltip>
-        }
-        { (props.user.status === 'friend') &&
+        )}
+        {props.user.status === "friend" && (
           <Tooltip title="User is friend. [Add description here]">
             <Chip label="Friend" size="small" color="success" variant="outlined" />
           </Tooltip>
-        }
+        )}
       </div>
     </div>
   );
