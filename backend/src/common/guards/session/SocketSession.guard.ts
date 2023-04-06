@@ -8,7 +8,7 @@ import { WsException } from '@nestjs/websockets';
 export class SocketSessionGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const client = context.switchToWs().getClient<Socket>();
-    const { session } = client.handshake as any;
+    const { session } = client.request.headers as any;
 
     if (!session.user_id || session.sessionStatus !== SessionStatusEnum.SUCCESS)
       throw new WsException('invalid session');
