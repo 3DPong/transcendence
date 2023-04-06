@@ -12,17 +12,9 @@ import { DmDto } from '../dto/dm.dto';
 export class ChatController {
   constructor(private chatService: ChatService, private userService: ChatUserService) {}
 
-  /*
-    임시 함수
-  */
-  @Post('/new')
-  createChannelUser() {
-    return this.chatService.createChannelUser(88, 33, ChannelUserRoles.USER);
-  }
 
   @Get()
   getMyChannels() : Promise<ChatChannel[]> {
-    //const user = await this.userService.getUser(3);
     return this.chatService.getMyChannels(16);
   }
 

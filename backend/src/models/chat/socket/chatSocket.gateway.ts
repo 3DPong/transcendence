@@ -41,34 +41,28 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
     } catch (error) {
-      console.log(error)
       socket.disconnect();
-      throw new WsException(error);
     }
   }
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id, channel_id } = socket.data
-    try {
-      const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
-      if (userIndex >= 0) {
-        this.users.splice(userIndex, 1);
-      }
-      this.logger.log(`Socket disconnected: ${user_id}`);
-
-    } catch (error) {
-      throw new WsException(error);
+    const { user_id } = socket.data
+    const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
+    if (userIndex >= 0) {
+      this.users.splice(userIndex, 1);
     }
+    this.logger.log(`Socket disconnected: ${user_id}`);
   }
 
 
   @SubscribeMessage('enter-chat')
   async handleSetClientDataEvent(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
-    try {
-      const user_id = this.getUserIdBySocketId(socket.id);
-      if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
+
+    const user_id = this.getUserIdBySocketId(socket.id);
+    if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
       throw { error: 'No permission!' };
     
+    try {
       socket.join(`chat_${dto.channel_id}`);
       socket.broadcast
        .to(`chat_${dto.channel_id}`)
@@ -83,11 +77,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   
   @SubscribeMessage('leave-chat')
   async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto) {
+
+    const user_id = this.getUserIdBySocketId(socket.id);
+    if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
+      throw { error: 'No permission!' };
     try {
-      const user_id = this.getUserIdBySocketId(socket.id);
-      if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
-        throw { error: 'No permission!' };
-    
       socket.leave(`chat_${dto.channel_id}`); // leave room
       socket.broadcast
       .to(`chat_${dto.channel_id}`)
@@ -110,15 +104,15 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     const channel = await this.chatSocketService.getChannelType(md.channel_id);
     if (!channel) {
-      throw new NotFoundException(`can't find  ${ md.channel_id}`);
+      throw { error:`can't find  ${ md.channel_id}`};
     } else if (channel.type === ChannelType.DM && !(dmUser = await this.chatSocketService.getDmUser(md.channel_id, user_id))) {
-      throw new NotFoundException(`can't find  DM user ${user_id}`);
+      throw { error:`can't find  DM user ${user_id}`};
     } else if (channel.type !== ChannelType.DM && !await this.chatSocketService.checkChannelUser(md.channel_id, user_id)) {
-      throw new NotFoundException(`can't find ${ md.channel_id}'s user ${user_id}`);
+      throw { error:`can't find ${ md.channel_id}'s user ${user_id}`};
     }
 
     if (await this.chatSocketService.checkMuteUser(md.channel_id, user_id)) {
-      throw new UnauthorizedException('muted User!');
+      throw { error:`뮤트 상태 입니다!`};
     }
  
     try {
@@ -140,14 +134,14 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @SubscribeMessage('mute-chat')
   async muteChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() muteDto: toggleTimeDto) {
     const {user_id, channel_id} = muteDto;
-    try {
-      const adminId = this.getUserIdBySocketId(socket.id);
-  
-      if (!adminId ||
-        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
-        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
-         throw { error: 'No permission!' };
+    const adminId = this.getUserIdBySocketId(socket.id);
 
+    if (!adminId ||
+      !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+      !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+        throw { error: 'No permission!' };
+
+    try {
       const muted = await this.chatSocketService.checkMuteUser(channel_id, user_id);
     
       if (muted) {
@@ -161,11 +155,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         if (!mute)
           throw { error: 'Server error!' };
         this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 되었습니다.` });
-        
-        // const timeout = setTimeout(async() => {
-        //   await this.chatSocketService.unmuteUser(channel_id, user_id);
-        //   this.server.to(`chat_${channel_id}`).emit('unmute', {user_id, channel_id});
-        // }, 5000);
       }
     } catch (error) {
       this.logger.log(error)
@@ -176,13 +165,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @SubscribeMessage('ban-chat')
   async banChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() banDto: toggleTimeDto) {
     const {user_id, channel_id} = banDto;
+
+    const adminId = this.getUserIdBySocketId(socket.id);
+    if (!adminId ||
+      !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+      !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+      throw { error: 'No permission!' };
     try {
-      const adminId = this.getUserIdBySocketId(socket.id);
-      if (!adminId ||
-        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
-        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
-        throw { error: 'No permission!' };
-      
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
 
       if (banned) {
@@ -208,12 +197,12 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @SubscribeMessage('unban-chat')
   async unbanChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() unbanDto: toggleDto) {
     const {user_id, channel_id} = unbanDto;
+    const adminId = this.getUserIdBySocketId(socket.id);
+    if (!adminId ||
+      !(await this.chatSocketService.checkAdminUser(channel_id, adminId)))
+      throw { error: 'No permission!' };
+    
     try {
-      const adminId = this.getUserIdBySocketId(socket.id);
-      if (!adminId ||
-        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)))
-        throw { error: 'No permission!' };
-      
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
       if (banned) {
         await this.chatSocketService.unbanUser(channel_id, user_id);
@@ -231,13 +220,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @SubscribeMessage('kick-chat')
   async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickDto: toggleDto) {
     const {user_id, channel_id} = kickDto;
+
+    const adminId = this.getUserIdBySocketId(socket.id);
+    if (!adminId ||
+      !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
+      !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
+        return { error: 'No permission!' };
     try {
-      const adminId = this.getUserIdBySocketId(socket.id);
-      if (!adminId ||
-        !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
-        !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
-         return { error: 'No permission!' };
-      
       await this.chatSocketService.kickUser(channel_id, user_id);
      const userSocket = this.getSocketIdByUserId(user_id);
      if (userSocket)

@@ -7,8 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  Timestamp,
-  Unique,
+  Timestamp
 } from 'typeorm';
 import { User } from '../../user/entities';
 import { ChannelUser } from './channelUser.entity';
