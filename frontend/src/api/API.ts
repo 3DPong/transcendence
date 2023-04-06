@@ -2,14 +2,17 @@
 // 여기서 API 리스트들 묶어서 내보내기.
 
 // User Data
-export { getUserDataById, type GET_UserDataResponseFormat } from "@/api/user/userData";
-export { updateUserData } from "@/api/user/userData";
- 
+export { 
+    getUserDataById, type GET_UserDataResponseFormat,
+    updateUserData
+} from "@/api/user/userData";
 
 // User Relation
-export { getUsersListBySearchString } from "@/api/user/userRelation";
-export { getUserRelationsList, GET_RelationType } from "@/api/user/userRelation";
-export { changeUserRelation, PUT_RelationActionType } from "@/api/user/userRelation";
+export {
+    getUserListBySearchString,
+    getUserListByRelationType, GET_RelationType,
+    changeUserRelation, PUT_RelationActionType,
+ } from "@/api/user/userRelation";
 
 // SignIn
 export { requestSignIn } from "@/api/login/signIn";
@@ -20,6 +23,15 @@ export { requestSignUp } from "@/api/login/signUp";
 // Upload Data
 export { uploadImageToServer } from "@/api/upload/upload";
 
-// Error
-export { fetchAndHandleResponseError, ResponseError, ResponseErrorType } from "@/api/error/error";
+// 2FA Auth
+export {
+    getQrCodeToActivate2FactorAuth,
+    submitOtpTokenToServer,
+    deactivate2FactorAuth,
+} from "./auth/auth";
 
+// Me
+export { getMySettings } from "@/api/me/settings";
+
+// Logout
+export { requestLogOut } from "@/api/logout/logout";

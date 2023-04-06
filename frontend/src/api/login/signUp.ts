@@ -1,11 +1,10 @@
 
 
 import { uploadImageToServer } from "@/api/upload/upload";
-
-// https://github.com/3DPong/transcendence/pull/55
-// 이 순간은 create session이 쿠키에 담겨있는 상태임.
-// 가입할 때는 2단계 Auth가 없음.
-// 2단계
+import { API_URL } from "../../../config/backend";
+import {handleErrorFunction, useError} from "@/context/ErrorContext";
+import GlobalContext from "@/context/GlobalContext";
+import {useContext} from "react";
 
 export interface POST_SignUpRequestFormat {
   nickname: string,
@@ -14,54 +13,41 @@ export interface POST_SignUpRequestFormat {
 
 export interface POST_SignUpResponseFormat {
   user_id: number;
-  nickname: string;
-  profile_url: string;
-  wins: number;
-  losses: number;
-  total: number;
-  level: number;
 }
 
-/** API 42
- * @link https://github.com/3DPong/transcendence/discussions/14
- * GET /auth/signin
- * POST /auth/signup
- */
-
+type user_id = number;
 // SUCCESS = 201 Created
-export async function requestSignUp(_nickname: string, clientSideImageUrl: string) {
-  return new Promise<POST_SignUpResponseFormat>(async (resolve, reject) => {
+export async function requestSignUp(handleError: handleErrorFunction, _nickname: string, clientSideImageUrl: string)
+    : Promise<user_id | void>
+{
+  // 1. 서버에 프로필 이미지부터 전송.
+  const serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
+  if (!serverSideImageUrl) return; // 여기서 에러나면 걍 끝내ㅓ기
 
-    // 1. 서버에 프로필 이미지부터 전송.
-    const response = await uploadImageToServer(clientSideImageUrl);
-    const serverSideImageUrl = response.body;
+  // 2. 서버의 이미지 src를 받은 후 그걸로 회원가입 처리 진행.
+  const requestUrl = `${API_URL}/api/user`;
+  const requestPayload: POST_SignUpRequestFormat = {
+    nickname: _nickname,
+    profile_url: serverSideImageUrl,
+  }
 
-    // 2. 서버의 이미지 src를 받은 후 그걸로 회원가입 처리 진행.
-    /*
-    // https://developer.mozilla.org/ko/docs/Web/API/Fetch_API/Using_Fetch
-    const SIGNIN_REQUEST = "POST /auth/signup";
-    const URL = `/user/search/${searchString}`;
-    const response = await fetchAndHandleResponseError(URL, { method: "GET" });
-    if (response) {
-      const jsonObjcet = response.json();
-      console.log("Response data JSON :"); console.dir(jsonObjcet);
-      resolve (jsonObjcet);
-    }
-    */
-   
-    setTimeout(() => {
-      // 테스트용이며, 아래 코드는 실제 API 요청으로 변경할 예정.
-      const DUMMY_RES: POST_SignUpResponseFormat = {
-        user_id: 42,
-        nickname: _nickname,
-        profile_url: serverSideImageUrl,
-        wins: 0,
-        losses: 0,
-        total: 0,
-        level: 0,
-      };
-      resolve(DUMMY_RES);
-    }, 1000);
-
+  const signUpResponse = await fetch(requestUrl, {
+    method: "POST",
+    headers:{
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestPayload),
   });
+
+  // on error
+  if (!signUpResponse.ok) {
+    const errorData = await signUpResponse.json();
+    handleError("Sign Up", errorData.message);
+    return ;
+  }
+
+  // on success
+  const {setLoggedUserId} = useContext(GlobalContext);
+  const responseData: POST_SignUpResponseFormat = await signUpResponse.json();
+  return (responseData.user_id);
 };

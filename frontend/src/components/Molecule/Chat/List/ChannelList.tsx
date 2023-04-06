@@ -10,7 +10,7 @@ interface ChannelListProps {
   channels: Channel[];
   isLoading: boolean;
   handleCardClick: (id: number, type: ChannelType) => void;
-};
+}
 
 interface RowProps {
   index: number;
@@ -19,57 +19,51 @@ interface RowProps {
     isLoading: boolean;
     chats: Channel[];
     handleCardClick: (id: number, type: ChannelType) => void;
-  }
+  };
 }
 
-const Row : FC<RowProps> = ({index, style, data}) => {
+const Row: FC<RowProps> = ({ index, style, data }) => {
   const channel = data.chats[index];
 
   return (
     <Box
       key={channel.id}
-      className={clsx(
-        "flex items-center justify-start gap-2",
-        index % 2 === 0 ? "bg-white" : "bg-gray-50"
-      )}
+      className={clsx("flex items-center justify-start gap-2", index % 2 === 0 ? "bg-white" : "bg-gray-50")}
       style={style}
     >
-      <ChannelCard channel={channel} isLoading={data.isLoading} handleCardClick={data.handleCardClick}/>
+      <ChannelCard channel={channel} isLoading={data.isLoading} handleCardClick={data.handleCardClick} />
     </Box>
   );
 };
 
-
-const VirtualizedChannelList: FC<ChannelListProps> = ({channels, isLoading, handleCardClick}) => {
-  const renderChannels : Channel[] = (
-    isLoading ?
-      Array.from({length: 5}, (_, index) => ({
+const VirtualizedChannelList: FC<ChannelListProps> = ({ channels, isLoading, handleCardClick }) => {
+  const renderChannels: Channel[] = isLoading
+    ? Array.from({ length: 5 }, (_, index) => ({
         id: index,
         title: "",
         type: "public",
-        owner: {id: 1, profile:"", nickname: "" }
+        owner: { id: 1, profile: "", nickname: "" },
       }))
-      : channels
-    );
+    : channels;
 
   return (
     <div>
       {
         <Box
           sx={{
-              width: "100%",
-              height: 400,
-              maxWidth: 360,
-              bgcolor: "background.paper",
+            width: "100%",
+            height: 400,
+            maxWidth: 360,
+            bgcolor: "background.paper",
           }}
         >
           <FixedSizeList
             height={400}
             width="100%"
             itemSize={60}
-            itemCount={ renderChannels.length }
+            itemCount={renderChannels.length}
             overscanCount={5}
-            itemData={ { chats : renderChannels, isLoading : isLoading, handleCardClick : handleCardClick } }
+            itemData={{ chats: renderChannels, isLoading: isLoading, handleCardClick: handleCardClick }}
             // Scrollbar css
             className=" scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
           >

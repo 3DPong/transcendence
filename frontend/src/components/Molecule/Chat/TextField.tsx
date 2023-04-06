@@ -2,7 +2,7 @@ import { useState } from "react";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-type fieldType = 'text' | 'password' | 'radio' | 'number' | 'month' | 'file' | 'email' /* and more... */ // * [How to set up optinal props] // https://bobbyhadz.com/blog/react-optional-props-typescript // https://dev.to/fullstackchris/react-with-typescript-optional-props-with-default-values-33nc
+type fieldType = "text" | "password" | "radio" | "number" | "month" | "file" | "email"; /* and more... */ // * [How to set up optinal props] // https://bobbyhadz.com/blog/react-optional-props-typescript // https://dev.to/fullstackchris/react-with-typescript-optional-props-with-default-values-33nc
 
 interface ITextFieldProps {
   state: string;
@@ -44,9 +44,7 @@ export function TextField({
         />
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
           {type === "password" && (
-            <IconButton onClick={handleVisibilityClick}>
-              {showPassword ? <Visibility /> : <VisibilityOff />}
-            </IconButton>
+            <IconButton onClick={handleVisibilityClick}>{showPassword ? <Visibility /> : <VisibilityOff />}</IconButton>
           )}
         </div>
       </div>
