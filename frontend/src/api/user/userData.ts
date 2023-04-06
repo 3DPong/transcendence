@@ -37,9 +37,7 @@ export interface GET_UserDataResponseFormat {
 
 // 친구가 추가되면
 
-
-export async function getUserDataById(userId: number) {
-  const {handleError} = useError();
+export async function getUserDataById(handleError: handleErrorFunction, userId: number) {
 
   const requestUrl = `${API_URL}/api/user/${userId}`;
   const userDataResponse = await fetch(requestUrl, { method: "GET" });
@@ -50,13 +48,8 @@ export async function getUserDataById(userId: number) {
     handleError(
         "UserData",
         errorData.message,
-        () => {
-          if (userDataResponse.status === 401) { // if status code is 401, then session is invalid. login again.
-            console.log("[401 Error] redirecting to login page...")
-            const navigate = useNavigate();
-            navigate("/login");
-          }
-        }); // redirect to /login page
+        "/login"
+    ); // redirect to /login page
     return ;
   }
   // on success
@@ -119,13 +112,8 @@ export async function updateUserData(
     handleError(
         "UserData",
         errorData.message,
-        () => {
-          if (updateResponse.status === 401) { // if status code is 401, then session is invalid. login again.
-            console.log("[401 Error] redirecting to login page...")
-            const navigate = useNavigate();
-            navigate("/login");
-          }
-        }); // redirect to /login page
+        "/login"
+    );
     return ;
   }
   // on success
