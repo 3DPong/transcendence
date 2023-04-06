@@ -33,11 +33,8 @@ const Row = (props: {
 
   return (
     <ListItem style={style} key={index} divider={true}>
-      <UserListRow user={ user } isLoading={ data.isLoading } />
-      <ActionMenu
-        user={ user }
-        setGlobalUsers={ props.data.setGlobalUsers }
-      />
+      <UserListRow user={user} isLoading={data.isLoading} />
+      <ActionMenu user={user} setGlobalUsers={props.data.setGlobalUsers} />
     </ListItem>
   );
 };
@@ -49,7 +46,6 @@ export interface UserListProps {
 }
 
 export default function VirtualizedUserList(props: UserListProps) {
-
   const LIST_HEIGHT = 400;
   const ROW_WIDTH = "100%";
   const ROW_HEIGHT = 70;

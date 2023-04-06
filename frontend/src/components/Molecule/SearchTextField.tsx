@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as React from 'react';
-import IconButton from '@mui/material/IconButton';
-import SearchIcon from '@mui/icons-material/Search';
-import TextField from '@mui/material/TextField';
+import * as React from "react";
+import IconButton from "@mui/material/IconButton";
+import SearchIcon from "@mui/icons-material/Search";
+import TextField from "@mui/material/TextField";
 
 export interface SearchBarProps {
   state: string;
@@ -29,42 +29,37 @@ export interface SearchBarProps {
   disabledHelperText?: string; // 오류시 표기할 내용.
 }
 
-
 // SearchTextField는 입력값을 받아서 state 업데이트 시켜주는 하위 컴포넌트.
 export default function SearchTextField(props: SearchBarProps) {
-    return (
-      <div className=" flex">
-        {/* https://mui.com/material-ui/react-text-field/ */}
-        <TextField
-          sx={{ flex: 1 }} // 가득 채우기
-          id="standard-basic"
-          variant="standard"
-          type={props.type}
-          label={props.label}
-          onChange={(event) => {
-            props.setState(event.target.value);
-          }}
-          onKeyUp={props.onKeyUp}
-          placeholder={props.placeholder}
-          error={props.disabled}
-          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
-          // required={true}
-        />
+  return (
+    <div className=" flex">
+      {/* https://mui.com/material-ui/react-text-field/ */}
+      <TextField
+        sx={{ flex: 1 }} // 가득 채우기
+        id="standard-basic"
+        variant="standard"
+        type={props.type}
+        label={props.label}
+        onChange={(event) => {
+          props.setState(event.target.value);
+        }}
+        onKeyUp={props.onKeyUp}
+        placeholder={props.placeholder}
+        error={props.disabled}
+        helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+        // required={true}
+      />
 
-        {/* onClick 콜백이 있을 경우에만 검색 버튼을 보여주기 */}
-        <div className=" items-center flex">
-          {props.onClick ? (
-            <IconButton
-              onClick={props.onClick}
-              disabled={props.disabled}
-              sx={{alignItems: "center", padding: 0}}
-            >
-              <SearchIcon />
-            </IconButton>
-          ) : (
-            <></>
-          )}
-        </div>
+      {/* onClick 콜백이 있을 경우에만 검색 버튼을 보여주기 */}
+      <div className=" items-center flex">
+        {props.onClick ? (
+          <IconButton onClick={props.onClick} disabled={props.disabled} sx={{ alignItems: "center", padding: 0 }}>
+            <SearchIcon />
+          </IconButton>
+        ) : (
+          <></>
+        )}
       </div>
-    );
+    </div>
+  );
 }

@@ -18,26 +18,25 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContentText from "@mui/material/DialogContentText";
 import Button from "@mui/material/Button";
-import TextField from '@mui/material/TextField';
+import TextField from "@mui/material/TextField";
 import { LoadingButton } from "@mui/lab";
 
-import { alpha, styled, SxProps } from '@mui/material/styles';
-import { pink } from '@mui/material/colors';
-import Switch from '@mui/material/Switch';
+import { alpha, styled, SxProps } from "@mui/material/styles";
+import { pink } from "@mui/material/colors";
+import Switch from "@mui/material/Switch";
 import IconButton from "@mui/material/IconButton";
-import CloseIcon from '@mui/icons-material/Close';
-
+import CloseIcon from "@mui/icons-material/Close";
 
 import ImageUpload from "@/components/Molecule/ImageUpload";
 import * as Utils from "@/utils/Validator";
 import { Assert } from "@/utils/Assert";
-import * as API from '@/api/API';
+import * as API from "@/api/API";
 import GlobalContext from "@/context/GlobalContext";
 import { RepeatOneSharp } from "@mui/icons-material";
 import { Container, Stack } from "@mui/material";
 import { Typography } from "@mui/material";
 import { useNavigate } from "react-router";
-import {useError} from "@/context/ErrorContext";
+import { useError } from "@/context/ErrorContext";
 
 /**
  * 1. [ How to Re-fresh ]
@@ -66,59 +65,57 @@ export interface TextFieldWrapperProps {
   sx?: SxProps;
 }
 
-
 function TextFieldWrapper(props: TextFieldWrapperProps) {
-  {/* https://mui.com/material-ui/react-text-field/ */}
+  {
+    /* https://mui.com/material-ui/react-text-field/ */
+  }
   return (
-      <TextField
-          sx={props.sx}
-          value={ props.value }
-          id="standard-basic"
-          variant="standard"
-          type={props.type}
-          label={props.label}
-          onChange={(event) => {
-            props.onChange(event.target.value);
-          }}
-          inputProps={{style: {fontSize: props.fontSize}}} // font size of input text
-          InputLabelProps={{style: {fontSize: props.labelSize}}} // font size of input label
-          placeholder={props.placeholder}
-          error={props.disabled}
-          helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
-        />
+    <TextField
+      sx={props.sx}
+      value={props.value}
+      id="standard-basic"
+      variant="standard"
+      type={props.type}
+      label={props.label}
+      onChange={(event) => {
+        props.onChange(event.target.value);
+      }}
+      inputProps={{ style: { fontSize: props.fontSize } }} // font size of input text
+      InputLabelProps={{ style: { fontSize: props.labelSize } }} // font size of input label
+      placeholder={props.placeholder}
+      error={props.disabled}
+      helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+    />
   );
 }
 
-
 const CustomSwitch = styled(Switch)(({ theme }) => ({
-  '& .MuiSwitch-switchBase.Mui-checked': {
+  "& .MuiSwitch-switchBase.Mui-checked": {
     color: pink[600],
-    '&:hover': {
+    "&:hover": {
       backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
     },
   },
-  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
     backgroundColor: pink[600],
   },
 }));
 
-
-const label = { inputProps: { 'aria-label': 'Color switch demo' } };
+const label = { inputProps: { "aria-label": "Color switch demo" } };
 
 interface settingDialogProps {
   open: boolean;
-  setOpen: (v:boolean) => void;
+  setOpen: (v: boolean) => void;
 }
 
-export default function SettingDialog({open, setOpen}: settingDialogProps) {
-
+export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   const { handleError } = useError();
   const navigate = useNavigate();
 
-  const [ isLoading, setIsLoading ] = useState<boolean>(false);
-  const [ imageFile, setImageFile ] = useState<string>("");
-  const [ nickname, setNickname ] = useState<string>("");
-  const [ isNicknameOk, setIsNicknameOk ] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [imageFile, setImageFile] = useState<string>("");
+  const [nickname, setNickname] = useState<string>("");
+  const [isNicknameOk, setIsNicknameOk] = useState<boolean>(false);
 
   let initialTwoFactorAuth: boolean; // 기존 사용자 설정
 
@@ -139,13 +136,12 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   }, []);
   // ---------------------------------------------------------------------
 
- 
   // Nickname Change handle
   // ---------------------------------------------------------------------
-  const _validator = useMemo(() => { 
+  const _validator = useMemo(() => {
     console.log("setting validator...");
     return new Utils.Validator();
-  }, []) // calculate only on first render.
+  }, []); // calculate only on first render.
 
   useEffect(() => {
     if (!nickname) return;
@@ -157,35 +153,28 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
   }, [nickname]);
   // ---------------------------------------------------------------------
 
-
-
-
   // 2FactorAuto change Handle
   // ---------------------------------------------------------------------
-  const [ twoFactorAuth, setTwoFactorAuth ] = useState<boolean>(false);
+  const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTwoFactorAuth(event.target.checked);
   };
 
   // off 에서 on이 된 경우 "로그아웃 됩니다. 정말 활성화 하시겠습니끼? 경고모달 띄우고 no하면 false로 하기"
   useEffect(() => {
-    if (!twoFactorAuth) return ;
+    if (!twoFactorAuth) return;
     if (!initialTwoFactorAuth && twoFactorAuth) {
       console.log("2차 인증이 off 에서 on으로 변경됨.");
-      alert("")
+      alert("");
       // ... 경고 모달 활성화
     }
   }, [twoFactorAuth]);
   // ---------------------------------------------------------------------
 
-
-
-
   // Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
     (async () => {
-
       // 1. 서버에 변경 요청
       // setIsLoading(true);
       // const response = await API.updateUserData(loggedUserId, nickname, imageFile, twoFactorAuth );
@@ -198,15 +187,11 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
       // setLoggedUserId(response.user_id);
       // console.log("서버에 변경사항을 전달하였습니다.");
 
-
       // 4. 2차 인증이 off였던 사용자가 on으로 켰다면, 로그아웃 시켜버리기.
       handleLogout();
       // ...
-
     })(/* IIFE */);
   };
-
-
 
   // Log-out
   // ---------------------------------------------------------------------
@@ -215,13 +200,10 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
     await API.requestLogOut(handleError);
   };
 
-
   // Dialog close
   const handleClose = () => {
     setOpen(false); // close dialog
-  }; 
-
-
+  };
 
   return (
     // https://mui.com/material-ui/api/container/
@@ -239,27 +221,33 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
 
         {/* 프로필 변경 */}
         <DialogContent sx={{ paddingBottom: 2 }}>
-            {/* 이미지 변경 */}
-            <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
-            {/* 이름 변경 */}
-            <TextFieldWrapper
-              sx={{ maxWidth: "300px" }}
-              fontSize={24}
-              value={nickname}
-              onChange={setNickname}
-              type={"text"}
-              label={"Nickname"}
-              labelSize={18}
-              disabled={!isNicknameOk}
-              disabledHelperText={_validator.getRuleHint("@Nickname")}
-            />
+          {/* 이미지 변경 */}
+          <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
+          {/* 이름 변경 */}
+          <TextFieldWrapper
+            sx={{ maxWidth: "300px" }}
+            fontSize={24}
+            value={nickname}
+            onChange={setNickname}
+            type={"text"}
+            label={"Nickname"}
+            labelSize={18}
+            disabled={!isNicknameOk}
+            disabledHelperText={_validator.getRuleHint("@Nickname")}
+          />
         </DialogContent>
 
-        <DialogContent sx={{ paddingBottom: 4, display:"flex", justifyContent:"space-between" }}>
-            {/* 설정 저장 버튼 */}
-            <LoadingButton color="info" variant="outlined" loading={isLoading} disabled={!isNicknameOk} onClick={handleClickSave}>
-              Save Settings
-            </LoadingButton>
+        <DialogContent sx={{ paddingBottom: 4, display: "flex", justifyContent: "space-between" }}>
+          {/* 설정 저장 버튼 */}
+          <LoadingButton
+            color="info"
+            variant="outlined"
+            loading={isLoading}
+            disabled={!isNicknameOk}
+            onClick={handleClickSave}
+          >
+            Save Settings
+          </LoadingButton>
         </DialogContent>
 
         {/* 2차 인증 */}
@@ -276,7 +264,6 @@ export default function SettingDialog({open, setOpen}: settingDialogProps) {
         <Button color="error" variant="contained" onClick={handleLogout}>
           Logout
         </Button>
-
       </Dialog>
     </Container>
   );

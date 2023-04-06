@@ -1,9 +1,9 @@
 // src/BattleNotification.tsx
 
-import React, { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import LinearProgress from '@mui/material/LinearProgress';
+import React, { useEffect, useState } from "react";
+import { Button } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import LinearProgress from "@mui/material/LinearProgress";
 
 interface BattleNotificationProps {
   onClose: () => void;
@@ -25,15 +25,14 @@ const BattleNotification: React.FC<BattleNotificationProps> = ({ onClose }) => {
   }, [timeLeft, onClose]);
 
   return (
-    <div className="relative bg-red-500 border border-solid border-red-700 rounded pl-6 p-2 mb-4" style={{ zIndex: 9999 }}>
+    <div
+      className="relative bg-red-500 border border-solid border-red-700 rounded pl-6 p-2 mb-4"
+      style={{ zIndex: 9999 }}
+    >
       <div className="flex justify-between">
         <div className="text-white">
-          <p className="font-bold">
-            XX 님의 아이템전 배틀신청
-          </p>
-          <p>
-            게임하실분~~
-          </p>
+          <p className="font-bold">XX 님의 아이템전 배틀신청</p>
+          <p>게임하실분~~</p>
         </div>
         <CloseIcon onClick={onClose} className="cursor-pointer text-white" />
       </div>
@@ -50,7 +49,7 @@ const BattleNotification: React.FC<BattleNotificationProps> = ({ onClose }) => {
           variant="determinate"
           value={((10000 - timeLeft) / 10000) * 100}
           color="secondary"
-          style={{ height: '4px' }}
+          style={{ height: "4px" }}
         />
       </div>
     </div>

@@ -15,36 +15,34 @@ import SearchTextField from "@/components/Molecule/SearchTextField";
 import VirtualizedUserList from "@/components/Organism/Friends/LocalUserList/List";
 import MediaCard from "@/components/Molecule/MediaCard";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
-import AddBoxIcon from '@mui/icons-material/AddBox';
+import AddBoxIcon from "@mui/icons-material/AddBox";
 
+export default function LocalUserList() {
+  const [searchString, setSearchString] = useState<string>(""); // 검색 문자열.
 
-export default function LocalUserList() { 
+  return (
+    <>
+      {/*  */}
+      <MediaCard
+        // 이미지는 Dribble에서 가져옴. https://dribbble.com/shots/17023457-Friend
+        imageUrl="https://cdn.dribbble.com/users/1217289/screenshots/16269024/media/15c298956c3cb72d8480344cb71028d0.png?compress=1&resize=800x600&vertical=top"
+        title="My Friends"
+        body="body2 text"
+      />
 
-    const [ searchString, setSearchString ] = useState<string>(""); // 검색 문자열.
+      <div className=" absolute top-32 right-4">
+        <ButtonLink primary="Add Friend" to="./add" sx={{ color: "#ffffffff" }}>
+          <AddBoxIcon fontSize="large" />
+        </ButtonLink>
+      </div>
 
-    return (
-        <>
-            {/*  */}
-            <MediaCard
-                // 이미지는 Dribble에서 가져옴. https://dribbble.com/shots/17023457-Friend
-                imageUrl="https://cdn.dribbble.com/users/1217289/screenshots/16269024/media/15c298956c3cb72d8480344cb71028d0.png?compress=1&resize=800x600&vertical=top"
-                title="My Friends"
-                body="body2 text"
-            />
+      {/*  */}
+      <div className=" border m-0 p-4 pr-8 pb-6">
+        <SearchTextField state={searchString} setState={setSearchString} label={"친구 찾기"} />
+      </div>
 
-            <div className=" absolute top-32 right-4">
-                <ButtonLink primary="Add Friend" to="./add" sx={{color: "#ffffffff"}} >
-                    <AddBoxIcon fontSize="large" />
-                </ButtonLink>
-            </div> 
-
-            {/*  */}
-            <div className=" border m-0 p-4 pr-8 pb-6">
-                <SearchTextField state={searchString} setState={setSearchString} label={"친구 찾기"}/>
-            </div>
-
-            {/*  */}
-            <VirtualizedUserList searchString={searchString} />
-        </>
-    );
+      {/*  */}
+      <VirtualizedUserList searchString={searchString} />
+    </>
+  );
 }
