@@ -14,6 +14,7 @@ import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
 import { useError } from '@/context/ErrorContext';
+import { useSocket } from '@/context/SocketContext';
 
 
 interface ChatDetailProps {
@@ -37,6 +38,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [battleModalOpen, setBattleModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const {handleError} = useError();
+
+  const {chatSocket} = useSocket();
 
 
   async function fetchUsersByChannelId(_channelId : number) {
@@ -133,7 +136,36 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       }
     };
     init();
+
+    // 컴포넌트 언마운트. channelId가 변경될떄도 언마운트가 실행된다. 
+    return () => {
+      console.log("1111111");
+    }
   }, [channelId]);
+
+  useEffect(() => {
+    function enterChat() {
+      if (chatSocket) {
+        chatSocket.emit('enter-chat', { channel_id: channelId });
+      }
+    };
+
+    function leaveChat() {
+      if (chatSocket) {
+        chatSocket.emit('leave-chat', { channel_id: channelId });
+      }
+    }
+
+    if (chatSocket) {
+      enterChat();
+    }
+
+    return (() => {
+      if (chatSocket) {
+
+      }
+    })
+  }, [chatSocket, channelId]);
 
   useEffect(() => {
     const channel = channels.find((ch)=>(ch.id === channelIdNumber));

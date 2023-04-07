@@ -27,6 +27,7 @@ import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
 import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "./components/Molecule/AlertSnackbar";
+import { SocketProvider } from "./context/SocketContext";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -137,18 +138,20 @@ function App() {
   }, []);
 
   return (
-    <ErrorProvider>
-      <div className="App">
-        <header className="App-header">
-          <GlobalContext.Provider
-            value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-          >
-            <RouterProvider router={router} />
-          </GlobalContext.Provider>
-        </header>
-      </div>
-      <AlertSnackbar />
-    </ErrorProvider>
+    <SocketProvider>
+      <ErrorProvider>
+        <div className="App">
+          <header className="App-header">
+            <GlobalContext.Provider
+              value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+            >
+              <RouterProvider router={router} />
+            </GlobalContext.Provider>
+          </header>
+        </div>
+        <AlertSnackbar />
+      </ErrorProvider>
+    </SocketProvider>
   );
 }
 

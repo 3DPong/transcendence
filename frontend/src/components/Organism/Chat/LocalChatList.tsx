@@ -11,6 +11,7 @@ import GlobalContext from "@/context/GlobalContext";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/../config/backend";
 import { useError } from "@/context/ErrorContext";
+import { useSocket } from "@/context/SocketContext";
 
 
 interface ChatListProps {
@@ -18,13 +19,20 @@ interface ChatListProps {
 
 const LocalChatList : FC<ChatListProps> = () => {
   const navigate = useNavigate();
-  const {channels, setChannels} = useContext(GlobalContext);
+  const {loggedUserId, channels, setChannels} = useContext(GlobalContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
   const {handleError} = useError();
 
+  // 나중에 컨트롤바로 넘겨야되고, 세션쿠키를 이용해서 연결할 예정
+  const {chatSocket, chatConnect} = useSocket();
+
   useEffect(() => {
+    // 소켓연결
+    if (loggedUserId)
+      chatConnect({userId: loggedUserId})
+    // ======
     setIsLoading(true);
     async function fetchChannels() {
       const response = await fetch(API_URL + "/chat");
