@@ -20,7 +20,7 @@ declare module 'express-session' {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useWebSocketAdapter(new GameSocketIoAdapter);
+  app.useWebSocketAdapter(new IoAdapter(app));
   const appConfig = app.get(AppConfigService);
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();

@@ -1,13 +1,12 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io'
 import { GameManager } from '../simul/GameManager';
-import { MatchDto } from '../game_dto/createMatch.dto';
 import { GameService } from './services';
-import { GameDto } from '../game_dto/GameDto';
+import { RoomType, GameType } from '../enum/GameEnum';
+import { InputData, MatchJoinData, ObserveData } from '../gameData';
 
-@WebSocketGateway(4242, {
+@WebSocketGateway({
   namespace : 'game',
-  cors : {origin : '*'}, 
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
@@ -46,34 +45,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
-  @SubscribeMessage('Match')
+  @SubscribeMessage('MatchJoin')
   match(
-    @MessageBody() dto : MatchDto,
+    @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,
   ) {
-    let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, dto);
+    let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, matchJoinData);
     if (gameManager === undefined){
-      gameManager = new GameManager(dto);
-      gameManager.createPlayer(client.id);
+      gameManager = new GameManager(matchJoinData);
+      gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
       console.log('gameCreate', gameManager.gameId);
     } else {
-      gameManager.createPlayer(client.id);
+      gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
-      this.server.to(gameManager.gameId).emit('gameStart', gameManager);
+      
+      this.gameService.gameStart(gameManager, this.server);
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
-      console.log('gameStart');
     }
   }
 
   //game 시작전 나가기 누르면 매칭시스템에서 탈출
   @SubscribeMessage('exit')
   matchExit(
-    @MessageBody() dto : GameDto,
     @ConnectedSocket() client : Socket,
   ) {
-    const gameManager : GameManager = this.gameRooms.get(dto.gameId);
+    const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
     if (gameManager === undefined || gameManager.player1.sid !== client.id){
       this.server.to(client.id).emit('gameExit', 'player is not in gameRoom');
       return;
@@ -81,5 +79,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gameService.socketLeaveRoom(client, gameManager.gameId);
     this.server.to(client.id).emit('gameExit', 'player is exit gameRoom');
     this.gameRooms.delete(gameManager.gameId);
+  }
+
+  @SubscribeMessage('observeJoin')
+  observerJoin(
+    @MessageBody() observeData : ObserveData,
+    @ConnectedSocket() client : Socket,
+  ) {
+    this.gameService.socketJoinRoom(client, observeData.gameId);
+  }
+
+  @SubscribeMessage('keyInput')
+  keyInput(
+    @MessageBody() inputData : InputData,
+    @ConnectedSocket() client : Socket
+  ) {
+    const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
+    gameManager.Keyboard(inputData.key, client.id);
   }
 }

@@ -65,7 +65,6 @@ services:
     container_name: pgadmin
     networks:
       - backend
-    restart: always
     ports:
       - "5050:80"
     volumes:

@@ -1,18 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Socket } from 'socket.io'
-import { GameType,GameRoomType } from '../../simul/enum/GameEnum';
 import { GameManager} from '../../simul/GameManager';
 import { GamePlayer } from '../../simul/GamePlayer';
-import { MatchDto } from '../../game_dto/createMatch.dto';
-import { MATCH_SCORE } from '../../simul/enum/GameEnv';
-
+import { MATCH_SCORE } from '../../enum/GameEnv';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Match } from '../../entities';
+import { Repository } from 'typeorm';
+import { MatchJoinData, MatchResultData, MatchStartData, RenderData } from '../../gameData';
+import { Server} from 'socket.io'
+import { GameDataMaker } from './game.data.maker';
 @Injectable()
 export class GameService {
-  
-  public createGamePlayer(id : string) : GamePlayer {
-    const player : GamePlayer = new GamePlayer(id);
-    return player;
-  }
+  constructor (
+    private gameDataMaker : GameDataMaker,
+    @InjectRepository(Match) 
+    private matchRepository : Repository<Match>,
+  ) {}
 
   public socketJoinRoom(client : Socket, roomId: string){
     client.join(roomId);
@@ -25,11 +28,15 @@ export class GameService {
   }
 
   public mathFind(
-    gameRooms : Map<string, GameManager>, dto : MatchDto
+    gameRooms : Map<string, GameManager>, 
+    matchJoinData : MatchJoinData
   ) : GameManager {
     for (const manager of gameRooms.values()){
-      //test를 위해  default true고정 추후 client socket과 통신할때 수정예정
-      if (true) {
+      if (
+        manager.gameType === matchJoinData.gameType &&
+        manager.gameRoomType === matchJoinData.roomType &&
+        manager.playerCount === 1
+      ) {
         return manager;
       }
     }
@@ -38,9 +45,13 @@ export class GameService {
 
   public async gameEnd(
     gameRooms : Map<string, GameManager>,
-    gameManager: GameManager
+    gameManager: GameManager,
+    server : Server
   ){
-    //todo : db작업 및 클라이언트 한테 알려주기
+    //todo : 클라이언트 한테 알려주기
+    await this.createMatch(gameManager);
+    const matchResultData : MatchResultData = this.gameDataMaker.makeMatchResultData(gameManager);
+    server.to(gameManager.gameId).emit('matchEnd', matchResultData);
     gameRooms.delete(gameManager.gameId);
   }
 
@@ -51,4 +62,32 @@ export class GameService {
     loser.socore = 0;
   }
 
+  public gameStart(gameManager : GameManager, server : Server){
+    const player1sid : string = gameManager.player1.sid;
+    const player2sid : string = gameManager.player2.sid;
+    const matchStartData1 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player1sid);
+    const matchStartData2 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player2sid);
+
+    server.to(player1sid).emit('start', matchStartData1);
+    server.to(player2sid).emit('start', matchStartData2);
+  }
+
+  public initRenderDatas(gameManager : GameManager) : RenderData[] {
+    return this.gameDataMaker.makeRenderDatas(gameManager);
+  }
+  
+  async createMatch(gameManager : GameManager){
+    const newMatch = new Match();
+    newMatch.game_type = gameManager.gameType;
+    newMatch.match_type = gameManager.gameRoomType;
+    newMatch.left_score = gameManager.player1.socore;
+    newMatch.right_score = gameManager.player2.socore;
+    newMatch.left_player = gameManager.player1.dbId;
+    newMatch.right_player = gameManager.player2.dbId;
+    try {
+      this.matchRepository.save(newMatch);
+    } catch (error) {
+      throw new InternalServerErrorException('DataBase save Error');
+    }
+  }
 }

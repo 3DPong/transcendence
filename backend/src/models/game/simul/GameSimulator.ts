@@ -5,7 +5,8 @@ import { ObjectFactory } from "./object/ObjectFactory";
 import { MovePeddle, BallSpeedCorrection, RandomVec2} from "./object/ObjectController";
 import { ContactListenerInit } from "./ContactListenerInit";
 import { Server } from 'socket.io'
-import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "./enum/GameEnv";
+import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "../enum/GameEnv";
+import { RenderData, ScoreData } from "../gameData";
 export class MatchInterrupt {
   isInterrupt : boolean = false;
   sid : string = undefined;
@@ -40,7 +41,9 @@ export function step(
   server : Server,
   gameId : string ,
   simulator : GameSimulator,
-  timeStepMillis: number = 1/60
+  timeStepMillis: number = 1/60,
+  renderDatas : RenderData[],
+  scoreData : ScoreData
 ){
     const velocityIterations = 10;
     const positionIterations = 8;
@@ -49,12 +52,22 @@ export function step(
       simulator.ball.GetUserData().pause = false;
       simulator.ball.SetLinearVelocity(RandomVec2());
       BallSpeedCorrection(simulator.ball, BALL_SPEED);
+      scoreData.leftScore = simulator.ball.GetUserData().player1_score;
+      scoreData.rightSocre = simulator.ball.GetUserData().player2_score;
+      server.to(gameId).emit('score', scoreData);
     }
     MovePeddle(simulator.user1);
     MovePeddle(simulator.user2);
     simulator.world.Step(timeStepMillis,velocityIterations,positionIterations);
-    //data 뽑아서 보내줘야함 
-    for (let body : Box2D.Body = simulator.world.GetBodyList(); body !== null; body = body.m_next){
-      server.to(gameId).emit('InGameData', body.GetPosition());
-    }  
+
+    for (
+      let body : Box2D.Body = simulator.world.GetBodyList(), i = 0; 
+      body !== null; 
+      body = body.m_next, i++
+    ){
+      renderDatas[i].x = body.GetPosition().x;
+      renderDatas[i].y = body.GetPosition().y;
+      renderDatas[i].angle = body.GetAngle();
+    }
+    server.to(gameId).emit('render', renderDatas);
 }
