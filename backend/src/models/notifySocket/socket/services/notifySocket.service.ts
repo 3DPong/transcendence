@@ -33,6 +33,8 @@ export class NotifySocketService {
       this.logger.warn(`Invalid user_id on connecting with [${socket.id}]`);
       socket.disconnect();
       return;
+    } else {
+      socket.data.user_id = user_id;
     }
     // update in db
     try {
@@ -73,7 +75,7 @@ export class NotifySocketService {
   }
 
   async disconnect(socket: Socket) {
-    const { user_id } = socket.handshake.query;
+    const { user_id } = socket.data;
     if (!user_id) throw new WsException('user_id is required');
     // update in db
     try {
