@@ -7,13 +7,15 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import { Logger, UseFilters} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { WsException } from '@nestjs/websockets';
 import { ChannelType } from '../entities';
+import {SocketException, SocketExceptionFilter} from './socket.filter';
 
+
+@UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -53,14 +55,14 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
-
+  
 
   @SubscribeMessage('enter-chat')
   async handleSetClientDataEvent(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
 
     const user_id = this.getUserIdBySocketId(socket.id);
     if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
-      throw { error: 'No permission!' };
+      throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     try {
       socket.join(`chat_${dto.channel_id}`);
@@ -71,7 +73,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
   
@@ -80,7 +82,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     const user_id = this.getUserIdBySocketId(socket.id);
     if (!user_id || !(await this.chatSocketService.checkChannelUser(dto.channel_id, user_id)))
-      throw { error: 'No permission!' };
+      throw new SocketException('Forbidden', `권한이 없습니다!`);
     try {
       socket.leave(`chat_${dto.channel_id}`); // leave room
       socket.broadcast
@@ -89,7 +91,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
 
@@ -100,19 +102,19 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     let dmUser;
     const user_id = this.getUserIdBySocketId(socket.id);
     if (!user_id)
-      throw { error: 'No permission!' };
+      throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     const channel = await this.chatSocketService.getChannelType(md.channel_id);
     if (!channel) {
-      throw { error:`can't find  ${ md.channel_id}`};
+      throw new SocketException('BadRequest', `채널을 찾을 수 없습니다!`);
     } else if (channel.type === ChannelType.DM && !(dmUser = await this.chatSocketService.getDmUser(md.channel_id, user_id))) {
-      throw { error:`can't find  DM user ${user_id}`};
+      throw new SocketException('BadRequest', `디엠 유저를 찾을 수 없습니다!`);
     } else if (channel.type !== ChannelType.DM && !await this.chatSocketService.checkChannelUser(md.channel_id, user_id)) {
-      throw { error:`can't find ${ md.channel_id}'s user ${user_id}`};
+      throw new SocketException('BadRequest', `채팅 유저를 찾을 수 없습니다!`);
     }
 
     if (await this.chatSocketService.checkMuteUser(md.channel_id, user_id)) {
-      throw { error:`뮤트 상태 입니다!`};
+      throw new SocketException('Forbidden', `뮤트 상태입니다!`);
     }
  
     try {
@@ -126,7 +128,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   
   }
@@ -139,7 +141,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (!adminId ||
       !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
       !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
-        throw { error: 'No permission!' };
+        throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     try {
       const muted = await this.chatSocketService.checkMuteUser(channel_id, user_id);
@@ -149,16 +151,17 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 해제 되었습니다.` });
         
       } else {
-        if (muteDto.end_at === null)
-          throw {error: '뮤트 해제 시간 없음.'} 
+        if (muteDto.end_at === null) {
+          throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
+        }
         const mute = await this.chatSocketService.muteUser(muteDto);
         if (!mute)
-          throw { error: 'Server error!' };
+          throw new SocketException('InternalServerError', `뮤트 실패!`);
         this.server.to(`chat_${channel_id}`).emit('mute', { message: `${user_id} 가 뮤트 되었습니다.` });
       }
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
 
@@ -170,16 +173,16 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (!adminId ||
       !(await this.chatSocketService.checkAdminUser(channel_id, adminId)) ||
       !(await this.chatSocketService.checkChannelUserRole(channel_id, user_id)))
-      throw { error: 'No permission!' };
+        throw new SocketException('Forbidden', `권한이 없습니다!`);
     try {
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
 
       if (banned) {
-        throw { error: '이미 밴 유저입니다!' };
+        throw new SocketException('Conflict', `이 유저는 이미 밴 상태입니다!`);
       } else {
         const banned = await this.chatSocketService.banUser(banDto);
         if (!banned)
-         throw { error: 'Server error!' };
+          throw new SocketException('InternalServerError', `밴 실패!`);
 
         await this.chatSocketService.kickUser(channel_id, user_id);
         const userSocket = this.getSocketIdByUserId(user_id);
@@ -190,7 +193,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       }
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
 
@@ -200,7 +203,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const adminId = this.getUserIdBySocketId(socket.id);
     if (!adminId ||
       !(await this.chatSocketService.checkAdminUser(channel_id, adminId)))
-      throw { error: 'No permission!' };
+        throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     try {
       const banned = await this.chatSocketService.checkBanUser(channel_id, user_id);
@@ -208,11 +211,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         await this.chatSocketService.unbanUser(channel_id, user_id);
         this.server.to(`chat_${channel_id}`).emit('ban', { message: `${user_id} 가 밴 해제 되었습니다.` });
       }  else {
-        throw { error: '밴 유저가 아닙니다!' };
+        throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
       }
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
 
@@ -235,7 +238,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       this.server.to(`chat_${channel_id}`).emit(`kick`,  { message: `${user_id} 가 강제 퇴장 되었습니다.` });
     } catch (error) {
       this.logger.log(error)
-      throw new WsException(error);
+      throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
 
