@@ -1,26 +1,26 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../user/entities';
 import { Factory } from 'nestjs-seeder';
-import { GameType, GameRoomType } from '../simul/enum/GameEnum';
+import { GameType, RoomType } from '../enum/GameEnum';
 
 @Entity()
 export class Match {
   @PrimaryGeneratedColumn()
   match_id: number;
 
-  @Factory((faker) => faker.helpers.arrayElement([GameType.OTHER, GameType.NORMAL]))
+  @Factory((faker) => faker.helpers.arrayElement([GameType.SPECIAL, GameType.NORMAL]))
   @Column({ type: 'enum', enum: GameType, default: GameType.NORMAL })
   game_type: GameType;
 
-  @Factory((faker) => faker.helpers.arrayElement([GameRoomType.INCHAT, GameRoomType.RANDOM]))
-  @Column({ type: 'enum', enum: GameRoomType, default: GameRoomType.RANDOM })
-  match_type: GameRoomType;
+  @Factory((faker) => faker.helpers.arrayElement([RoomType.CHAT, RoomType.RANDOM]))
+  @Column({ type: 'enum', enum: RoomType, default: RoomType.RANDOM })
+  match_type: RoomType;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 0, max: 20 }))
   @Column({ type: 'int8', default: 0 })
   left_score: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 0, max: 20 }))
   @Column({ type: 'int8', default: 0 })
   right_score: number;
 

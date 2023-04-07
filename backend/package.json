@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config test/jest-e2e.json",
-    "seed": "ts-node src/database/dummy/seeder",
+    "seed": "cross-env NODE_ENV=dev ts-node src/database/dummy/seeder",
     "seed:refresh": "ts-node src/database/dummy/seeder --refresh"
   },
   "dependencies": {
@@ -27,7 +27,7 @@
     "@nestjs/core": "^9.0.0",
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
-    "@nestjs/platform-socket.io": "^9.3.9",
+    "@nestjs/platform-socket.io": "^9.3.12",
     "@nestjs/typeorm": "^9.0.1",
     "@nestjs/websockets": "^9.3.9",
     "@types/crypto-js": "^4.1.1",

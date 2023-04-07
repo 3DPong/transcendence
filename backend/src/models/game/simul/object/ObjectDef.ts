@@ -1,17 +1,14 @@
 import * as Box2D from "../../Box2D";
-import { MAP_HEIGHT, MAP_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH } from "../enum/GameEnv";
-import {InGameData } from "./InGameObjectData.js";
+import { MAP_HEIGHT, MAP_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH } from "../../enum/GameEnv";
+import { v4 as uuidv4} from 'uuid';
 
-export enum ObjectType{
-  BALL,
-  PADDLE,
-}
 export class ObjectDefBase {
   public objectBodyDef : Box2D.BodyDef;
   public objectFixtureDef : Box2D.FixtureDef;
   constructor (){
     this.objectBodyDef = new Box2D.BodyDef();
     this.objectFixtureDef = new Box2D.FixtureDef();
+    this.objectBodyDef.userData.id = uuidv4();
   }
 }
 
@@ -19,7 +16,6 @@ export class BallDef extends ObjectDefBase{
   constructor(){
     super();
     this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
-    this.objectBodyDef.userData = new InGameData("ball", ObjectType.BALL);
     this.objectFixtureDef.shape = new Box2D.CircleShape().Set(new Box2D.Vec2(0,0),1);
     //density 특별한 경우가 아니면 물의 밀도 1000g/cm^3 적용
     this.objectFixtureDef.density = 1000;
@@ -47,7 +43,6 @@ export class PaddleDef extends ObjectDefBase {
     super();
     //this.objectBodyDef.type = Box2D.BodyType.b2_dynamicBody;
     this.objectBodyDef.position.Set(x, y);
-    this.objectBodyDef.userData = new InGameData(id, ObjectType.PADDLE);
     this.objectFixtureDef.shape = new Box2D.PolygonShape().SetAsBox(PADDLE_WIDTH, PADDLE_HEIGHT);
     this.objectFixtureDef.density = 1000;
     this.objectFixtureDef.friction = 0;

@@ -1,5 +1,5 @@
 import * as Box2D from "../Box2D";
-import { MAP_WIDTH, MAP_HEIGHT, BALL_SPEED } from "./enum/GameEnv";
+import { MAP_WIDTH, MAP_HEIGHT, BALL_SPEED } from "../enum/GameEnv";
 import { BallSpeedCorrection } from "./object/ObjectController";
 
 export function ContactListenerInit(world: Box2D.World){

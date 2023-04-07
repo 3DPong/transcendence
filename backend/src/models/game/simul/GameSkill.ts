@@ -1,4 +1,4 @@
-import { SKILL_COLL } from "./enum/GameEnv.js";
+import { SKILL_COLL } from "../enum/GameEnv.js";
 import { GamePlayer } from "./GamePlayer.js";
 
 export class GameSkill {
@@ -6,6 +6,9 @@ export class GameSkill {
   public paddleDirectionSkillTimeOut ?: NodeJS.Timeout;
 
   public ReverseEnemyPaddleDirection(enemyUser : GamePlayer){
+    if (this.paddleDirectionSkillCount === 0){
+      return ;
+    }
     enemyUser.directionReverse = true;
     --this.paddleDirectionSkillCount;
     this.paddleDirectionSkillTimeOut = setTimeout(

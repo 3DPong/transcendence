@@ -1,7 +1,7 @@
 import { GamePlayer } from "../GamePlayer";
 import * as Box2D from "../../Box2D";
-import { PaddleState } from "../enum/GameEnum";
-import { MAP_HEIGHT, PADDLE_HEIGHT, PADDLE_SPEED } from "../enum/GameEnv";
+import { PaddleState } from "../../enum/GameEnum";
+import { MAP_HEIGHT, PADDLE_HEIGHT, PADDLE_SPEED } from "../../enum/GameEnv";
 
 export function MovePeddle(user : GamePlayer){
   if (user.directionButton === PaddleState.STOP) {
