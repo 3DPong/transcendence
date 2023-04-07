@@ -201,16 +201,18 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
   if (!adminId ||
     !(await this.checkAdminUser(channel_id, adminId)) ||
     !(await this.checkChannelUserRole(channel_id, user_id)))
-      return { error: 'No permission!' };
+      throw new SocketException('Forbidden', `권한이 없습니다!`);
   try {
+
+    let nickname = await this.getChannelUserName(channel_id, user_id)
     await this.deleteChannlUser(channel_id, user_id);
 
    if (userSocket)
     server.in(userSocket).socketsLeave(`chat_${channel_id}`);
   
-    let nickname;
-    if (nickname = await this.getChannelUserName(channel_id, user_id))
+    if (nickname) {
       server.to(`chat_${channel_id}`).emit(`kick`,  { message: `${nickname} 가 강제 퇴장 되었습니다.` });
+    }
   } catch (error) {
     // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
@@ -297,6 +299,7 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
 
   async getChannelUserName(channel_id: number, user_id: number)    {
     const chatUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
+
     if (chatUser)
       return chatUser.user.nickname;
     return null;
@@ -320,7 +323,8 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
   }
   
   async checkAdminUser(channel_id: number, user_id: number) : Promise <boolean> {
-    const channelUser = await this.channelUserRepository.findOne({where: {user_id, channel_id}});
+    const channelUser = await this.channelUserRepository
+    .findOne({select: {channel_id:true, user_id:true, role:true}, where: {channel_id, user_id}});
     if (!channelUser || channelUser.role === ChannelUserRoles.USER)
       return false;
     return true;

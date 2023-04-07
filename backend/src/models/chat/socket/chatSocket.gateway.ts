@@ -42,10 +42,12 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       } else {
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
+      this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
     } catch (error) {
       socket.disconnect();
     }
   }
+
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
     const { user_id } = socket.data.user
@@ -106,6 +108,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     
     const adminId = this.getUserIdBySocketId(socket.id);
     const userSocket = this.getSocketIdByUserId(kickDto.user_id);
+    console.log("\n\n\n\nadminId = " + adminId + "     userSocket = "+ userSocket)
     return this.chatSocketService.kickUser(this.server, adminId, kickDto, userSocket);
   }
 
