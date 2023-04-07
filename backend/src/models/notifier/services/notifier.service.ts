@@ -1,139 +1,50 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { TopicEnum } from '../enums/topic.enum';
-import { FindOptionsRelations, Repository } from 'typeorm';
-import { User } from '../../user/entities';
-import { RelationStatus } from '../../../common/enums/relationStatus.enum';
-import { ChatChannel } from '../../chat/entities';
-import { InjectRepository } from '@nestjs/typeorm';
-import { NotifierGateway } from '../notifier.gateway';
+import { Namespace, Server } from 'socket.io';
+import { Redis } from 'ioredis';
+import { RedisService } from '@liaoliaots/nestjs-redis';
 
 @Injectable()
 export class NotifierService {
-  @WebSocketServer()
-  chatServer: Server;
+  private readonly redisClient: Redis;
   private readonly logger = new Logger('NotifierService');
 
-  constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(ChatChannel) private readonly chatChannelRepository: Repository<ChatChannel>,
-    private readonly userNotifyGateway: NotifierGateway
-  ) {}
-
-  async getUser(userId: number, relations: FindOptionsRelations<User>) {
-    return await this.userRepository.findOne({
-      where: { user_id: userId },
-      relations: relations,
-    });
+  constructor(private readonly redisService: RedisService) {
+    this.redisClient = redisService.getClient();
   }
 
-  async getFollowers(user: User) {
-    return user.relatedOf
-      .filter((relationship) => relationship.status === RelationStatus.FRIEND)
-      .map((relationship) => relationship.user_id);
-  }
-  async getFollowings(user: User) {
-    return user.relationships
-      .filter((relationship) => relationship.status === RelationStatus.FRIEND)
-      .map((relationship) => relationship.target_id);
-  }
+  async notifyToUser(server: Server, userId: number, event: string, data: any) {
+    const userSockets: string = await this.redisClient.get(`${userId}`);
+    if (!userSockets) return;
+    const { socketId } = JSON.parse(userSockets);
+    if (!socketId) return;
+    const notifyNamespace: Namespace = await server.of('/notify');
 
-  async getJoinedChannels(user: User) {
-    return user.joinChannels.map((channel) => channel.channel_id);
+    notifyNamespace.to(socketId).emit(event, data);
+    this.logger.log(`notify to user ${userId} with event ${event} and data ${data}`);
   }
 
-  async notifyAll(userId: number, event: string, data: any, topic: TopicEnum) {
-    // 유저의 상태에 관여된 모든 대상에게 전달
-    const sendUser: User = await this.getUser(userId, {
-      relatedOf: true,
-      joinChannels: true,
-    });
-    if (!sendUser) throw new Error('send user not found');
-    const followers = await this.getFollowers(sendUser);
-    const joinedChannels = await this.getJoinedChannels(sendUser);
-    if (followers.length === 0 && joinedChannels.length === 0) return;
-
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToUsers(followers, event, data);
-        await this.userNotifyGateway.notifyToJoinedChatChannels(joinedChannels, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
+  async notifyToUsers(server: Server, userIds: number[], event: string, data: any) {
+    for (const userId of userIds) {
+      await this.notifyToUser(server, userId, event, data);
     }
   }
 
-  async notifyUser(userId: number, event: string, data: any, topic: TopicEnum, target: number) {
-    const sendUser: User = await this.getUser(userId, {});
-    const targetUser: User = await this.getUser(target, {});
-    if (!sendUser) throw new Error('send user not found');
-    if (!targetUser) throw new Error('target user not found');
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToUser(target, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
+  async notifyToSpecificChatChannel(server: Server, channelId: number, event: string, data: any) {
+    const channelServer: Namespace = await server.of('/chat');
+    const channelRoom = `chat_${channelId}`;
+    if (channelServer.adapter.rooms.has(channelRoom) === false) {
+      // for debug
+      this.logger.debug(`room ${channelRoom} doesn't exist`);
+      return;
     }
+
+    channelServer.to(channelRoom).emit(event, data);
+    this.logger.log(`notify to channel ${channelId} with event ${event} and data ${data}`);
   }
 
-  async notifyFollowings(userId: number, event: string, data: any, topic: TopicEnum) {
-    const sendUser: User = await this.getUser(userId, { relationships: true });
-    if (!sendUser) throw new Error('send user not found');
-    const followings: Array<number> = await this.getFollowings(sendUser);
-    if (followings.length === 0) return;
-
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToUsers(followings, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
-    }
-  }
-
-  async notifyFollowers(userId: number, event: string, data: any, topic: TopicEnum) {
-    const sendUser: User = await this.getUser(userId, { relatedOf: true });
-    if (!sendUser) throw new Error('send user not found');
-    const followers: Array<number> = await this.getFollowers(sendUser);
-    if (followers.length === 0) return;
-
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToUsers(followers, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
-    }
-  }
-
-  async notifyJoinedChannels(userId: number, event: string, data: any, topic: TopicEnum) {
-    const sendUser: User = await this.getUser(userId, { joinChannels: true });
-    if (!sendUser) throw new Error('send user not found');
-    const joinedChannels: Array<number> = await this.getJoinedChannels(sendUser);
-    if (joinedChannels.length === 0) return;
-
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToJoinedChatChannels(joinedChannels, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
-    }
-  }
-
-  async notifySpecificChannel(userId: number, event: string, data: any, topic: TopicEnum, target: number) {
-    const sendUser: User = await this.getUser(userId, {});
-    if (!sendUser) throw new Error('send user not found');
-    const targetChannel: ChatChannel = await this.chatChannelRepository.findOne({ where: { channel_id: target } });
-    if (!targetChannel) throw new Error('target channel not found');
-    switch (topic) {
-      case TopicEnum.USER:
-        await this.userNotifyGateway.notifyToSpecificChatChannel(target, event, data);
-        return;
-      case TopicEnum.GAME:
-        return;
+  async notifyToJoinedChatChannels(server: Server, channels: number[], event: string, data: any) {
+    for (const channelId of channels) {
+      await this.notifyToSpecificChatChannel(server, channelId, event, data);
     }
   }
 }
