@@ -108,7 +108,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     
     const adminId = this.getUserIdBySocketId(socket.id);
     const userSocket = this.getSocketIdByUserId(kickDto.user_id);
-    console.log("\n\n\n\nadminId = " + adminId + "     userSocket = "+ userSocket)
     return this.chatSocketService.kickUser(this.server, adminId, kickDto, userSocket);
   }
 
