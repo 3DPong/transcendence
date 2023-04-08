@@ -7,13 +7,12 @@ import GlobalContext from '@/context/GlobalContext';
 
 interface MessageListProps {
   channelId: number
-  myId: number;
   users: ChatUser[];
   messages: Message[];
   setMessages: (messages : Message[]) => void;
 };
 
-const MessageList: React.FC<MessageListProps> = ({ channelId, users, myId, messages, setMessages }) => {
+const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, setMessages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState<number>(0);
   const [prevScrollHeight, setPrevScrollHeight] = useState<number>(0);
@@ -101,7 +100,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, myId, messa
                     scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
       onScroll={handleScroll}>
       {messages.map((message, index) => {
-        const isMyMessage = message.senderId === myId;
+        const isMyMessage = message.senderId === loggedUserId;
         const sender = userMap.get(message.senderId) || defaultChatUser;
         const isFirstMessage = index === 0 || messages[index - 1].senderId !== message.senderId;
         const isLastMessage = index === messages.length - 1 || messages[index + 1].senderId !== message.senderId;

@@ -103,12 +103,16 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   /* dummyData */
   function sendMessage(textContent: string) {
-    const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-    const message : Message = {id: getMessageId(), senderId:userId, content:textContent, created_at:formattedTime};
-    setMessages([...messages, message]);
+    if (chatSocket && loggedUserId) {
+      console.log("sendMessage");
+      chatSocket.emit('message-chat', {message: textContent, channel_id: channelIdNumber});
+
+      const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
+      const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
+      setMessages([...messages, message]);
+    }
   }
 
-  const userId = 63;
   const [messageId, setMessageId] = useState(200);
 
   function getMessageId () {
@@ -130,7 +134,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         setUsers(usrs);
         setBanList(bans);
         setMuteList(mutes);
-        setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === userId))?.role || "none"))
+        setIsAdmin(["admin", "owner"].includes(usrs.find((u)=>(u.id === loggedUserId))?.role || "none"))
       } catch (error) {
         handleError("Init Fetch", (error as Error).message);
       }
@@ -164,7 +168,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         }}>
         <MessageList
           channelId={channelIdNumber}
-          myId={userId}
           users={users}
           messages={messages}
           setMessages={setMessages}

@@ -31,17 +31,14 @@ const LocalChatList : FC<ChatListProps> = () => {
   useEffect(() => {
     if (chatSocket) {
       for (const channel of channels) {
+        console.log("======>" + channel.id);
         chatSocket.emit('enter-chat', { channel_id: channel.id });
-        chatSocket.on('chat', () => { console.log() });
       }
+      chatSocket.on('chat', (message) => { console.log(message) });
     }
   }, [chatSocket]);
 
   useEffect(() => {
-    // 소켓연결 Connect 호출
-    if (loggedUserId)
-      chatConnect({userId: loggedUserId})
-    // ======
     setIsLoading(true);
     async function fetchChannels() {
       const response = await fetch(API_URL + "/chat" + "?id="+loggedUserId);
@@ -63,6 +60,11 @@ const LocalChatList : FC<ChatListProps> = () => {
         return;
       }
       setIsLoading(false);
+
+      // 소켓연결 Connect 호출
+      if (loggedUserId)
+        chatConnect({userId: loggedUserId});
+      // ======
     };
     if (loggedUserId)
       fetchChannels();
