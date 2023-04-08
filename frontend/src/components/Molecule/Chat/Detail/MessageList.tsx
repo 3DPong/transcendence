@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Message, ChatUser, defaultChatUser } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard'
 import { API_URL } from '@/../config/backend';
 import { useError } from '@/context/ErrorContext';
+import GlobalContext from '@/context/GlobalContext';
 
 interface MessageListProps {
   channelId: number
@@ -19,10 +20,13 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, myId, messa
   const [fetchCount, setFetchCount] = useState<number>(0);
   const [scrollState, setScrollState] = useState<number>(1);
   const userMap = new Map<number, ChatUser>(users.map((user) => [user.id, user]));
+
+  const {loggedUserId} = useContext(GlobalContext);
+
   const {handleError} = useError();
 
   async function fetchMessagesByChannelId(skip:number) {
-    const response = await fetch(API_URL + "/chat/" + channelId + "/log?take=20&skip=" + skip, {
+    const response = await fetch(API_URL + "/chat/" + channelId + "/log?take=20&skip=" + skip + "&id=" + loggedUserId, {
       cache: 'no-cache'
     });
     if (!response.ok) {
@@ -58,8 +62,9 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, myId, messa
       setMessages(msgs);
       setScrollState(1);
     }
-    fetchMessages();
-  }, [channelId]);
+    if (loggedUserId)
+      fetchMessages();
+  }, [channelId, loggedUserId]);
 
   useEffect(() => {
     switch (scrollState) {

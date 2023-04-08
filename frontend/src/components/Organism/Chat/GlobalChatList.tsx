@@ -24,7 +24,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
 
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
 
-  const {channels, setChannels} = useContext(GlobalContext);
+  const {channels, setChannels, loggedUserId} = useContext(GlobalContext);
   const {handleError} = useError();
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const GlobalChatList : FC<ChatListProps> = () => {
 
   function joinChannel(id:number, password: string | null = null) {
     async function fetchJoinChannel() {
-      const response = await fetch(API_URL+"/chat/join", {
+      const response = await fetch(API_URL+"/chat/join" + "?id="+loggedUserId, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

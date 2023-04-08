@@ -22,7 +22,7 @@ interface ChatDetailProps {
 
 const ChatDetail: FC<ChatDetailProps> = () => {
 
-  const {channels} = useContext(GlobalContext);
+  const {channels, loggedUserId} = useContext(GlobalContext);
   const { channelId } = useParams();
   const channelIdNumber = Number(channelId);
   const [channel, setChannel] = useState<Channel>(defaultChannel);
@@ -43,7 +43,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
 
   async function fetchUsersByChannelId(_channelId : number) {
-    const response = await fetch(API_URL + "/chat/" + _channelId + "/users", {
+    const response = await fetch(API_URL + "/chat/" + _channelId + "/users" + "?id="+loggedUserId, {
       cache: 'no-cache'
     });
     if (!response.ok) {
@@ -63,7 +63,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchBanListByChannelId(_channelId : number) {
-    const response = await fetch(API_URL + "/chat/" + _channelId + "/banlist");
+    const response = await fetch(API_URL + "/chat/" + _channelId + "/banlist" + "?id="+loggedUserId);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Unknown error occurred");
@@ -82,7 +82,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchMuteListByChannelId(_channelId : number) {
-    const response = await fetch(API_URL + "/chat/" + _channelId + "/mutelist");
+    const response = await fetch(API_URL + "/chat/" + _channelId + "/mutelist" + "?id="+loggedUserId);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Unknown error occurred");
@@ -135,37 +135,14 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         handleError("Init Fetch", (error as Error).message);
       }
     };
-    init();
+    if (loggedUserId)
+      init();
 
     // 컴포넌트 언마운트. channelId가 변경될떄도 언마운트가 실행된다. 
     return () => {
       console.log("1111111");
     }
-  }, [channelId]);
-
-  useEffect(() => {
-    function enterChat() {
-      if (chatSocket) {
-        chatSocket.emit('enter-chat', { channel_id: channelId });
-      }
-    };
-
-    function leaveChat() {
-      if (chatSocket) {
-        chatSocket.emit('leave-chat', { channel_id: channelId });
-      }
-    }
-
-    if (chatSocket) {
-      enterChat();
-    }
-
-    return (() => {
-      if (chatSocket) {
-
-      }
-    })
-  }, [chatSocket, channelId]);
+  }, [channelId, loggedUserId]);
 
   useEffect(() => {
     const channel = channels.find((ch)=>(ch.id === channelIdNumber));

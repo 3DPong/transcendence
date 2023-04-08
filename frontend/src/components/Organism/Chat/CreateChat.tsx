@@ -28,12 +28,12 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [inviteUsers, setInviteUsers] = useState<User[]>([]);
   const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
   const navigate = useNavigate();
-  const { channels, setChannels } = useContext(GlobalContext);
+  const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
 
   const handleCreate = () => {
     async function createChat() {
-      const response = await fetch(API_URL + "/chat/", {
+      const response = await fetch(API_URL + "/chat/" + "?id="+loggedUserId, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

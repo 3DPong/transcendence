@@ -21,12 +21,12 @@ const MenuDrawer : FC<MenuDrawerProps> = ({open, users, setUsers, handleClose, c
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
   const { isAdmin, banList } = useContext(ChatContext);
-  const { channels, setChannels } = useContext(GlobalContext);
+  const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
   const navigate = useNavigate();
   const {handleError} = useError();
 
   async function leaveChannel() {
-    const response = await fetch(API_URL + "/chat/" + channel.id + "/out", {
+    const response = await fetch(API_URL + "/chat/" + channel.id + "/out" + "?id="+loggedUserId, {
       method: "PUT"
     });
     if (!response.ok) {

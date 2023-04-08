@@ -23,7 +23,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel, userLis
   const [thumbnail, setThumbnail] = useState<string>(""); 
   const [inviteUsers, setInviteUsers] = useState<User[]>([]); 
 
-  const {setChannels} = useContext(GlobalContext);
+  const {setChannels, loggedUserId} = useContext(GlobalContext);
   const {handleError} = useError();
 
   useEffect(()=>{
@@ -34,7 +34,7 @@ const ChannelSetting : FC<ChannelSettingProps> = ({handleClose, channel, userLis
 
   function handleSave() {
     async function updateChannel() {
-      const response = await fetch(API_URL + "/chat/" + channel.id + "/update", {
+      const response = await fetch(API_URL + "/chat/" + channel.id + "/update" + "?id="+loggedUserId, {
         method: "PUT", 
         headers: {
           "Content-Type": "application/json",

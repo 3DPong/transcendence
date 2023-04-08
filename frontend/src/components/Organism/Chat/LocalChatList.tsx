@@ -29,13 +29,22 @@ const LocalChatList : FC<ChatListProps> = () => {
   const {chatSocket, chatConnect} = useSocket();
 
   useEffect(() => {
-    // 소켓연결
+    if (chatSocket) {
+      for (const channel of channels) {
+        chatSocket.emit('enter-chat', { channel_id: channel.id });
+        chatSocket.on('chat', () => { console.log() });
+      }
+    }
+  }, [chatSocket]);
+
+  useEffect(() => {
+    // 소켓연결 Connect 호출
     if (loggedUserId)
       chatConnect({userId: loggedUserId})
     // ======
     setIsLoading(true);
     async function fetchChannels() {
-      const response = await fetch(API_URL + "/chat");
+      const response = await fetch(API_URL + "/chat" + "?id="+loggedUserId);
       const fetchChannels = await response.json();
       setChannels(fetchChannels.map((ch : any) => ({
         id: ch.channel_id,
@@ -55,8 +64,9 @@ const LocalChatList : FC<ChatListProps> = () => {
       }
       setIsLoading(false);
     };
-    fetchChannels();
-  }, []);
+    if (loggedUserId)
+      fetchChannels();
+  }, [loggedUserId]);
 
   function findChannelsByString(channels: Channel[], searchString : string) {
     if (searchString)
