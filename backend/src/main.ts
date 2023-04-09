@@ -4,7 +4,6 @@ import { AppConfigService } from './config/app/config.service';
 import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
 import { colorist } from './common/logger/utils';
-import { GameSocketIoAdapter } from './models/game/socket/game.socket.adapter';
 import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
 import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
 
@@ -20,7 +19,6 @@ declare module 'express-session' {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useWebSocketAdapter(new IoAdapter(app));
   const appConfig = app.get(AppConfigService);
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();
