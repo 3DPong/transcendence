@@ -17,7 +17,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
   const [banTime, setBanTime] = useState("10");
   const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
-  const { isAdmin, muteList, banList } = useContext(ChatContext);
+  const { isAdmin, muteList, setMuteList, banList, setBanList } = useContext(ChatContext);
   const isTargetMuted = muteList.includes(target.id);
   const isTargetBanned = banList.find((u)=>(u.id === target.id)) !== undefined;
 
@@ -67,6 +67,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
       channel_id: channelId,
       end_at: new Date(new Date().getTime() + minute * 60000)
     });
+    setBanList([...banList, target]);
     handleClose();
   }
   function handleUnBanClick(id: number) {
@@ -75,6 +76,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
       user_id: id,
       channel_id: channelId,
     });
+    setBanList(banList.filter((user)=>(user.id !== id)));
     handleClose();
   }
   function handleMuteClick(id: number, minute: number) {
@@ -84,14 +86,16 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
       channel_id: channelId,
       end_at: new Date(new Date().getTime() + minute * 60000)
     });
+    setMuteList([...muteList, id]);
     handleClose();
   }
   function handleUnMuteClick(id: number) {
     console.log(id + " is Unmute");
-    chatSocket?.emit('unmute-chat', {
+    chatSocket?.emit('mute-chat', {
       user_id: id,
       channel_id: channelId,
     });
+    setMuteList(muteList.filter((mid) => (mid !== id)));
     handleClose();
   }
   function handleKickClick(id: number) {
@@ -148,6 +152,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                     onClick={()=>{handleKickClick(target.id);}}>
                     Kick
                   </MenuItem>,
+                isTargetBanned ? <div key={4}></div> :
                   isTargetMuted ? 
                   <MenuItem key={4} sx={[menuItemStyles, adminItemStyles]}
                     onClick={()=>{handleUnMuteClick(target.id);}}

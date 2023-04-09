@@ -1,6 +1,5 @@
 import React, { FC, useContext, useEffect, useState } from 'react';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
-
 import { Channel, ChatUser, defaultChannel, Message } from '@/types/chat'
 
 import { useParams } from 'react-router-dom';
@@ -102,14 +101,29 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   };
 
   useEffect(() => {
+    console.log("socket useEffect in");
     if (chatSocket) {
+      // 이게 의미가 있나? 현재 채팅방의 이벤트인지 확인 후 처리
       chatSocket.on('chat', (message) => {
         console.log("in Detail onMessage => "+ message);
+        // 여기서는 상세 메시지에 추가하기
+      });
+      chatSocket.on('kick', (message) => {
+        console.log(message)
+      });
+      chatSocket.on('ban', (message) => {
+        console.log(message)
+      });
+      chatSocket.on('mute', (message) => {
+        console.log(message);
       });
     }
-  }, [chatSocket]);
+    return () => {
+      console.log("socket userEffect out");
+    }
+    // channelId가 변할땐 메시지들을 그대로 둠
+  }, [chatSocket/*, channelId*/]);
 
-  /* dummyData */
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
       console.log("sendMessage");
@@ -121,13 +135,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
   }
 
-  const [messageId, setMessageId] = useState(200);
+  const [messageId, setMessageId] = useState(100000000);
 
   function getMessageId () {
     setMessageId(messageId+1);
     return messageId;
   }
-  /* dummyData */
 
   useEffect(() => {
     async function init() {
@@ -152,7 +165,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
     // 컴포넌트 언마운트. channelId가 변경될떄도 언마운트가 실행된다. 
     return () => {
-      console.log("1111111");
     }
   }, [channelId, loggedUserId]);
 

@@ -34,11 +34,33 @@ const LocalChatList : FC<ChatListProps> = () => {
     if (chatSocket) {
       for (const channel of channels) {
         console.log("======>" + channel.id);
+        // join 으로 변경 필요? 
         chatSocket.emit('enter-chat', { channel_id: channel.id });
       }
       chatSocket.on('chat', (message) => {
         console.log("in list. current channel is " + channelId + " msg.channel is " + message.channel_id);
         // 여기서 채널아이디가 내 채널과 안맞으면 channels에서 unread count를 하나 증가시킴
+      });
+      chatSocket.on('alarm', (message) => {
+        switch (message.type) {
+          case "invite":
+            const data = message.message;
+            const ch : Channel = {
+              id: data.channel_id,
+              title: data.name,
+              thumbnail: data.thumbnail_url,
+              type: data.type,
+              owner: {
+                id: data.owner.user_id,
+                nickname: data.owner.nickname,
+                profile: data.owner.profile_url,
+              } 
+            };
+            setChannels([...channels, ch]);
+            break;
+          default:
+            break;
+        }
       });
     }
   }, [chatSocket]);
@@ -51,7 +73,7 @@ const LocalChatList : FC<ChatListProps> = () => {
       setChannels(fetchChannels.map((ch : any) => ({
         id: ch.channel_id,
         type: ch.type,
-        title: ch.type === "dm" ? ch.owner.nickname + "님 과의 DM" : ch.name,
+        title: ch.type === "dm" ? ch.owner.nickname + "님과의 DM" : ch.name,
         thumbnail: ch.type === "dm" ? ch.owner.profile_url : ch.thumbnale_url,
         owner: {
           id: ch.owner.user_id,
