@@ -73,10 +73,12 @@ async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
 }
 
 
-async sendChatMessage(socket: Socket, user_id: number, md: MessageDto) {
+async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
   
   if (!user_id)
     throw new SocketException('Forbidden', `권한이 없습니다!`);
+  if (md.message === "" || isWhitespace(md.message))
+    throw new SocketException('BadRequest', `내용을 입력해주세요!`);
 
   let dmUser;
   const channel = await this.getChannelType(md.channel_id);
@@ -93,13 +95,19 @@ async sendChatMessage(socket: Socket, user_id: number, md: MessageDto) {
   }
 
   try {
-    await this.createMessageLog(user_id, md, channel.type);
+    const newMessage = await this.createMessageLog(user_id, md, channel.type);
+    if (!newMessage)
+      throw new SocketException('InternalServerError', `메세지가 전송 실패!`);
+    delete newMessage.channel;
+    delete newMessage.channel_id;
+  
     if (channel.type === ChannelType.DM) {
       await this.updateDmUser(dmUser);
     }
-    socket.broadcast
+
+    server
     .to(`chat_${md.channel_id}`)
-    .emit('chat', md);
+    .emit('chat', newMessage);
 
   } catch (error) {
     // this.logger.log(error)
@@ -344,4 +352,9 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     return channel;
   }
 
+}
+
+function isWhitespace(value: string): boolean {
+  const pattern = /^\s*$/;
+  return pattern.test(value);
 }

@@ -31,9 +31,9 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   
 
   async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id, channel_id } = socket.handshake.query; 
+    const { user_id } = socket.handshake.query; 
     socket.data.user = user_id as string;
-    socket.data.channel = channel_id as string;
+
     try {
       const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
       if (userIndex >= 0) {
@@ -57,7 +57,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
-  
 
   @SubscribeMessage('enter-chat')
   async handleSetClientDataEvent(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
@@ -77,7 +76,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
 
     const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.sendChatMessage(socket, userId, md);
+    return this.chatSocketService.sendChatMessage(this.server, userId, md);
   }
 
   @SubscribeMessage('mute-chat')
@@ -110,6 +109,33 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userSocket = this.getSocketIdByUserId(kickDto.user_id);
     return this.chatSocketService.kickUser(this.server, adminId, kickDto, userSocket);
   }
+
+
+
+  // handleJoinUser(user_id: number, channel_id:number) {
+  //   const userSocket = this.getSocketIdByUserId(user_id);
+  //   if (userSocket) {
+  //     if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
+  //       this.server.in(userSocket).socketsJoin(`chat_${channel_id}`);
+  //     } 
+  //   }
+  // }
+
+  // handleLeaveUser(user_id: number, channel_id:number) {
+  //   const userSocket = this.getSocketIdByUserId(user_id);
+  //   if (userSocket) {
+  //     if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
+  //       this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+  //     } 
+  //   }
+  // }
+
+  // hanndleCreateChat(user_id: number, channel_id:number) {
+  //   const userSocket = this.getSocketIdByUserId(user_id);
+  //   return this.chatSocketService.hanndleCreateChat(userSocket, channel_id);
+  // }
+
+
 
   getSocketIdByUserId(userId: number) {
     return this.users.find((u) => u.userId === userId)?.socketId;
