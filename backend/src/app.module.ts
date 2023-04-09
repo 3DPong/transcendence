@@ -15,7 +15,7 @@ import { FtConfigModule } from './config/ft/config.module';
 import { RedisConfigModule } from './config/redis/config.module';
 import { DevModule, EmptyModule } from './models/dev/dev.module';
 import { ImageModule } from './models/image/image.module';
-import { OtpModule } from './common/otp/otp.module';
+import { OtpModule } from './auth/otp/otp.module';
 import { OtpConfigModule } from './config/otp/config.module';
 import { NotifySocketModule } from './models/notifySocket/socket';
 import { RedisStorageProviderModule } from './providers/redis/provider.module';

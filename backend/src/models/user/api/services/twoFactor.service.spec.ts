@@ -6,7 +6,7 @@ import { SessionService } from '../../../../common/session/session.service';
 import { PostgresDatabaseProviderModule } from '../../../../providers/database/postgres/provider.module';
 import { createRequest, createResponse, MockRequest, MockResponse } from 'node-mocks-http';
 import { Request, Response } from 'express';
-import { OtpModule } from '../../../../common/otp/otp.module';
+import { OtpModule } from '../../../../auth/otp/otp.module';
 import { TwoFactorService } from './twoFactor.service';
 import { UserStatusEnum } from '../../../../common/enums';
 import { SessionStatusEnum } from '../../../../common/enums/sessionStatus.enum';

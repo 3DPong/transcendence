@@ -9,7 +9,7 @@ import { FtStrategy } from '../../common/guards/ft/ft.strategy';
 import { TwoFactorGuard } from '../../common/guards/twoFactor/twoFactor.guard';
 import { TwoFactorStrategy } from '../../common/guards/twoFactor/twoFactor.strategy';
 import { SessionService } from '../../common/session/session.service';
-import { OtpModule } from '../../common/otp/otp.module';
+import { OtpModule } from '../otp/otp.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), FtConfigModule, OtpModule],

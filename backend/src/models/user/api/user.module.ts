@@ -11,7 +11,7 @@ import { UserRelationController } from './userRelation.controller';
 import { UserRelationService } from './services/userRelation.service';
 import { SessionService } from '../../../common/session/session.service';
 import { TwoFactorService } from './services/twoFactor.service';
-import { OtpModule } from '../../../common/otp/otp.module';
+import { OtpModule } from '../../../auth/otp/otp.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, UserRelation]), OtpModule],

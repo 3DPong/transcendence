@@ -4,7 +4,7 @@ import { User } from '../../entities';
 import { DataSource, Repository } from 'typeorm';
 import * as QRCode from 'qrcode';
 import { Request, Response } from 'express';
-import { OtpService } from '../../../../common/otp/otp.service';
+import { OtpService } from '../../../../auth/otp/otp.service';
 import { SessionService } from '../../../../common/session/session.service';
 
 @Injectable()

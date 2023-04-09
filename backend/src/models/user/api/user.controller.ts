@@ -7,7 +7,7 @@ import { GetSessionData } from '../../../common/decorators';
 import { Request, Response } from 'express';
 import { GuardData } from '../../../common/decorators/guardData.decorator';
 import { TwoFactorService } from './services/twoFactor.service';
-import { TokenDto } from '../../../common/otp/token.dto';
+import { TokenDto } from '../../../auth/otp/token.dto';
 import { GetUserSettingResDto } from './dtos/getUserSettingResDto';
 
 @Controller('user')

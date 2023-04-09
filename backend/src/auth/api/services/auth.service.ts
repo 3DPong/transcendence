@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { Request, Response } from 'express';
 import { SessionService } from '../../../common/session/session.service';
 import { SessionStatusEnum } from '../../../common/enums/sessionStatus.enum';
-import { OtpService } from '../../../common/otp/otp.service';
+import { OtpService } from '../../otp/otp.service';
 
 @Injectable()
 export class AuthService {
