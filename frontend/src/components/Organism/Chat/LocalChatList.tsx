@@ -8,7 +8,7 @@ import VirtualizedChatList from '@/components/Molecule/Chat/List/ChannelList'
 import { Channel } from "@/types/chat";
 import ButtonLink from "@/components/Molecule/Link/ButtonLink";
 import GlobalContext from "@/context/GlobalContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "@/../config/backend";
 import { useError } from "@/context/ErrorContext";
 import { useSocket } from "@/context/SocketContext";
@@ -27,6 +27,8 @@ const LocalChatList : FC<ChatListProps> = () => {
 
   // 나중에 컨트롤바로 넘겨야되고, 세션쿠키를 이용해서 연결할 예정
   const {chatSocket, chatConnect} = useSocket();
+  
+  const {channelId} = useParams();
 
   useEffect(() => {
     if (chatSocket) {
@@ -34,7 +36,10 @@ const LocalChatList : FC<ChatListProps> = () => {
         console.log("======>" + channel.id);
         chatSocket.emit('enter-chat', { channel_id: channel.id });
       }
-      chatSocket.on('chat', (message) => { console.log(message) });
+      chatSocket.on('chat', (message) => {
+        console.log("in list. current channel is " + channelId + " msg.channel is " + message.channel_id);
+        // 여기서 채널아이디가 내 채널과 안맞으면 channels에서 unread count를 하나 증가시킴
+      });
     }
   }, [chatSocket]);
 

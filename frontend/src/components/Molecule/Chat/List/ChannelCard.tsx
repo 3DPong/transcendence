@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { Box, ListItemButton, Skeleton } from "@mui/material";
+import { Badge, Box, ListItemButton, Skeleton } from "@mui/material";
 import { ChannelType, Channel, defaultThumbnail } from "@/types/chat";
 import { Lock, LockOpen, Person, Public, Sms } from "@mui/icons-material";
 import { RiVipCrown2Fill } from 'react-icons/ri';
@@ -42,20 +42,30 @@ const LoadedCard : FC<LoadedCardProps> = ({channel}) => {
     }
   };
 
+  // 안읽은 메시지 카운트용 
+  const count = 0;
+
   return (
   <>
     <img
       src={channel.thumbnail || defaultThumbnail}
       alt="thumbnail"
-      className="w-12 h-12 rounded-full"
+      className="w-12 h-12 rounded-full relative"
       style={{ border: '2px solid gray' }}
     />
     <div className="flex flex-col pl-2 pr-2 w-full">
-      <span
-        className="text-md font-medium overflow-hidden whitespace-nowrap text-ellipsis"
-        style={{textOverflow: 'ellipsis', whiteSpace: "pre", maxWidth: 180}}>
-        {channel.title}
-      </span>
+      <div className="flex items-center justify-between">
+        <span
+          className="text-md font-medium overflow-hidden whitespace-nowrap text-ellipsis"
+          style={{textOverflow: 'ellipsis', whiteSpace: "pre", maxWidth: count ? 160 : 180}}>
+          {channel.title}
+        </span>
+        {count > 0 && (
+          <Badge badgeContent={count} color="error">
+            <Box sx={{ ml: 1 }} />
+          </Badge>
+        )}
+      </div>
       <div className="text-gray-500 flex items-center w-full">
         <div style={{width: '55%'}}>
           {getIcon(channel.type)} {channel.type}

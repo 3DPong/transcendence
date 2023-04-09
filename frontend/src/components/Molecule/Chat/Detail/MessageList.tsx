@@ -39,13 +39,13 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
       content: msg.content,
       created_at: new Date(Date.parse(msg.created_at)).toISOString().replace('T', ' ').slice(0, -5),
     }));
-    return(msgs);
+    return (msgs.reverse());
   }
 
   function scrollToBottom() {
     const element = document.getElementById("scrollable-element");
     if (element)
-      element.scrollTop = element.scrollHeight; // 스크롤을 맨 아래로 이동
+      element.scrollTop = element.scrollHeight;
   }
   
   function scrollToPrevTop() {

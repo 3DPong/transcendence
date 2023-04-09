@@ -101,6 +101,14 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     setBattleModalOpen(false);
   };
 
+  useEffect(() => {
+    if (chatSocket) {
+      chatSocket.on('chat', (message) => {
+        console.log("in Detail onMessage => "+ message);
+      });
+    }
+  }, [chatSocket]);
+
   /* dummyData */
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {

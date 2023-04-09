@@ -2,6 +2,8 @@ import { FC, useEffect, useRef, useState, useContext } from "react";
 import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/material';
 import ChatContext from "@/context/ChatContext";
 import { ChatUser } from "@/types/chat";
+import { useSocket } from "@/context/SocketContext";
+import { useParams } from "react-router";
 
 interface AvatarPopperProps {
   anchorEl : HTMLElement | null;
@@ -18,6 +20,9 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
   const { isAdmin, muteList, banList } = useContext(ChatContext);
   const isTargetMuted = muteList.includes(target.id);
   const isTargetBanned = banList.find((u)=>(u.id === target.id)) !== undefined;
+
+  const { chatSocket } = useSocket();
+  const { channelId } = useParams();
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -44,33 +49,57 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
       handleClose();
   }, [scrollY]);
 
-  // 여기선 보내기만하고 상태 변경은 최상단에서 
+  // 여기선 보내기만하고 상태 변경은 최상단에서
   function handleProfileClick(id: number) {
     console.log(id + " is profile");
     handleClose();
   }
+
   function handleDMClick(id: number) {
     console.log(id + " is DM");
     handleClose();
   }
+
   function handleBanClick(id: number, minute: number) {
     console.log(id + " is bann");
+    chatSocket?.emit('ban-chat', {
+      user_id: id,
+      channel_id: channelId,
+      end_at: new Date(new Date().getTime() + minute * 60000)
+    });
     handleClose();
   }
   function handleUnBanClick(id: number) {
     console.log(id + " is Unbann");
+    chatSocket?.emit('unban-chat', {
+      user_id: id,
+      channel_id: channelId,
+    });
     handleClose();
   }
   function handleMuteClick(id: number, minute: number) {
     console.log(id + ` is ${minute}m mute`);
+    chatSocket?.emit('mute-chat', {
+      user_id: id,
+      channel_id: channelId,
+      end_at: new Date(new Date().getTime() + minute * 60000)
+    });
     handleClose();
   }
   function handleUnMuteClick(id: number) {
     console.log(id + " is Unmute");
+    chatSocket?.emit('unmute-chat', {
+      user_id: id,
+      channel_id: channelId,
+    });
     handleClose();
   }
   function handleKickClick(id: number) {
     console.log(id + " is kick");
+    chatSocket?.emit('kick-chat', {
+      user_id: id,
+      channel_id: channelId,
+    });
     handleClose();
   }
   function handleGrantClick(id: number) {
@@ -114,6 +143,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                 Send DM
               </MenuItem>
               { isAdmin && [
+                isTargetBanned ? <div key={3}></div> :
                   <MenuItem key={3} sx={[menuItemStyles, adminItemStyles]}
                     onClick={()=>{handleKickClick(target.id);}}>
                     Kick
@@ -124,7 +154,7 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                   >
                     UnMute
                   </MenuItem> :
-                  <MenuItem key={5} sx={[menuItemStyles, adminItemStyles]}>
+                  <MenuItem key={4} sx={[menuItemStyles, adminItemStyles]}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -147,12 +177,12 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                     </div>
                   </MenuItem>,
                   isTargetBanned ?
-                  <MenuItem key={6} sx={[menuItemStyles, adminItemStyles]}
+                  <MenuItem key={5} sx={[menuItemStyles, adminItemStyles]}
                     onClick={()=>{handleUnBanClick(target.id);}}
                   >
                     UnBan
                   </MenuItem> :
-                  <MenuItem key={7} sx={[menuItemStyles, adminItemStyles]}>
+                  <MenuItem key={5} sx={[menuItemStyles, adminItemStyles]}>
                     <input type="text" maxLength={6}
                       style={{
                         width:60,
@@ -174,17 +204,18 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
                       m Ban
                     </div>
                   </MenuItem>,
-                  target.role === "user" ?
-                  <MenuItem key={8} sx={[menuItemStyles, adminItemStyles]}
-                    onClick={()=>{handleGrantClick(target.id);}}
-                  >
-                    Grant Admin
-                  </MenuItem> :
-                  <MenuItem key={9} sx={[menuItemStyles, adminItemStyles]}
-                    onClick={()=>{handleRevokeClick(target.id);}}
-                  >
-                    Revoke Admin
-                  </MenuItem>,
+                  isTargetBanned ? <div key={6}></div> : 
+                    target.role === "user" ?
+                    <MenuItem key={6} sx={[menuItemStyles, adminItemStyles]}
+                      onClick={()=>{handleGrantClick(target.id);}}
+                    >
+                      Grant Admin
+                    </MenuItem> :
+                    <MenuItem key={6} sx={[menuItemStyles, adminItemStyles]}
+                      onClick={()=>{handleRevokeClick(target.id);}}
+                    >
+                      Revoke Admin
+                    </MenuItem>,
                 ]}
             </MenuList>
           </Paper>
