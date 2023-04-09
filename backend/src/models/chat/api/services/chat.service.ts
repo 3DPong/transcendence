@@ -411,7 +411,7 @@ export class ChatService {
       }
       await this.channelUserRepository.softDelete({channel_id, user_id});
       
-      const nickname = await this.getUserNickname(user_id);
+      const nickname = await this.userService.getUserNicname(user_id);
       this.chatGateway.handleLeaveUser(user_id, channel_id, nickname);
     } catch (error) {
       console.log(error)
@@ -458,7 +458,7 @@ export class ChatService {
 
     const changed =  await this.channelUserRepository
       .update({channel_id, user_id: userIdDto.user_id}, {role: userIdDto.role});
-
+    //this.chatGateway.adminRoleUpdate();
     return changed;
   }
 
@@ -551,11 +551,6 @@ export class ChatService {
         return true;
     }
     return false;
-  }
-
-  async getUserNickname(user_id:number) {
-    const user =  await this.userService.getUser(user_id);
-    return (user.nickname)
   }
 
   channelResult(channel: ChatChannel) {

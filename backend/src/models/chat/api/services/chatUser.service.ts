@@ -2,7 +2,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChannelUser } from '../../entities/channelUser.entity';
 import { User } from 'src/models/user/entities';
 
 @Injectable()
@@ -18,6 +17,10 @@ export class ChatUserService {
 		return await this.userRepository.findOne({ where: {user_id} });
 	}
 
+	async getUserNicname(user_id: number) :  Promise<string> {
+		const user = await this.userRepository.findOne({select: {nickname:true}, where: {user_id} });
+		return user.nickname;
+	}
 
 
 }

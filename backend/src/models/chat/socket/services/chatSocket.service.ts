@@ -175,6 +175,7 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
       throw new SocketException('Forbidden', `권한이 없습니다!`);
   try {
     const banned = await this.checkBanUser(channel_id, user_id);
+    const nickname = await this.getChannelUserName(channel_id, user_id) 
 
     if (banned) {
       throw new SocketException('Conflict', `이 유저는 이미 밴 상태입니다!`);
@@ -188,7 +189,6 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
       if (userSocket) {
         server.in(userSocket).socketsLeave(`chat_${channel_id}`);
       }
-      const nickname = await this.getChannelUserName(channel_id, user_id) 
       server.to(`chat_${channel_id}`).emit('ban', { message: `${nickname} 가 밴 되었습니다.` });
     }
   } catch (error) {
@@ -206,9 +206,9 @@ async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
   
   try {
     const banned = await this.checkBanUser(channel_id, user_id);
+    const nickname = await this.getChannelUserName(channel_id, user_id);
     if (banned) {
       await this.releaseBanUser(channel_id, user_id);
-      const nickname = await this.getChannelUserName(channel_id, user_id) 
       server.to(`chat_${channel_id}`).emit('ban', { message: `${nickname} 가 밴 해제 되었습니다.` });
     }  else {
       throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
@@ -320,7 +320,7 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     return false;
   }
 
-  async getChannelUserName(channel_id: number, user_id: number)    {
+  async getChannelUserName(channel_id: number, user_id: number) :Promise<string>  {
     const chatUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
     if (chatUser)
       return chatUser.user.nickname;
