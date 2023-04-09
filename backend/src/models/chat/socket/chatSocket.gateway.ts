@@ -11,7 +11,7 @@ import { Logger, UseFilters} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelType } from '../entities';
+import { ChannelType, ChatChannel } from '../entities';
 import {SocketException, SocketExceptionFilter} from './socket.filter';
 
 
@@ -27,6 +27,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @WebSocketServer()
   server: Server;
   private users: { userId: number; socketId: string }[] = [];
+  private activeRooms: {userId: number; channelId: number}[] = [];
   private logger = new Logger('ChatGateway');
   
 
@@ -58,10 +59,27 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
 
-  @SubscribeMessage('enter-chat')
-  async handleSetClientDataEvent(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
+  @SubscribeMessage('join')
+  async handleSetClientEvent(@ConnectedSocket() socket: Socket){
 
     const userId = this.getUserIdBySocketId(socket.id);
+    return this.chatSocketService.joinAllChatRooms(socket, userId);
+  }
+
+  @SubscribeMessage('enter-chat')
+  async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
+
+    const userId = this.getUserIdBySocketId(socket.id);
+    // const userIndex = this.activeRooms.findIndex((u) => u.userId=== userId);
+    // if (userIndex >= 0) {
+    //     //error or 바꾸기
+    //     // this.server.in(this.activeRooms[userIndex].socketId).disconnectSockets();
+    //     //this.handleLeaveRoom(socket, dto);
+    //     this.activeRooms[userIndex].channelId =  dto.channel_id;
+    // } else {
+    //   this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
+    // }
+
     return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
   }
   
@@ -112,23 +130,34 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
 
 
-  // handleJoinUser(user_id: number, channel_id:number) {
-  //   const userSocket = this.getSocketIdByUserId(user_id);
-  //   if (userSocket) {
-  //     if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-  //       this.server.in(userSocket).socketsJoin(`chat_${channel_id}`);
-  //     } 
-  //   }
-  // }
+/*
+    Func From Api Reqeust
+*/
 
-  // handleLeaveUser(user_id: number, channel_id:number) {
-  //   const userSocket = this.getSocketIdByUserId(user_id);
-  //   if (userSocket) {
-  //     if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-  //       this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-  //     } 
-  //   }
-  // }
+  handleJoinUsers(userIds: number[], channel_id:number, channel: ChatChannel) {
+
+    if (userIds !== null) {
+      for (const userId of userIds) {
+        const userSocket = this.getSocketIdByUserId(userId);
+        if (userSocket) {
+          if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
+            this.server.in(userSocket).socketsJoin(`chat_${channel_id}`);
+            this.server.in(userSocket).emit('alarm', {type:'invite', message: channel});
+          } 
+        }   
+      }
+    }
+  }
+
+  async handleLeaveUser(user_id: number, channel_id:number, userNickname: string) {
+    const userSocket = this.getSocketIdByUserId(user_id);
+    if (userSocket) {
+      if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
+        this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+        this.server.to(`chat_${channel_id}`).emit('alarm', {type: 'update',  message: `${userNickname} 가 나갔습니다.`});
+      } 
+    }
+  }
 
   // hanndleCreateChat(user_id: number, channel_id:number) {
   //   const userSocket = this.getSocketIdByUserId(user_id);

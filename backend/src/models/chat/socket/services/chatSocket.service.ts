@@ -34,40 +34,60 @@ export class ChatSocketService {
   
   ) {}
 
+
+  async joinAllChatRooms(socket: Socket, user_id: number) {
+    try {
+      const channelUsers : ChannelUser[]  = await this.channelUserRepository
+        .createQueryBuilder("cu")
+        .select("cu.channel_id")
+        .where('cu.user_id = :user_id', {user_id})
+        .getMany();
+      const channelIds = channelUsers.map((user)=>user.channel_id)
+
+      const dmChannels : DmChannel[] = await this.dmRepository
+        .createQueryBuilder("dm")
+        .select("dm.channel_id")
+        .where('dm.first_user_id = :user_id', {user_id})
+        .orWhere('dm.second_user_id = :user_id', {user_id})
+        .getMany();
+      dmChannels.map((dm) => channelIds.push(dm.channel_id));
+
+      channelIds.map((id)=> { console.log(id); socket.join(`chat_${id.toString()}`); });
+    } catch (error) {
+      throw new SocketException('InternalServerError', `${error.message}`);
+    }
+  }
+
   async enterChatRoom(socket: Socket, channel_id: number, user_id: number) {
     
-    let userNickname;
-    
-    if (!user_id || !(userNickname = await this.getChannelUserName(channel_id, user_id)))
+    const userNickname = await this.getChannelUserName(channel_id, user_id);
+    if (!user_id || !userNickname)
       throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     try {
-      socket.join(`chat_${channel_id}`);
+
       socket.broadcast
        .to(`chat_${channel_id}`)
        .emit('message', { message: `${userNickname} 가 들어왔습니다.` });
-      //this.logger.log(`Socket connected: ${user_id}`);  
 
     } catch (error) {
-      //this.logger.log(error)
       throw new SocketException('InternalServerError', `${error.message}`);
     }
 }
 
 async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
-  
-  let userNickname;
-  
-  if (!user_id || !(userNickname = await this.getChannelUserName(channel_id, user_id)))
+
+  const userNickname = await this.getChannelUserName(channel_id, user_id);
+  if (!user_id || !userNickname)
     throw new SocketException('Forbidden', `권한이 없습니다!`);
+
   try {
-    socket.leave(`chat_${channel_id}`); // leave room
+    socket.leave(`chat_${channel_id}`);
     socket.broadcast
     .to(`chat_${channel_id}`)
     .emit('message', { message: `${userNickname} 가 나갔습니다.`});
-
+    //프론트에 create처럼 값 리턴
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -110,7 +130,6 @@ async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
     .emit('chat', newMessage);
 
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -142,7 +161,6 @@ async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto ) {
       server.to(`chat_${channel_id}`).emit('mute', { message: `${nickname} 가 뮤트 되었습니다.` });
     }
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -174,7 +192,6 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
       server.to(`chat_${channel_id}`).emit('ban', { message: `${nickname} 가 밴 되었습니다.` });
     }
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -197,7 +214,6 @@ async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
       throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
     }
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -222,7 +238,6 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
       server.to(`chat_${channel_id}`).emit(`kick`,  { message: `${nickname} 가 강제 퇴장 되었습니다.` });
     }
   } catch (error) {
-    // this.logger.log(error)
     throw new SocketException('InternalServerError', `${error.message}`);
   }
 }
@@ -307,12 +322,10 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
 
   async getChannelUserName(channel_id: number, user_id: number)    {
     const chatUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
-
     if (chatUser)
       return chatUser.user.nickname;
     return null;
   }
-
 
   async checkChannelUser(channel_id: number, user_id: number) :Promise<boolean>   {
     const chatUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
