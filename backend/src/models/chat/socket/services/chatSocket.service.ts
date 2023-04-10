@@ -149,7 +149,7 @@ async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto ) {
 
     if (muted) {
       await this.unmuteUser(channel_id, user_id);
-      server.to(`chat_${channel_id}`).emit('mute', { message: `${nickname} 가 뮤트 해제 되었습니다.` });
+      server.to(`chat_${channel_id}`).emit('mute', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 뮤트 해제 되었습니다.` });
     } else {
       if (muteDto.end_at === null) {
         throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
@@ -158,7 +158,7 @@ async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto ) {
       if (!mute) {
         throw new SocketException('InternalServerError', `뮤트 실패!`);
       }
-      server.to(`chat_${channel_id}`).emit('mute', { message: `${nickname} 가 뮤트 되었습니다.` });
+      server.to(`chat_${channel_id}`).emit('mute', { user_id: user_id, channel_id: channel_id,  message: `${nickname} 가 뮤트 되었습니다.` });
     }
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
@@ -189,7 +189,9 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
       if (userSocket) {
         server.in(userSocket).socketsLeave(`chat_${channel_id}`);
       }
-      server.to(`chat_${channel_id}`).emit('ban', { message: `${nickname} 가 밴 되었습니다.` });
+      const title = await this.getChannelName(channel_id)
+      server.in(userSocket).emit('alarm', {type: 'ban', channel_id: channel_id, message: `${title }에서 밴 되었습니다.`})
+      server.to(`chat_${channel_id}`).emit('ban', {  user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 되었습니다.` });
     }
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
@@ -209,7 +211,7 @@ async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
     const nickname = await this.getChannelUserName(channel_id, user_id);
     if (banned) {
       await this.releaseBanUser(channel_id, user_id);
-      server.to(`chat_${channel_id}`).emit('ban', { message: `${nickname} 가 밴 해제 되었습니다.` });
+      server.to(`chat_${channel_id}`).emit('ban', {  user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 해제 되었습니다.` });
     }  else {
       throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
     }
@@ -235,7 +237,9 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     server.in(userSocket).socketsLeave(`chat_${channel_id}`);
   
     if (nickname) {
-      server.to(`chat_${channel_id}`).emit(`kick`,  { message: `${nickname} 가 강제 퇴장 되었습니다.` });
+      const title = await this.getChannelName(channel_id)
+      server.in(userSocket).emit('alarm', {type: 'kick', channel_id: channel_id, message: `${title }에서 강제 퇴장  되었습니다.`})
+      server.to(`chat_${channel_id}`).emit(`kick`,  { user_id: user_id, channel_id: channel_id,  message: `${nickname} 가 강제 퇴장 되었습니다.` });
     }
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
@@ -254,7 +258,6 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
       await this.messageLogRepository.save(newLog);
       return newLog;
     } catch (error) {
-        console.log(error)
         throw new InternalServerErrorException();
     }
   }
@@ -335,7 +338,6 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
   }
 
 
-
   async checkChannelUserRole(channel_id: number, user_id: number) :Promise <boolean>   {
     const chatUser = await this.channelUserRepository.findOne({where: {channel_id, user_id, role: ChannelUserRoles.USER}});
     if (!chatUser)
@@ -365,6 +367,12 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     return channel;
   }
 
+  async getChannelName(channel_id: number) : Promise<string>{
+    const channel = await this.channelRepository.findOne({select: {name:true}, where: {channel_id}})
+    if (!channel)
+      return null;
+    return channel.name;
+  }
 }
 
 function isWhitespace(value: string): boolean {
