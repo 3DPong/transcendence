@@ -11,8 +11,9 @@ import { Logger, UseFilters} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelType, ChatChannel } from '../entities';
+import { ChannelType, ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
 import {SocketException, SocketExceptionFilter} from './socket.filter';
+import { UpdateResult } from 'typeorm';
 
 
 @UseFilters(new SocketExceptionFilter())
@@ -90,6 +91,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
   }
 
+  // @SubscribeMessage('update-chat')
+  // async handleUpdateRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto) {
+
+  //   const userId = this.getUserIdBySocketId(socket.id);
+  //   return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
+  // }
+
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
 
@@ -118,7 +126,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const adminId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.unBanUser(this.server, adminId, unbanDto);
   }
-
 
   @SubscribeMessage('kick-chat')
   async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickDto: toggleDto) {
@@ -154,9 +161,16 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (userSocket) {
       if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
         this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-        this.server.to(`chat_${channel_id}`).emit('alarm', {type: 'update',  message: `${userNickname} 가 나갔습니다.`});
       } 
     }
+    this.server.to(`chat_${channel_id}`).except(userSocket)
+      .emit('alarm', {type: 'leave', user_id: user_id, channel_id: channel_id,  message: `${userNickname} 가 나갔습니다.`});
+  }
+
+  hanndleAdminRoleUpdate(user_id: number, channel_id:number,  changedRole: ChannelUserRoles) {
+    const userSocket = this.getSocketIdByUserId(user_id);
+    this.server.to(`chat_${channel_id}`).except(userSocket)
+      .emit('alarm', {type: 'update', user_id: user_id, channel_id:channel_id, message: changedRole});
   }
 
   // hanndleCreateChat(user_id: number, channel_id:number) {

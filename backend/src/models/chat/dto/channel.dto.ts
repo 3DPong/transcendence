@@ -63,7 +63,6 @@ export class UserIdDto {
 
 	@IsNotEmpty()
 	@IsNumber()
-	@MinLength(1)
 	user_id: number;
 
 	@IsNotEmpty()

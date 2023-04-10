@@ -277,7 +277,7 @@ export class ChatService {
        .findOne({where: {first_user_id: second_user.user_id, second_user_id: first_user.user_id}});
     }
     if (dmChannel) {
-      this.dmRepository.update({first_user_id: first_user.user_id, second_user_id:second_user.user_id}, {updated_at: new Date()});
+      await this.dmRepository.update({first_user_id: first_user.user_id, second_user_id:second_user.user_id}, {updated_at: new Date()});
       return this.channelResult(dmChannel.channel);
     }
     const queryRunner = this.dataSource.createQueryRunner();
@@ -441,7 +441,7 @@ export class ChatService {
   }
 
   async changeRole(channel_id : number, admin_id : number, userIdDto: UserIdDto) {
-    
+
     if(!this.checkAdminUser(admin_id, channel_id)) {
       throw new UnauthorizedException('No permission!');
     }
@@ -455,11 +455,13 @@ export class ChatService {
     } else if (role === userIdDto.role) {
       throw new UnauthorizedException(`Already ${role}!`);
     }
-
-    const changed =  await this.channelUserRepository
+    try {
+    await this.channelUserRepository
       .update({channel_id, user_id: userIdDto.user_id}, {role: userIdDto.role});
-    //this.chatGateway.adminRoleUpdate();
-    return changed;
+    this.chatGateway.hanndleAdminRoleUpdate(userIdDto.user_id, channel_id, userIdDto.role);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async getMutelist(channel_id : number, user_id : number):Promise <ChannelMuteList[]> {
