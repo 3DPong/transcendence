@@ -32,11 +32,12 @@ const LocalChatList : FC<ChatListProps> = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      for (const channel of channels) {
-        console.log("======>" + channel.id);
-        // join 으로 변경 필요? 
-        chatSocket.emit('enter-chat', { channel_id: channel.id });
-      }
+      // for (const channel of channels) {
+      //   console.log("======>" + channel.id);
+      //   // join 으로 변경 필요? 
+      //   chatSocket.emit('enter-chat', { channel_id: channel.id });
+      // }
+      chatSocket.emit('join');
       chatSocket.on('chat', (message) => {
         console.log("in list. current channel is " + channelId + " msg.channel is " + message.channel_id);
         // 여기서 채널아이디가 내 채널과 안맞으면 channels에서 unread count를 하나 증가시킴
