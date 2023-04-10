@@ -45,7 +45,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
       this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
-      this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
+      //this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
     } catch (error) {
       socket.disconnect();
     }
