@@ -58,7 +58,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (userIndex >= 0) {
       this.users.splice(userIndex, 1);
     }
-    await this.chatSocketService.leaveAllChatRooms(socket, user_id);
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
 

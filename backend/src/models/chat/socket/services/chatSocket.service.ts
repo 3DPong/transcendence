@@ -33,15 +33,9 @@ export class ChatSocketService {
 
   ) {}
 
-
   async joinAllChatRooms(socket: Socket, user_id: number) {
     const channelIds = await this.getAllUserChannel(user_id);
-    channelIds.map((id)=> { socket.join(`chat_${id.toString()}`); });
-  }
-
-  async leaveAllChatRooms(socket:Socket, user_id: number) {
-    const channelIds = await this.getAllUserChannel(user_id);
-    channelIds.map((id)=> { socket.leave(`chat_${id.toString()}`); });  
+    channelIds.forEach(id => { socket.join(`chat_${id.toString()}`);});
   }
 
   async getAllUserChannel(user_id:number) {

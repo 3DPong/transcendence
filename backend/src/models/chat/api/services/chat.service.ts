@@ -83,11 +83,8 @@ export class ChatService {
       .orderBy("dm.updated_at", "DESC")
       .take(5)
       .getMany();
-    dmChannels.map((dm) => channelIds.push(dm.channel_id));
 
-    //console.log("\n\n\n\n\n")
-    console.log(channelIds);
-  
+    dmChannels.forEach(dm => { channelIds.push(dm.channel_id); });
     const channel: ChatChannel[] = await this.channelRepository
       .createQueryBuilder("channel")
       .innerJoin("channel.owner", "owner")
@@ -330,9 +327,7 @@ export class ChatService {
 
       await queryRunner.commitTransaction();
     
-      let userIds :number[];
-      userIds.push(first_user.user_id)
-      userIds.push(second_user.user_id);
+      let userIds :number[] = [first_user.user_id, second_user.user_id];
       this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
 
       return this.channelResult(channel);
