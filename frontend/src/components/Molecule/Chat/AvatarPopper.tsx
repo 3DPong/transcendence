@@ -4,6 +4,8 @@ import ChatContext from "@/context/ChatContext";
 import { ChatUser } from "@/types/chat";
 import { useSocket } from "@/context/SocketContext";
 import { useParams } from "react-router";
+import { API_URL } from "@/../config/backend";
+import GlobalContext from "@/context/GlobalContext";
 
 interface AvatarPopperProps {
   anchorEl : HTMLElement | null;
@@ -23,6 +25,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
 
   const { chatSocket } = useSocket();
   const { channelId } = useParams();
+
+  const {loggedUserId} = useContext(GlobalContext);
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -57,6 +61,17 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
 
   function handleDMClick(id: number) {
     console.log(id + " is DM");
+    async function fetchDM() {
+      const response = await fetch(API_URL + '/chat/dm' + '?id=' + loggedUserId, {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: id
+        }) 
+      });
+      const parse = await response.json();
+      console.log(response);
+    }
+    fetchDM();
     handleClose();
   }
 

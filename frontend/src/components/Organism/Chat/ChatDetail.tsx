@@ -108,6 +108,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         console.log("in Detail onMessage => "+ message);
         // 여기서는 상세 메시지에 추가하기
       });
+      chatSocket.on('error', (message) => {
+        handleError("Socket Error", message.message);
+        console.log(message)
+      });
       chatSocket.on('kick', (message) => {
         console.log(message)
       });

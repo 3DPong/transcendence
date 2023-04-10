@@ -10,9 +10,11 @@ interface ChatDetailSenderProps{
 const MessageSender: FC<ChatDetailSenderProps> = ({sendMessage, handleBattleButton}) => {
   const [inputMessage, setInputMessage] = useState<string>('');
 
-  const handleKeyUp = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter')
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
       handleSendMessage();
+    }
   };
 
   const handleSendMessage = () => {
@@ -31,7 +33,7 @@ const MessageSender: FC<ChatDetailSenderProps> = ({sendMessage, handleBattleButt
         rows={1}
         style={{resize: 'none', overflowY: 'auto'}}
         className="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-        onKeyUp={handleKeyUp}
+        onKeyDown={handleKeyPress}
       />
       <IconButton color="primary" onClick={handleSendMessage}>
         <SendIcon />
