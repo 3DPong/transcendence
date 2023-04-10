@@ -227,13 +227,13 @@ export class ChatService {
     }
     await queryRunner.commitTransaction();
 
-      // owner 와 invited users 모두 새로 생성된 채널에 socket join 
-      const userIds =  inviteList;
-      userIds.push(user.user_id);
-      channel = this.channelResult(channel);
-      this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
+    // owner 와 invited users 모두 새로 생성된 채널에 socket join 
+    const userIds =  inviteList;
+    userIds.push(user.user_id);
+    channel = this.channelResult(channel);
+    this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
 
-      return channel;
+    return channel;
     } catch (error) {
       console.log(error)
       await queryRunner.rollbackTransaction();
@@ -245,7 +245,7 @@ export class ChatService {
 
   async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
 
-    const { name, password, type, thumbnail_url } = channelDto;
+    const { name, password, type, thumbnail_url, inviteList } = channelDto;
     const channel = await this.channelRepository.findOne({where :{channel_id}});
     if (!channel)
       throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
@@ -261,11 +261,38 @@ export class ChatService {
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
     }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+    
     try {
+      if (inviteList !== null) {
+        for (const userId of inviteList) {
+          if (userId !== user.user_id) {
+            const cu = this.channelUserRepository.create({
+              channel_id: channel.channel_id,
+              user_id : userId,
+              role: ChannelUserRoles.USER
+            });
+            await queryRunner.manager.save(cu);       
+          }
+        }
+      }
       await this.channelRepository.update(channel_id, {name, type, password: hashedPassword, thumbnail_url});
+      await queryRunner.commitTransaction();
+
+      const userIds =  inviteList;
+      userIds.push(user.user_id);
+      const inviteChannel = await this.getChannel(channel_id);
+      this.chatGateway.handleJoinUsers(userIds, channel_id, inviteChannel);
+      
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
-    }
+    } finally {
+			await queryRunner.release();
+		}
   }
 
   async createDmRoom(second_user: User, first_user : User) :Promise<ChatChannel>{
