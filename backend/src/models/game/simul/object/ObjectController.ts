@@ -1,7 +1,7 @@
 import { GamePlayer } from "../GamePlayer";
 import * as Box2D from "../../Box2D";
 import { PaddleState } from "../../enum/GameEnum";
-import { MAP_HEIGHT, PADDLE_HEIGHT, PADDLE_SPEED } from "../../enum/GameEnv";
+import { BALL_MAX_ANGLE, BALL_PI, MAP_HEIGHT, PADDLE_HEIGHT, PADDLE_SPEED } from "../../enum/GameEnv";
 
 export function MovePeddle(user : GamePlayer){
   if (user.directionButton === PaddleState.STOP) {
@@ -29,4 +29,17 @@ export function BallSpeedCorrection(ball : Box2D.Body, speed: number){
 
 export function RandomVec2() : Box2D.Vec2 {
   return new Box2D.Vec2(Math.random()+1, Math.random()+1);
+}
+
+export function BallAngleCorrection(ball : Box2D.Body, paddle : Box2D.Body){
+  const paddleHeight : number = ball.GetPosition().y - paddle.GetPosition().y;
+  const velocityVec2 : Box2D.Vec2 = ball.GetLinearVelocity();
+  const nx : number = velocityVec2.x < 0 ? -1 : 1;
+  let theta : number = paddleHeight / (PADDLE_HEIGHT/2) * BALL_MAX_ANGLE;
+  if (nx < 0){
+    theta = BALL_PI - theta;
+  }
+  const ny : number = nx * Math.tan(theta);
+
+  ball.SetLinearVelocity(new Box2D.Vec2(nx, ny));
 }
