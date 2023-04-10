@@ -25,9 +25,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
   const {handleError} = useError();
 
   async function fetchMessagesByChannelId(skip:number) {
-    const response = await fetch(API_URL + "/chat/" + channelId + "/log?take=20&skip=" + skip + "&id=" + loggedUserId, {
-      cache: 'no-cache'
-    });
+    const response = await fetch(API_URL + "/chat/" + channelId + "/log?take=20&skip=" + skip + "&id=" + loggedUserId);
     if (!response.ok) {
       const errorData = await response.json();
       handleError("Message Fetch", errorData.message);
@@ -61,8 +59,9 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
       setMessages(msgs);
       setScrollState(1);
     }
-    if (loggedUserId)
+    if (loggedUserId) {
       fetchMessages();
+    }
   }, [channelId, loggedUserId]);
 
   useEffect(() => {

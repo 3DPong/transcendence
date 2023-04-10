@@ -1,4 +1,4 @@
-import React, { FC, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useState, useRef } from 'react';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { Channel, ChatUser, defaultChannel, Message } from '@/types/chat'
 
@@ -39,6 +39,9 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const {handleError} = useError();
 
   const {chatSocket} = useSocket();
+
+  // message의 최신 상태 유지를 위한 ref
+  const messagesRef = useRef<Message[]>([]);
 
 
   async function fetchUsersByChannelId(_channelId : number) {
@@ -100,13 +103,23 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     setBattleModalOpen(false);
   };
 
+  // message의 최신 상태 유지
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   useEffect(() => {
     console.log("socket useEffect in");
     if (chatSocket) {
       // 이게 의미가 있나? 현재 채팅방의 이벤트인지 확인 후 처리
       chatSocket.on('chat', (message) => {
-        console.log("in Detail onMessage => "+ message);
-        // 여기서는 상세 메시지에 추가하기
+        const msg : Message = {
+          id: message.message_id,
+          senderId: message.user_id,
+          content: message.content,
+          created_at: new Date(Date.parse(message.created_at)).toISOString().replace('T', ' ').slice(0, -5),
+        };
+        setMessages([...messagesRef.current, msg]);
       });
       chatSocket.on('error', (message) => {
         handleError("Socket Error", message.message);
@@ -130,20 +143,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
-      console.log("sendMessage");
       chatSocket.emit('message-chat', {message: textContent, channel_id: channelIdNumber});
-
-      const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-      const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
-      setMessages([...messages, message]);
+      // const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
+      // const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
+      // setMessages([...messages, message]);
     }
-  }
-
-  const [messageId, setMessageId] = useState(100000000);
-
-  function getMessageId () {
-    setMessageId(messageId+1);
-    return messageId;
   }
 
   useEffect(() => {

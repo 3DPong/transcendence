@@ -3,7 +3,7 @@ import { Send as SendIcon, Mail as MailIcon} from '@mui/icons-material';
 import { IconButton } from '@mui/material';
 
 interface ChatDetailSenderProps{
-  sendMessage : ( message: string) => void;
+  sendMessage : (message: string) => void;
   handleBattleButton : () => void;
 };
 
