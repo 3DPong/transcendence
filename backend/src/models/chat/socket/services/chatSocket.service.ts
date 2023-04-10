@@ -122,8 +122,7 @@ async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
     if (!newMessage)
       throw new SocketException('InternalServerError', `메세지가 전송 실패!`);
     delete newMessage.channel;
-    delete newMessage.channel_id;
-  
+
     if (channel.type === ChannelType.DM) {
       await this.updateDmUser(dmUser);
     }
