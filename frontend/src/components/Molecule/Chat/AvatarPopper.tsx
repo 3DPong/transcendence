@@ -150,6 +150,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
     },
   ];
 
+  const myPopper = loggedUserId === target.id;
+
   return (
       <Popper
         open={open}
@@ -167,12 +169,15 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
               className="border-gray-700 bg-slate-100 text-slate-800"
             >
               <MenuItem key={1} sx={menuItemStyles} onClick={()=>{handleProfileClick(target.id);}}>
-                See Profile
+                { myPopper ? "View MyProfile" : "View Profile" }
               </MenuItem>
-              <MenuItem key={2} sx={menuItemStyles} onClick={()=>{handleDMClick(target.id);}}>
-                Send DM
-              </MenuItem>
-              { isAdmin && [
+              {
+                !myPopper &&
+                <MenuItem key={2} sx={menuItemStyles} onClick={()=>{handleDMClick(target.id);}}>
+                  Send DM
+                </MenuItem>
+              }
+              { !myPopper && isAdmin && [
                 isTargetBanned ? <div key={3}></div> :
                   <MenuItem key={3} sx={[menuItemStyles, adminItemStyles]}
                     onClick={()=>{handleKickClick(target.id);}}>
