@@ -6,6 +6,7 @@ import { useSocket } from "@/context/SocketContext";
 import { useParams } from "react-router";
 import { API_URL } from "@/../config/backend";
 import GlobalContext from "@/context/GlobalContext";
+import { useError } from "@/context/ErrorContext";
 
 interface AvatarPopperProps {
   anchorEl : HTMLElement | null;
@@ -27,6 +28,8 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
   const { channelId } = useParams();
 
   const {loggedUserId} = useContext(GlobalContext);
+
+  const {handleError} = useError();
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -64,10 +67,18 @@ const AvatarPopper : FC<AvatarPopperProps> = ({anchorEl, handleClose, target, sc
     async function fetchDM() {
       const response = await fetch(API_URL + '/chat/dm' + '?id=' + loggedUserId, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           user_id: id
         }) 
       });
+      if (!response.ok) {
+        const error = await response.json();
+        handleError("Send DM", error.message);
+        return;
+      }
       const parse = await response.json();
       console.log(response);
     }
