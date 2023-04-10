@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { OtpModule } from '../../../../auth/otp/otp.module';
 import { TwoFactorService } from './twoFactor.service';
 import { UserStatusEnum } from '../../../../common/enums';
-import { SessionStatusEnum } from '../../../../common/enums/sessionStatus.enum';
+import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
 import * as fs from 'fs';
 import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import * as CryptoJS from 'crypto-js';
@@ -65,7 +65,7 @@ describe('TwoFactorService', () => {
         session: {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
-          sessionStatus: SessionStatusEnum.SUCCESS,
+          sessionStatus: TokenStatusEnum.SUCCESS,
           otpSecret: null,
           email: null,
           destroy: (callback) => {
@@ -91,7 +91,7 @@ describe('TwoFactorService', () => {
         session: {
           user_id: 0,
           userStatus: UserStatusEnum.ONLINE,
-          sessionStatus: SessionStatusEnum.SUCCESS,
+          sessionStatus: TokenStatusEnum.SUCCESS,
           otpSecret: null,
           email: null,
           destroy: (callback) => {
@@ -122,7 +122,7 @@ describe('TwoFactorService', () => {
         session: {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
-          sessionStatus: SessionStatusEnum.SUCCESS,
+          sessionStatus: TokenStatusEnum.SUCCESS,
           otpSecret: null,
           email: null,
         },
@@ -158,7 +158,7 @@ describe('TwoFactorService', () => {
         session: {
           user_id: savedUser.user_id,
           userStatus: UserStatusEnum.ONLINE,
-          sessionStatus: SessionStatusEnum.SUCCESS,
+          sessionStatus: TokenStatusEnum.SUCCESS,
           otpSecret: null,
           email: null,
           destroy: (callback) => {
@@ -193,7 +193,7 @@ describe('TwoFactorService', () => {
       session: {
         user_id: 1,
         userStatus: UserStatusEnum.ONLINE,
-        sessionStatus: SessionStatusEnum.SUCCESS,
+        sessionStatus: TokenStatusEnum.SUCCESS,
         otpSecret: encrypted,
         email: null,
         destroy: (callback) => {
@@ -293,7 +293,7 @@ describe('TwoFactorService', () => {
       session: {
         user_id: 1,
         userStatus: UserStatusEnum.ONLINE,
-        sessionStatus: SessionStatusEnum.SUCCESS,
+        sessionStatus: TokenStatusEnum.SUCCESS,
         otpSecret: null,
         email: null,
         destroy: (callback) => {

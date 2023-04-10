@@ -1,21 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AppConfigService } from './config/app/config.service';
-import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
-import { colorist } from './common/logger/utils';
-import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
+import { colorist } from './common/middlewares/logger/utils';
 import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
-
-declare module 'express-session' {
-  interface SessionData {
-    user_id?: number;
-    userStatus?: UserStatusEnum;
-    email?: string;
-    sessionStatus: SessionStatusEnum;
-    otpSecret: string;
-  }
-}
+import { JwtPayloadInterface } from './common/interfaces/JwtUser.interface';
+import * as cookieParser from 'cookie-parser';
+import { AppConfigService } from './config/app/config.service';
+import { LoggerMiddleware } from './common/middlewares/logger/middleware/logger.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,11 +14,21 @@ async function bootstrap() {
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();
   app.useWebSocketAdapter(redisIoAdapter);
+  app.use(cookieParser());
 
+  // app prefix as api
+  app.setGlobalPrefix('api');
   await app.listen(appConfig.port);
   startLogging();
 }
 bootstrap();
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface User extends JwtPayloadInterface {}
+  }
+}
 
 // for logging
 const startLogging = () => {

@@ -3,8 +3,7 @@ import { UserController } from './user.controller';
 import { UserService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, UserRelation } from '../entities';
-import { SessionGuard } from '../../../common/guards/session/session.guard';
-import { SessionStrategy } from '../../../common/guards/session/session.strategy';
+import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
 import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
 import { UserCreationStrategy } from '../../../common/guards/userCreation/userCreation.strategy';
 import { UserRelationController } from './userRelation.controller';
@@ -12,16 +11,18 @@ import { UserRelationService } from './services/userRelation.service';
 import { SessionService } from '../../../common/session/session.service';
 import { TwoFactorService } from './services/twoFactor.service';
 import { OtpModule } from '../../../auth/otp/otp.module';
+import { JwtStrategy } from '../../../common/guards/jwt/jwt.strategy';
+import { JwtConfigModule } from '../../../config/jwt/config.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserRelation]), OtpModule],
+  imports: [TypeOrmModule.forFeature([User, UserRelation]), OtpModule, JwtConfigModule],
   controllers: [UserController, UserRelationController],
   providers: [
     UserService,
     UserRelationService,
     SessionService,
-    SessionGuard,
-    SessionStrategy,
+    JwtGuard,
+    JwtStrategy,
     UserCreationGuard,
     UserCreationStrategy,
     TwoFactorService,

@@ -7,7 +7,7 @@ import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, Up
 import { SessionService } from '../../../../common/session/session.service';
 import { PostgresDatabaseProviderModule } from '../../../../providers/database/postgres/provider.module';
 import { createRequest, createResponse, MockRequest, MockResponse } from 'node-mocks-http';
-import { SessionStatusEnum } from '../../../../common/enums/sessionStatus.enum';
+import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
 import { Request, Response } from 'express';
 import {
   BadRequestException,
@@ -15,7 +15,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { GetUserSettingResDto } from '../dtos/getUserSettingResDto';
+import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
 import { UserStatusEnum } from '../../../../common/enums';
 
 describe('UserService', () => {
@@ -99,7 +99,7 @@ describe('UserService', () => {
   describe('createUser', () => {
     it('유저 데이터를 정상적으로 입력한 경우 유저의 정보를 반환한다.', async () => {
       const sessionData = {
-        sessionStatus: SessionStatusEnum.SIGNUP,
+        sessionStatus: TokenStatusEnum.SIGNUP,
         user_id: null,
         userStatus: null,
         email: 'tester@test.com',
@@ -122,7 +122,7 @@ describe('UserService', () => {
 
     it('중복된 nickname을 요청한 경우 409 에러를 던진다.', async () => {
       const sessionData = {
-        sessionStatus: SessionStatusEnum.SIGNUP,
+        sessionStatus: TokenStatusEnum.SIGNUP,
         user_id: null,
         userStatus: null,
         email: 'tester@test.com',
@@ -152,7 +152,7 @@ describe('UserService', () => {
 
     it('중복된 email을 요청한 경우 409 에러를 던진다.', async () => {
       const sessionData = {
-        sessionStatus: SessionStatusEnum.SIGNUP,
+        sessionStatus: TokenStatusEnum.SIGNUP,
         user_id: null,
         userStatus: null,
         email: 'tester@test.com',
@@ -182,7 +182,7 @@ describe('UserService', () => {
 
     it('session 이 request에 존재하지 않는 경우, 500을 던진다.', async () => {
       const sessionData = {
-        sessionStatus: SessionStatusEnum.SIGNUP,
+        sessionStatus: TokenStatusEnum.SIGNUP,
         user_id: null,
         userStatus: null,
         email: 'tester@test.com',
@@ -391,7 +391,7 @@ describe('UserService', () => {
       session: {
         user_id: 1,
         userStatus: UserStatusEnum.ONLINE,
-        sessionStatus: SessionStatusEnum.SUCCESS,
+        sessionStatus: TokenStatusEnum.SUCCESS,
         otpSecret: null,
         email: null,
         destroy: (callback) => {

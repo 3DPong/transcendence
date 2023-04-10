@@ -4,7 +4,7 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { Request } from 'express';
 import { User } from '../user/entities';
 import { SessionService } from '../../common/session/session.service';
-import { SessionStatusEnum } from '../../common/enums/sessionStatus.enum';
+import { TokenStatusEnum } from '../../common/enums/tokenStatusEnum';
 import { UserStatusEnum } from '../../common/enums';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class DevService {
   async getSignUpSession(req: Request, email: string) {
     req.session.user_id = null;
     req.session.userStatus = null;
-    req.session.sessionStatus = SessionStatusEnum.SIGNUP;
+    req.session.sessionStatus = TokenStatusEnum.SIGNUP;
     req.session.email = email ? email : 'test@test.com';
     return {
       status: 'SIGNUP_MODE',
@@ -71,7 +71,7 @@ export class DevService {
     req.session.user_id = user.user_id;
     req.session.userStatus = UserStatusEnum.ONLINE;
     req.session.email = null;
-    req.session.sessionStatus = SessionStatusEnum.TWO_FACTOR;
+    req.session.sessionStatus = TokenStatusEnum.TWO_FACTOR;
     return {
       status: '2FA',
       user_id: user.user_id,

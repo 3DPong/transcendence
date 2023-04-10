@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import { User } from '../../models/user/entities';
 import { UserStatusEnum } from '../enums';
-import { SessionStatusEnum } from '../enums/sessionStatus.enum';
+import { TokenStatusEnum } from '../enums/tokenStatusEnum';
 
 @Injectable()
 export class SessionService {
@@ -68,7 +68,7 @@ export class SessionService {
   createSession(user: User, req: Request) {
     req.session.user_id = user.user_id;
     req.session.userStatus = UserStatusEnum.ONLINE; // fixme : alarm socket 연결 시에?
-    req.session.sessionStatus = SessionStatusEnum.SUCCESS;
+    req.session.sessionStatus = TokenStatusEnum.SUCCESS;
     req.session.email = null;
   }
 

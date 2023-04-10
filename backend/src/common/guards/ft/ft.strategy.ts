@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { FtConfigService } from '../../../config/ft/config.service';
 import { Strategy } from 'passport-oauth2';
 import axios from 'axios';
+import { FtDataInterface } from '../../interfaces/FtData.interface';
 
 @Injectable()
 export class FtStrategy extends PassportStrategy(Strategy, 'ft') {
@@ -15,7 +16,7 @@ export class FtStrategy extends PassportStrategy(Strategy, 'ft') {
       callbackURL: ftConfigService.callback,
     });
   }
-  async validate(accessToken: string, refreshToken: string) {
+  async validate(accessToken: string, refreshToken: string): Promise<FtDataInterface> {
     // get profile information from 42 api
     const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -25,7 +26,7 @@ export class FtStrategy extends PassportStrategy(Strategy, 'ft') {
     if (!email) throw new UnauthorizedException('invalid intra');
     return {
       email: email,
-      profileUrl: profileUrl,
+      profile_url: profileUrl,
     };
   }
 }

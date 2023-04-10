@@ -1,44 +1,39 @@
-import { IsNotEmpty, IsNumber, IsNumberString, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class MessageDto {
-
-	@IsNotEmpty()
-	@IsString()
+  @IsNotEmpty()
+  @IsString()
   message: string;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
-
 }
 
 export class toggleTimeDto {
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   user_id: number;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
-  
+
   end_at: Date | null;
 }
 
-
 export class toggleDto {
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   user_id: number;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
-
 }
 
-
-export  class ChannelIdDto {
-	@IsNotEmpty()
-	@IsNumber()
+export class ChannelIdDto {
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
 }

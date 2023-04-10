@@ -19,9 +19,8 @@ import { OtpModule } from './auth/otp/otp.module';
 import { OtpConfigModule } from './config/otp/config.module';
 import { NotifySocketModule } from './models/notifySocket/socket';
 import { RedisStorageProviderModule } from './providers/redis/provider.module';
-import { SessionMiddleware } from './common/middlewares/session/session.middleware';
 import { WsExceptionFilter } from './common/filters/socket/wsException.filter';
-import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
+import { LoggerMiddleware } from './common/middlewares/logger/middleware/logger.middleware';
 import { NotifierModule } from './models/notifier/notifier.module';
 import { GameModule } from './models/game/socket';
 
@@ -69,6 +68,5 @@ import { GameModule } from './models/game/socket';
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes('*');
-    consumer.apply(SessionMiddleware).forRoutes('*');
   }
 }

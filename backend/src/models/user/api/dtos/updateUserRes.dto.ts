@@ -1,2 +1,2 @@
-import { GetUserResDto } from './getUserResDto';
+import { GetUserResDto } from './getUserRes.dto';
 export class UpdateUserResDto extends GetUserResDto {}
