@@ -31,11 +31,20 @@ export class ChatSocketService {
 
     private dataSource: DataSource
 
-  
   ) {}
 
 
   async joinAllChatRooms(socket: Socket, user_id: number) {
+    const channelIds = await this.getAllUserChannel(user_id);
+    channelIds.map((id)=> { socket.join(`chat_${id.toString()}`); });
+  }
+
+  async leaveAllChatRooms(socket:Socket, user_id: number) {
+    const channelIds = await this.getAllUserChannel(user_id);
+    channelIds.map((id)=> { socket.leave(`chat_${id.toString()}`); });  
+  }
+
+  async getAllUserChannel(user_id:number) {
     try {
       const channelUsers : ChannelUser[]  = await this.channelUserRepository
         .createQueryBuilder("cu")
@@ -52,7 +61,7 @@ export class ChatSocketService {
         .getMany();
       dmChannels.map((dm) => channelIds.push(dm.channel_id));
 
-      channelIds.map((id)=> { console.log(id); socket.join(`chat_${id.toString()}`); });
+      return channelIds;
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -75,22 +84,22 @@ export class ChatSocketService {
     }
 }
 
-async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
+  async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
 
-  const userNickname = await this.getChannelUserName(channel_id, user_id);
-  if (!user_id || !userNickname)
-    throw new SocketException('Forbidden', `권한이 없습니다!`);
+    const userNickname = await this.getChannelUserName(channel_id, user_id);
+    if (!user_id || !userNickname)
+      throw new SocketException('Forbidden', `권한이 없습니다!`);
 
-  try {
-    socket.leave(`chat_${channel_id}`);
-    socket.broadcast
-    .to(`chat_${channel_id}`)
-    .emit('message', { message: `${userNickname} 가 나갔습니다.`});
-    //프론트에 create처럼 값 리턴
-  } catch (error) {
-    throw new SocketException('InternalServerError', `${error.message}`);
-  }
-}
+    try {
+      socket.leave(`chat_${channel_id}`);
+      socket.broadcast
+      .to(`chat_${channel_id}`)
+      .emit('message', { message: `${userNickname} 가 나갔습니다.`});
+
+    } catch (error) {
+      throw new SocketException('InternalServerError', `${error.message}`);
+    }
+  } 
 
 
 async sendChatMessage(server: Server, user_id: number, md: MessageDto) {

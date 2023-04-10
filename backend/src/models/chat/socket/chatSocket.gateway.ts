@@ -11,9 +11,9 @@ import { Logger, UseFilters} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelType, ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
-import {SocketException, SocketExceptionFilter} from './socket.filter';
-import { UpdateResult } from 'typeorm';
+import { ChannelUserRoles, ChatChannel } from '../entities';
+import {SocketExceptionFilter} from './socket.filter';
+
 
 
 @UseFilters(new SocketExceptionFilter())
@@ -58,6 +58,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (userIndex >= 0) {
       this.users.splice(userIndex, 1);
     }
+    await this.chatSocketService.leaveAllChatRooms(socket, user_id);
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
 
@@ -91,13 +92,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
   }
-
-  // @SubscribeMessage('update-chat')
-  // async handleUpdateRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto) {
-
-  //   const userId = this.getUserIdBySocketId(socket.id);
-  //   return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
-  // }
 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
@@ -173,12 +167,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     this.server.to(`chat_${channel_id}`).except(userSocket)
       .emit('alarm', {type: 'update', user_id: user_id, channel_id:channel_id, message: changedRole});
   }
-
-  // hanndleCreateChat(user_id: number, channel_id:number) {
-  //   const userSocket = this.getSocketIdByUserId(user_id);
-  //   return this.chatSocketService.hanndleCreateChat(userSocket, channel_id);
-  // }
-
 
 
   getSocketIdByUserId(userId: number) {
