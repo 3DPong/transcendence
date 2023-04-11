@@ -8,7 +8,7 @@ import { GameService } from "../socket/services";
 import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
 import { MatchJoinData, RenderData, ScoreData } from "../gameData";
-
+import { Logger } from "@nestjs/common";
 
 export class GameManager {
   public readonly gameId : string;
@@ -21,6 +21,7 @@ export class GameManager {
   public simulator : GameSimulator;
   public renderDatas : RenderData[];
   public scoreData : ScoreData;
+  private logger : Logger;
 
   constructor(matchJoinData : MatchJoinData)
   {
@@ -29,6 +30,7 @@ export class GameManager {
     this.gameId = uuidv4();
     this.playerCount = 0;
     this.started = false;
+    this.logger = new Logger();
   }
 
   public createPlayer(sid : string, dbId : number) {
@@ -67,13 +69,12 @@ export class GameManager {
         simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
         console.log('allClear interval');
         gameService.gameEndToClient(gameManager, server);
+        clearInterval(timeEndCheck);
         await gameService.createMatch(gameManager).then(()=>{
-          clearInterval(timeEndCheck);
           gameRooms.delete(gameManager.gameId);
-        }).catch((error)=>{
-          //db 작업이 실패 했을때 추후 처리를 어떻게 할지에 대한 고민
-          clearInterval(timeEndCheck);
+        }).catch(()=>{
           gameRooms.delete(gameManager.gameId);
+          this.logger.error(`database save match failed : ${this.gameId}`);
         });
       }},1000, this.simulator, gameRooms, this, gameService, server);
   }
