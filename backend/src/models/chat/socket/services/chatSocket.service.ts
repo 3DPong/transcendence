@@ -195,7 +195,7 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
       }
       const title = await this.getChannelName(channel_id)
       server.in(userSocket)
-        .emit('alarm', {type: 'ban', channel_id: channel_id, message: `${title }에서 밴 되었습니다.`}) //당사자
+        .emit('alarm', {type: 'ban', channel_id: channel_id, message: `${title} 에서 밴 되었습니다.`}) //당사자
       server.to(`chat_${channel_id}`)
         .emit('ban', {  user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 되었습니다.` }); //일반 유저들
     }
@@ -246,7 +246,7 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     if (nickname) {
       const title = await this.getChannelName(channel_id)
       server.in(userSocket)
-        .emit('alarm', {type: 'kick', channel_id: channel_id, message: `${title }에서 강제 퇴장  되었습니다.`}) //당사자
+        .emit('alarm', {type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장  되었습니다.`}) //당사자
       server.to(`chat_${channel_id}`)
         .emit(`kick`,  { user_id: user_id, channel_id: channel_id,  message: `${nickname} 가 강제 퇴장 되었습니다.` }); //일반유저
     }

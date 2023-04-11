@@ -157,8 +157,8 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
       } 
     }
-    this.server.to(`chat_${channel_id}`).except(userSocket)
-      .emit('alarm', {type: 'leave', user_id: user_id, channel_id: channel_id,  message: `${userNickname} 가 나갔습니다.`});
+    this.server.to(`chat_${channel_id}`)
+      .emit('leave', { user_id: user_id, nickname: userNickname, channel_id: channel_id,  message: `${userNickname} 가 나갔습니다.`});
   }
 
   hanndleAdminRoleUpdate(user_id: number, channel_id:number,  changedRole: ChannelUserRoles) {

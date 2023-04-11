@@ -577,9 +577,7 @@ export class ChatService {
     return false;
   }
 
-  channelResult(channel: ChatChannel) {
-
-    let result = channel;
+  channelResult(result: ChatChannel) {
   
     delete result.password;
     delete result.deleted_at;
