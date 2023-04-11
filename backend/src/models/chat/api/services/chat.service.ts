@@ -8,6 +8,7 @@ import * as bcrypt from 'bcryptjs';
 import { ChannelDto, JoinDto, UserIdDto } from '../../dto/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
+import { ChatSocketGateway } from '../../socket/chatSocket.gateway';
 
 @Injectable()
 export class ChatService {
@@ -33,8 +34,8 @@ export class ChatService {
     @Inject(forwardRef(() => ChatUserService))
     private readonly userService: ChatUserService,
 
-    private dataSource: DataSource
-    // private chatGateway: ChatSocketGateway
+    private dataSource: DataSource,
+    private chatGateway: ChatSocketGateway
   ) {}
 
 
@@ -72,7 +73,7 @@ export class ChatService {
       .select("cu.channel_id")
       .where('cu.user_id = :user_id', {user_id})
       .getMany();
-    const userIds = channelUsers.map((user)=>user.channel_id)
+    const channelIds = channelUsers.map((user)=>user.channel_id)
 
     const dmChannels : DmChannel[] = await this.dmRepository
       .createQueryBuilder("dm")
@@ -82,8 +83,8 @@ export class ChatService {
       .orderBy("dm.updated_at", "DESC")
       .take(5)
       .getMany();
-    dmChannels.map((dm) => userIds.push(dm.channel_id));
-  
+
+    dmChannels.forEach(dm => { channelIds.push(dm.channel_id); });
     const channel: ChatChannel[] = await this.channelRepository
       .createQueryBuilder("channel")
       .innerJoin("channel.owner", "owner")
@@ -95,8 +96,7 @@ export class ChatService {
         "owner.nickname",
         "owner.profile_url"
       ])
-      .whereInIds(userIds)
-      .orWhere("channel.owner_id = :id", {id: user_id})
+      .whereInIds(channelIds)
       .getMany();
 
     return channel;
@@ -186,48 +186,51 @@ export class ChatService {
 		await queryRunner.startTransaction();
 
 
-      if (type == ChannelType.PROTECTED){
-        if (password == undefined) {
-          throw new NotFoundException(`비밀번호 없음`);
-        }
-        const salt = await bcrypt.genSalt();
-        hashedPassword = await bcrypt.hash(password, salt);
+    if (type == ChannelType.PROTECTED){
+      if (password == undefined) {
+        throw new NotFoundException(`비밀번호 없음`);
       }
-      try {
-      const channel = this.channelRepository.create({
-        name,
-        password: hashedPassword,
-        type,
-        owner: user,
-        owner_id: user.user_id,
-        thumbnail_url
-      })
-      await queryRunner.manager.save(channel);
-      
-      const cu = this.channelUserRepository.create({
-        channel_id: channel.channel_id,
-        user_id : user.user_id,
-        role: ChannelUserRoles.OWNER
-      });
-      await queryRunner.manager.save(cu);
-      if (inviteList !== null) {
-        for (const userId of inviteList) {
-          if (userId !== user.user_id) {
-            const cu = this.channelUserRepository.create({
-              channel_id: channel.channel_id,
-              user_id : userId,
-              role: ChannelUserRoles.USER
-            });
-            await queryRunner.manager.save(cu);       
-          }
+      const salt = await bcrypt.genSalt();
+      hashedPassword = await bcrypt.hash(password, salt);
+    }
+    try {
+    let channel = this.channelRepository.create({
+      name,
+      password: hashedPassword,
+      type,
+      owner: user,
+      owner_id: user.user_id,
+      thumbnail_url
+    })
+    await queryRunner.manager.save(channel);
+    
+    const cu = this.channelUserRepository.create({
+      channel_id: channel.channel_id,
+      user_id : user.user_id,
+      role: ChannelUserRoles.OWNER
+    });
+    await queryRunner.manager.save(cu);
+    if (inviteList !== null) {
+      for (const userId of inviteList) {
+        if (userId !== user.user_id) {
+          const cu = this.channelUserRepository.create({
+            channel_id: channel.channel_id,
+            user_id : userId,
+            role: ChannelUserRoles.USER
+          });
+          await queryRunner.manager.save(cu);       
         }
       }
-      await queryRunner.commitTransaction();
-    
-      delete channel.password;
-      delete channel.owner.email;
-    
-      return channel;
+    }
+    await queryRunner.commitTransaction();
+
+    // owner 와 invited users 모두 새로 생성된 채널에 socket join 
+    const userIds =  inviteList;
+    userIds.push(user.user_id);
+    channel = this.channelResult(channel);
+    this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
+
+    return channel;
     } catch (error) {
       console.log(error)
       await queryRunner.rollbackTransaction();
@@ -239,7 +242,7 @@ export class ChatService {
 
   async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User) : Promise<void> {
 
-    const { name, password, type, thumbnail_url } = channelDto;
+    const { name, password, type, thumbnail_url, inviteList } = channelDto;
     const channel = await this.channelRepository.findOne({where :{channel_id}});
     if (!channel)
       throw new NotFoundException(`can't find chat Channel ${ channel_id}`);
@@ -255,11 +258,38 @@ export class ChatService {
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
     }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+    
     try {
+      if (inviteList !== null) {
+        for (const userId of inviteList) {
+          if (userId !== user.user_id) {
+            const cu = this.channelUserRepository.create({
+              channel_id: channel.channel_id,
+              user_id : userId,
+              role: ChannelUserRoles.USER
+            });
+            await queryRunner.manager.save(cu);       
+          }
+        }
+      }
       await this.channelRepository.update(channel_id, {name, type, password: hashedPassword, thumbnail_url});
+      await queryRunner.commitTransaction();
+
+      const userIds =  inviteList;
+      userIds.push(user.user_id);
+      const inviteChannel = await this.getChannel(channel_id);
+      this.chatGateway.handleJoinUsers(userIds, channel_id, inviteChannel);
+      
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
-    }
+    } finally {
+			await queryRunner.release();
+		}
   }
 
   async createDmRoom(second_user: User, first_user : User) :Promise<ChatChannel>{
@@ -271,8 +301,8 @@ export class ChatService {
        .findOne({where: {first_user_id: second_user.user_id, second_user_id: first_user.user_id}});
     }
     if (dmChannel) {
-      this.dmRepository.update({first_user_id: first_user.user_id, second_user_id:second_user.user_id}, {updated_at: new Date()});
-      return dmChannel.channel;
+      await this.dmRepository.update({first_user_id: first_user.user_id, second_user_id:second_user.user_id}, {updated_at: new Date()});
+      return this.channelResult(dmChannel.channel);
     }
     const queryRunner = this.dataSource.createQueryRunner();
 		await queryRunner.connect();
@@ -297,10 +327,10 @@ export class ChatService {
 
       await queryRunner.commitTransaction();
     
-      delete channel.password;
-      delete channel.owner.email;
-    
-      return channel;
+      let userIds :number[] = [first_user.user_id, second_user.user_id];
+      this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
+
+      return this.channelResult(channel);
     } catch (error) {
       await queryRunner.rollbackTransaction();
 			throw new InternalServerErrorException();
@@ -396,13 +426,15 @@ export class ChatService {
           await this.channelUserRepository.update({channel_id, user_id: admin.user_id}, {role: ChannelUserRoles.OWNER});
           await this.channelRepository.update(channel_id, {owner_id : admin.user_id});
         }
-      }
-      else {
+      } else {
         const delUser = await this.channelUserRepository.findOne({where: {channel_id, user_id}});
         if (!delUser)
           throw new NotFoundException(`can't find ${ channel_id}'s user ${user_id}`);
       }
       await this.channelUserRepository.softDelete({channel_id, user_id});
+      
+      const nickname = await this.userService.getUserNicname(user_id);
+      this.chatGateway.handleLeaveUser(user_id, channel_id, nickname);
     } catch (error) {
       console.log(error)
       throw new InternalServerErrorException();
@@ -431,7 +463,7 @@ export class ChatService {
   }
 
   async changeRole(channel_id : number, admin_id : number, userIdDto: UserIdDto) {
-    
+
     if(!this.checkAdminUser(admin_id, channel_id)) {
       throw new UnauthorizedException('No permission!');
     }
@@ -445,11 +477,13 @@ export class ChatService {
     } else if (role === userIdDto.role) {
       throw new UnauthorizedException(`Already ${role}!`);
     }
-
-    const changed =  await this.channelUserRepository
+    try {
+    await this.channelUserRepository
       .update({channel_id, user_id: userIdDto.user_id}, {role: userIdDto.role});
-
-    return changed;
+    this.chatGateway.hanndleAdminRoleUpdate(userIdDto.user_id, channel_id, userIdDto.role);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async getMutelist(channel_id : number, user_id : number):Promise <ChannelMuteList[]> {
@@ -542,4 +576,25 @@ export class ChatService {
     }
     return false;
   }
+
+  channelResult(result: ChatChannel) {
+  
+    delete result.password;
+    delete result.deleted_at;
+    delete result.owner_id;
+    delete result.owner.email;
+    delete result.owner.profile_url;
+    delete result.owner.created_at;
+    delete result.owner.deleted_at;
+    delete result.owner.wins;
+    delete result.owner.losses;
+    delete result.owner.total;
+    delete result.owner.level;
+    delete result.owner.total;
+    delete result.owner.two_factor;
+    
+    return result;
+  }
 }
+
+
