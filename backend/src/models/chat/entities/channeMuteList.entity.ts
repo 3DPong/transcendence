@@ -3,6 +3,12 @@ import { User } from '../../user/entities';
 import { ChatChannel } from './chatChannel.entity';
 import { Factory } from 'nestjs-seeder';
 
+export enum MuteStatus {
+  Mute = 0,
+  NoneMute,
+  PassedMute
+}
+
 @Entity()
 export class ChannelMuteList {
   @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
