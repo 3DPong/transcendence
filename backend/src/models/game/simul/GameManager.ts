@@ -65,16 +65,23 @@ export class GameManager {
         simulator.matchInterrupt.isInterrupt
       ) {
         clearInterval(timeStep);
-        simulator.user1.socore = Min(simulator.ball.GetUserData().player1_score, simulator.user1.socore);
-        simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
-        console.log('allClear interval');
+        gameManager.player1.socore = gameManager.player1.socore == 0 ? 0 : simulator.ball.GetUserData().player1_score;
+        gameManager.player2.socore = gameManager.player2.socore == 0 ? 0 : simulator.ball.GetUserData().player2_score;
         gameService.gameEndToClient(gameManager, server);
         clearInterval(timeEndCheck);
         await gameService.createMatch(gameManager).then(()=>{
           gameRooms.delete(gameManager.gameId);
         }).catch(()=>{
           gameRooms.delete(gameManager.gameId);
-          this.logger.error(`database save match failed : ${this.gameId}`);
+          this.logger.error(
+            `database save match failed : ${gameManager.gameId} ` +
+            `gameType: ${gameManager.gameType} ` +
+            `gameRoomType: ${gameManager.gameRoomType} ` +
+            `player1 score: ${gameManager.player1.socore} ` +
+            `player2 score: ${gameManager.player2.socore} ` +
+            `player1 dbId: ${gameManager.player1.dbId} ` +
+            `player2 dbId: ${gameManager.player2.dbId}`
+          );
         });
       }},1000, this.simulator, gameRooms, this, gameService, server);
   }
