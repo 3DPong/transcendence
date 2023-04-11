@@ -12,6 +12,7 @@ import { UserRelation } from './userRelation.entity';
 import { ChatChannel, ChannelUser, DmChannel, ChannelMuteList, ChannelBanList } from '../../chat/entities';
 import { Match } from '../../game/entities';
 import { Factory } from 'nestjs-seeder';
+import { UserStatusEnum } from '../../../common/enums';
 
 @Entity()
 @Unique(['nickname', 'email'])
@@ -30,6 +31,9 @@ export class User {
   @Factory((faker) => faker.image.people())
   @Column({ type: 'varchar', length: 150 })
   profile_url: string;
+
+  @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.OFFLINE })
+  status: UserStatusEnum;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Timestamp;

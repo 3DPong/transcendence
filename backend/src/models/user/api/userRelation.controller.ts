@@ -1,17 +1,17 @@
 import { Body, Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
-import { SessionGuard } from '../../../common/guards/session/session.guard';
+import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
 import { UserRelationService } from './services/userRelation.service';
-import { GetSessionData } from '../../../common/decorators';
+import { GetGuardData } from '../../../common/decorators';
 import { GetUserRelationResDto, UpdateUserRelationResDto, UpdateUserRelationReqDto } from './dtos';
 
 @Controller('user_relation')
 export class UserRelationController {
   constructor(private userRelationService: UserRelationService) {}
 
-  @UseGuards(SessionGuard)
+  @UseGuards(JwtGuard)
   @Get('/')
   async getUserRelation(
-    @GetSessionData() sessionData,
+    @GetGuardData() sessionData,
     @Query('relation') relation: string
   ): Promise<GetUserRelationResDto> {
     switch (relation) {
@@ -27,10 +27,10 @@ export class UserRelationController {
     }
   }
 
-  @UseGuards(SessionGuard)
+  @UseGuards(JwtGuard)
   @Put('/')
   async updateUserRelation(
-    @GetSessionData() sessionData,
+    @GetGuardData() sessionData,
     @Body() payload: UpdateUserRelationReqDto
   ): Promise<UpdateUserRelationResDto> {
     return await this.userRelationService.updateUserRelation(sessionData.user_id, payload);

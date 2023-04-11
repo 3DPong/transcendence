@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import {
   BadRequestException,
   ConflictException,
@@ -8,18 +8,14 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
-import { SessionService } from '../../../../common/session/session.service';
-import { Request, Response } from 'express';
-import { GetUserSettingResDto } from '../dtos/getUserSettingResDto';
+import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
+import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
+import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
+import { VerifyNicknameResponseDto } from '../dtos/verifyNickname.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    private dataSource: DataSource,
-    private sessionService: SessionService
-  ) {}
+  constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
 
   async getUser(userId: number): Promise<GetUserResDto> {
     const user: GetUserResDto = await this.userRepository.findOne({
@@ -43,36 +39,24 @@ export class UserService {
     return user;
   }
 
-  async createUser(data, payload: CreateUserReqDto, req: Request): Promise<CreateUserResDto> {
+  async createUser(data: JwtPayloadInterface, payload: CreateUserReqDto): Promise<void> {
     const newUser = new User();
-    let savedUser;
     newUser.profile_url = payload.profile_url;
     newUser.nickname = payload.nickname;
     newUser.email = data.email;
 
-    const runner = await this.dataSource.createQueryRunner();
-    await runner.connect();
-    await runner.startTransaction();
     try {
-      savedUser = await runner.manager.save(newUser);
-      this.sessionService.createSession(savedUser, req);
-      await runner.commitTransaction();
-      return {
-        user_id: savedUser.user_id,
-      };
+      await this.userRepository.save(newUser);
     } catch (error) {
-      await runner.rollbackTransaction();
       if (error instanceof QueryFailedError) {
         if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
-          throw new ConflictException('duplicate nickname');
+          throw new ConflictException('duplicate column (nickname or email)');
         } else {
           throw new InternalServerErrorException('Database error');
         }
       } else {
         throw new InternalServerErrorException('session error');
       }
-    } finally {
-      await runner.release();
     }
   }
 
@@ -110,22 +94,25 @@ export class UserService {
     );
   }
 
-  async deleteUser(userId: number, req: Request, res: Response): Promise<void> {
+  async deleteUser(userId: number): Promise<void> {
     const findUser: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!findUser) throw new UnauthorizedException('invalid user (session is not valid)');
 
-    const runner = await this.dataSource.createQueryRunner();
-    await runner.connect();
-    await runner.startTransaction();
     try {
-      await runner.manager.softDelete(User, { user_id: userId });
-      this.sessionService.clearSession(req, res);
-      await runner.commitTransaction();
+      await this.userRepository.softDelete({ user_id: userId });
     } catch (e) {
-      await runner.rollbackTransaction();
       throw new InternalServerErrorException('server error');
-    } finally {
-      await runner.release();
     }
+  }
+
+  async verifyDuplicateNickname(nickname: string): Promise<VerifyNicknameResponseDto> {
+    const user: User = await this.userRepository.findOne({
+      where: {
+        nickname: nickname,
+      },
+    });
+    return {
+      isDuplicate: !!user,
+    };
   }
 }

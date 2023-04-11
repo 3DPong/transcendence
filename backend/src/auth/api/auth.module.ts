@@ -8,12 +8,27 @@ import { FtGuard } from '../../common/guards/ft/ft.guard';
 import { FtStrategy } from '../../common/guards/ft/ft.strategy';
 import { TwoFactorGuard } from '../../common/guards/twoFactor/twoFactor.guard';
 import { TwoFactorStrategy } from '../../common/guards/twoFactor/twoFactor.strategy';
-import { SessionService } from '../../common/session/session.service';
-import { OtpModule } from '../../common/otp/otp.module';
+import { OtpModule } from '../otp/otp.module';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtConfigModule } from '../../config/jwt/config.module';
+import { JwtConfigService } from '../../config/jwt/config.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), FtConfigModule, OtpModule],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    FtConfigModule,
+    OtpModule,
+    JwtModule.registerAsync({
+      imports: [JwtConfigModule],
+      useFactory: async (jwtConfigService: JwtConfigService) => ({
+        secret: jwtConfigService.secret,
+        signOptions: { expiresIn: jwtConfigService.expiresIn, algorithm: 'HS256', issuer: '3DPong' },
+      }),
+      inject: [JwtConfigService],
+    }),
+    JwtConfigModule,
+  ],
   controllers: [AuthController],
-  providers: [AuthService, SessionService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy],
+  providers: [AuthService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy],
 })
 export class AuthModule {}

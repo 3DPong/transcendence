@@ -1,20 +1,32 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-custom';
+import { TokenStatusEnum } from '../../enums/tokenStatusEnum';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { JwtConfigService } from '../../../config/jwt/config.service';
+import { JwtPayloadInterface } from '../../interfaces/JwtUser.interface';
 import { Request } from 'express';
-import { SessionStatusEnum } from '../../enums/sessionStatus.enum';
 
 @Injectable()
-export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStrategy') {
-  constructor() {
-    super();
+export class TwoFactorStrategy extends PassportStrategy(Strategy, 'JwtTwoFactorStrategy') {
+  constructor(private jwtConfigService: JwtConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request): string => {
+          return req?.cookies?.Authentication;
+        },
+      ]),
+      ignoreExpiration: false,
+      secretOrKey: jwtConfigService.secret,
+    });
   }
 
-  validate(request: Request) {
-    const session = request.session;
-    if (!session.user_id || session.sessionStatus !== SessionStatusEnum.TWO_FACTOR)
-      throw new UnauthorizedException('invalid session');
-    if (session.email) session.email = null;
-    return { user_id: session.user_id };
+  validate(payload: JwtPayloadInterface) {
+    if (payload) {
+      if (payload.status === TokenStatusEnum.TWO_FACTOR) {
+        return payload;
+      } else {
+        throw new UnauthorizedException('invalid user (token status is invalid)');
+      }
+    }
   }
 }

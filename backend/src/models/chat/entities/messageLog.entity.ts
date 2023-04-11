@@ -11,6 +11,10 @@ export class MessageLog {
   @Column({ type: 'int' })
   channel_id: number;
 
+  @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
+  @Column({ type: 'int' })
+  user_id: number;
+
   @ManyToOne(() => ChatChannel, (chatChannel) => chatChannel.messages)
   @JoinColumn({ name: 'channel_id' })
   channel: ChatChannel;

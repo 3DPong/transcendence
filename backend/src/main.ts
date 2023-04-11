@@ -1,61 +1,34 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { AppConfigService } from './config/app/config.service';
-import { HttpExceptionFilter } from './common/filters/http/httpException.filter';
-import { LoggerMiddleware } from './common/logger/middleware/logger.middleware';
-import * as session from 'express-session';
-import { SessionConfigService } from './config/session/config.service';
-import RedisStore from 'connect-redis';
-import { Redis } from 'ioredis';
-import { RedisConfigService } from './config/redis/config.service';
-import { UserStatusEnum } from './common/enums';
 import * as process from 'process';
-import { colorist } from './common/logger/utils';
-import { SessionStatusEnum } from './common/enums/sessionStatus.enum';
-
-declare module 'express-session' {
-  interface SessionData {
-    user_id?: number;
-    userStatus?: UserStatusEnum;
-    email?: string;
-    sessionStatus: SessionStatusEnum;
-    otpSecret: string;
-  }
-}
+import { colorist } from './common/middlewares/logger/utils';
+import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
+import { JwtPayloadInterface } from './common/interfaces/JwtUser.interface';
+import * as cookieParser from 'cookie-parser';
+import { AppConfigService } from './config/app/config.service';
+import { LoggerMiddleware } from './common/middlewares/logger/middleware/logger.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const appConfig = app.get(AppConfigService);
-  const sessionConfig = app.get(SessionConfigService);
-  const redisConfig = app.get(RedisConfigService);
-  const redisClient = new Redis({ port: redisConfig.port, host: redisConfig.host });
-  // @ts-ignore
-  const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: 'ts:',
-  } as any);
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalPipes(new ValidationPipe());
-  app.use(LoggerMiddleware);
-  app.use(
-    session({
-      store: redisStore,
-      secret: sessionConfig.secret,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        // secure: true, // https 아니라서 사용 못함.
-      },
-    })
-  );
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis();
+  app.useWebSocketAdapter(redisIoAdapter);
+  app.use(cookieParser());
 
+  // app prefix as api
+  app.setGlobalPrefix('api');
   await app.listen(appConfig.port);
   startLogging();
 }
 bootstrap();
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface User extends JwtPayloadInterface {}
+  }
+}
 
 // for logging
 const startLogging = () => {
