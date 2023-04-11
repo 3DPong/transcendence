@@ -9,5 +9,6 @@ import { ChannelBanList, ChannelMuteList, ChannelUser, ChatChannel, DmChannel, M
     TypeOrmModule.forFeature([ChatChannel, ChannelUser, DmChannel, MessageLog, ChannelBanList, ChannelMuteList]),
   ],
   providers: [ChatSocketGateway, ChatSocketService],
+  exports: [ChatSocketService, ChatSocketGateway],
 })
 export class ChatSocketModule {}
