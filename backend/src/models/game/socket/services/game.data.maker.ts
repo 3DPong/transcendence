@@ -55,7 +55,7 @@ export class GameDataMaker {
     {
       const renderData : RenderData = new RenderData();
 
-      renderData.objectId = body.GetUserData();
+      renderData.objectId = body.GetUserData().id;
       renderData.x = body.GetPosition().x;
       renderData.y = body.GetPosition().y;
       renderData.angle = body.GetAngle();

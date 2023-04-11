@@ -45,7 +45,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
-  @SubscribeMessage('MatchJoin')
+  @SubscribeMessage('matchJoin')
   match(
     @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,

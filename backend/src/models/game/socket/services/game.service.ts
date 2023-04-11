@@ -6,9 +6,10 @@ import { MATCH_SCORE } from '../../enum/GameEnv';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Match } from '../../entities';
 import { Repository } from 'typeorm';
-import { MatchJoinData, MatchResultData, MatchStartData, RenderData } from '../../gameData';
+import { MatchJoinData, MatchResultData, MatchStartData, RenderData, ScoreData } from '../../gameData';
 import { Server} from 'socket.io'
 import { GameDataMaker } from './game.data.maker';
+import { GameSimulator } from '../../simul/GameSimulator';
 @Injectable()
 export class GameService {
   constructor (
@@ -63,13 +64,17 @@ export class GameService {
   }
 
   public gameStart(gameManager : GameManager, server : Server){
+    gameManager.simulator = new GameSimulator(gameManager.player1, gameManager.player2);
+    gameManager.renderDatas = this.initRenderDatas(gameManager);
+    gameManager.scoreData = new ScoreData();
+
     const player1sid : string = gameManager.player1.sid;
     const player2sid : string = gameManager.player2.sid;
     const matchStartData1 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player1sid);
     const matchStartData2 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player2sid);
 
-    server.to(player1sid).emit('start', matchStartData1);
-    server.to(player2sid).emit('start', matchStartData2);
+    server.to(player1sid).emit('onSceneReady', matchStartData1);
+    server.to(player2sid).emit('onSceneReady', matchStartData2);
   }
 
   public initRenderDatas(gameManager : GameManager) : RenderData[] {
