@@ -130,7 +130,6 @@ export class ChatSocketService {
 
     const nickname = await this.getChannelUserName(channel_id, user_id);
     const muted = await this.checkMuteUser(channel_id, user_id);
-
     if (muted === MuteStatus.Mute) {
 
       await this.unmuteUser(channel_id, user_id);
@@ -141,12 +140,12 @@ export class ChatSocketService {
     } else {
       if (muteDto.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
       try {
-        if (MuteStatus.PassedMute) await this.updateMuteUser(muteDto);
-        else if (MuteStatus.NoneMute) await this.createMuteUser(muteDto);   
+        if (muted === MuteStatus.PassedMute) await this.updateMuteUser(muteDto);
+        else if (muted === MuteStatus.NoneMute) await this.createMuteUser(muteDto);   
       
         server
           .to(`chat_${channel_id}`)
-          .emit('mute', { user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}` })
+          .emit('mute', { user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}`,message:`${nickname} 가 뮤트 되었습니다.` })
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
       }
@@ -172,8 +171,8 @@ export class ChatSocketService {
       if (banDto.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
       
       try {
-        if (BanStatus.PassedBan) await this.updateBanUser(banDto);
-        else if (BanStatus.NoneBan) await this.createBanUser(banDto);
+        if (banned === BanStatus.PassedBan) await this.updateBanUser(banDto);
+        else if (banned === BanStatus.NoneBan) await this.createBanUser(banDto);
 
         await this.deleteChannelUser(channel_id, user_id);
 
@@ -221,8 +220,9 @@ export class ChatSocketService {
       !(await this.checkChannelUserRole(channel_id, user_id))
     )
       throw new SocketException('Forbidden', `권한이 없습니다!`);
-    try {
+
       const nickname = await this.getChannelUserName(channel_id, user_id);
+    try {
       await this.deleteChannelUser(channel_id, user_id);
 
       if (userSocket) server.in(userSocket).socketsLeave(`chat_${channel_id}`);
