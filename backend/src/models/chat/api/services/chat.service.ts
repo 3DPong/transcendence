@@ -237,7 +237,7 @@ export class ChatService {
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
     }
-
+    
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -255,13 +255,15 @@ export class ChatService {
           }
         }
       }
-      await this.channelRepository.update(channel_id, { name, type, password: hashedPassword, thumbnail_url });
+      await queryRunner.manager.update(ChatChannel, {channel_id}, { name, type, password: hashedPassword, thumbnail_url });
       await queryRunner.commitTransaction();
 
-      const userIds = inviteList;
-      userIds.push(user.user_id);
-      const inviteChannel = await this.getChannel(channel_id);
-      this.chatGateway.handleJoinUsers(userIds, channel_id, inviteChannel);
+      if (inviteList !== null) {
+        const userIds = inviteList;
+        userIds.push(user.user_id);
+        const inviteChannel = await this.getChannel(channel_id);
+        this.chatGateway.handleJoinUsers(userIds, channel_id, inviteChannel);
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
