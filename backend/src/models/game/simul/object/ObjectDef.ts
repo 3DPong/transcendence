@@ -9,7 +9,6 @@ export class ObjectDefBase {
   constructor (){
     this.objectBodyDef = new Box2D.BodyDef();
     this.objectFixtureDef = new Box2D.FixtureDef();
-    this.objectBodyDef.userData.id = uuidv4();
   }
 }
 
