@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString, IsUrl, Matches, MaxLength, MinLength, ValidateIf } from 'class-validator';
-import { ChannelUserRoles, ChannelType } from '../entities';
+import { ChannelType, ChannelUserRoles } from '../entities';
 
 export class ChannelDto {
   @IsNotEmpty()
@@ -55,13 +55,13 @@ export class JoinDto {
 // }
 
 export class UserIdDto {
-	@IsNotEmpty()
-	@IsNumber()
-	user_id: number;
+  @IsNotEmpty()
+  @IsNumber()
+  user_id: number;
 
-	@IsNotEmpty()
-	@IsString()
-	role: ChannelUserRoles;
+  @IsNotEmpty()
+  @IsString()
+  role: ChannelUserRoles;
 }
 
 // export class User {
