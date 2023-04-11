@@ -1,2 +1,2 @@
 export * from './userId.decorator';
-export * from './sessionData.decorator';
+export * from './GetGuardData.decorator';

@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ImageServeService, ImageUploadService } from './services';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { SessionGuard } from '../../common/guards/session/session.guard';
+import { JwtGuard } from '../../common/guards/jwt/jwt.guard';
 import { CreateFileValidationPipe } from '../../common/pipes';
 import { diskStorage } from 'multer';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
@@ -12,7 +12,7 @@ export class ImageController {
   constructor(private imageServeService: ImageServeService, private imageUploadService: ImageUploadService) {}
 
   @Post('/')
-  @UseGuards(SessionGuard)
+  @UseGuards(JwtGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -35,7 +35,7 @@ export class ImageController {
    * 이 방법 말고 좋은 방법이 있을 것임.
    */
   @Get('/:filename')
-  @UseGuards(SessionGuard)
+  @UseGuards(JwtGuard)
   serveImage(@Param('filename') filename: string, @Res() res: Response): void {
     return this.imageServeService.serveImage(filename, res);
   }

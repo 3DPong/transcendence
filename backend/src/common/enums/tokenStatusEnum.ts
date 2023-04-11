@@ -1,4 +1,4 @@
-export enum SessionStatusEnum {
+export enum TokenStatusEnum {
   SUCCESS,
   SIGNUP,
   TWO_FACTOR,

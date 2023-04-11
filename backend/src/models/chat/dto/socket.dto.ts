@@ -6,38 +6,35 @@ export class MessageDto {
   @IsString()
   message: string;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
 }
 
 export class toggleTimeDto {
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   user_id: number;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
-  
+
   end_at: Date | null;
 }
 
-
 export class toggleDto {
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   user_id: number;
 
-	@IsNotEmpty()
-	@IsNumber()
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
-
 }
 
-
-export  class ChannelIdDto {
-	@IsNotEmpty()
-	@IsNumber()
+export class ChannelIdDto {
+  @IsNotEmpty()
+  @IsNumber()
   channel_id: number;
 }

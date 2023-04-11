@@ -1,7 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ChatChannel } from './chatChannel.entity';
 import { Factory } from 'nestjs-seeder';
-import { User } from 'src/models/user/entities';
 
 @Entity()
 export class MessageLog {
@@ -26,5 +25,4 @@ export class MessageLog {
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
-
 }

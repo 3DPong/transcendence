@@ -6,14 +6,14 @@ import { RedisConfigService } from '../../../config/redis/config.service';
 import { SessionConfigService } from '../../../config/session/config.service';
 import { Redis } from 'ioredis';
 import { UserStatusEnum } from '../../enums';
-import { SessionStatusEnum } from '../../enums/sessionStatus.enum';
+import { TokenStatusEnum } from '../../enums/tokenStatusEnum';
 
 declare module 'express-session' {
   interface SessionData {
     user_id?: number;
     userStatus?: UserStatusEnum;
     email?: string;
-    sessionStatus: SessionStatusEnum;
+    sessionStatus: TokenStatusEnum;
     otpSecret: string;
   }
 }

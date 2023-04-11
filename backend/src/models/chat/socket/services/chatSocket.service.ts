@@ -1,36 +1,28 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ChannelBanList, ChannelMuteList, ChannelUser, ChannelUserRoles, DmChannel, MessageLog } from '../../entities';
 import { ChannelType, ChatChannel } from '../../entities/chatChannel.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/socket.dto';
-import {SocketException, SocketExceptionFilter} from '../socket.filter';
+import { SocketException } from '../socket.filter';
 import { Server, Socket } from 'socket.io';
-
 
 @Injectable()
 export class ChatSocketService {
   constructor(
     @InjectRepository(ChatChannel)
     private channelRepository: Repository<ChatChannel>,
-    
     @InjectRepository(ChannelUser)
     private channelUserRepository: Repository<ChannelUser>,
-    
     @InjectRepository(MessageLog)
     private messageLogRepository: Repository<MessageLog>,
-
     @InjectRepository(DmChannel)
     private dmRepository: Repository<DmChannel>,
-
     @InjectRepository(ChannelBanList)
     private banRepository: Repository<ChannelBanList>,
-
     @InjectRepository(ChannelMuteList)
     private muteRepository: Repository<ChannelMuteList>,
-
     private dataSource: DataSource
-
   ) {}
 
   async joinAllChatRooms(socket: Socket, user_id: number) {
@@ -62,17 +54,14 @@ export class ChatSocketService {
   }
 
   async enterChatRoom(socket: Socket, channel_id: number, user_id: number) {
-    
     const userNickname = await this.getChannelUserName(channel_id, user_id);
     if (!user_id || !userNickname)
       throw new SocketException('Forbidden', `권한이 없습니다!`);
-    
-    try {
 
+    try {
       socket.broadcast
        .to(`chat_${channel_id}`)
        .emit('message', { message: `${userNickname} 가 들어왔습니다.` });
-
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -113,9 +102,18 @@ async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
     throw new SocketException('BadRequest', `채팅 유저를 찾을 수 없습니다!`);
   }
 
-  if (await this.checkMuteUser(md.channel_id, user_id)) {
-    throw new SocketException('Forbidden', `뮤트 상태입니다!`);
-  }
+  async sendChatMessage(socket: Socket, user_id: number, md: MessageDto) {
+    if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
+
+    let dmUser;
+    const channel = await this.getChannelType(md.channel_id);
+    if (!channel) {
+      throw new SocketException('BadRequest', `채널을 찾을 수 없습니다!`);
+    } else if (channel.type === ChannelType.DM && !(dmUser = await this.getDmUser(md.channel_id, user_id))) {
+      throw new SocketException('BadRequest', `디엠 유저를 찾을 수 없습니다!`);
+    } else if (channel.type !== ChannelType.DM && !(await this.checkChannelUser(md.channel_id, user_id))) {
+      throw new SocketException('BadRequest', `채팅 유저를 찾을 수 없습니다!`);
+    }
 
   try {
     const newMessage = await this.createMessageLog(user_id, md, channel.type);
@@ -134,15 +132,15 @@ async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
   }
-}
 
-async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto ) {
+  async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto) {
+    const { user_id, channel_id } = muteDto;
 
-  const {user_id, channel_id} = muteDto;
-
-  if (!adminId ||
-    !(await this.checkAdminUser(channel_id, adminId)) ||
-    !(await this.checkChannelUserRole(channel_id, user_id)))
+    if (
+      !adminId ||
+      !(await this.checkAdminUser(channel_id, adminId)) ||
+      !(await this.checkChannelUserRole(channel_id, user_id))
+    )
       throw new SocketException('Forbidden', `권한이 없습니다!`);
 
   try {
@@ -167,15 +165,15 @@ async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto ) {
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
   }
-}
 
-async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket: string) {
+  async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket: string) {
+    const { user_id, channel_id } = banDto;
 
-  const {user_id, channel_id} = banDto;
-
-  if (!adminId ||
-    !(await this.checkAdminUser(channel_id, adminId)) ||
-    !(await this.checkChannelUserRole(channel_id, user_id)))
+    if (
+      !adminId ||
+      !(await this.checkAdminUser(channel_id, adminId)) ||
+      !(await this.checkChannelUserRole(channel_id, user_id))
+    )
       throw new SocketException('Forbidden', `권한이 없습니다!`);
   try {
     const banned = await this.checkBanUser(channel_id, user_id);
@@ -202,16 +200,12 @@ async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
   }
-}
 
-async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
+  async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
+    const { user_id, channel_id } = unbanDto;
 
-  const {user_id, channel_id} = unbanDto;
-
-  if (!adminId ||
-    !(await this.checkAdminUser(channel_id, adminId)))
+    if (!adminId || !(await this.checkAdminUser(channel_id, adminId)))
       throw new SocketException('Forbidden', `권한이 없습니다!`);
-  
   try {
     const banned = await this.checkBanUser(channel_id, user_id);
     const nickname = await this.getChannelUserName(channel_id, user_id);
@@ -225,20 +219,21 @@ async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
   }
-}
 
-async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: string) {
+  async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: string) {
+    const { user_id, channel_id } = kickDto;
 
-  const {user_id, channel_id} = kickDto;
-
-  if (!adminId ||
-    !(await this.checkAdminUser(channel_id, adminId)) ||
-    !(await this.checkChannelUserRole(channel_id, user_id)))
+    if (
+      !adminId ||
+      !(await this.checkAdminUser(channel_id, adminId)) ||
+      !(await this.checkChannelUserRole(channel_id, user_id))
+    )
       throw new SocketException('Forbidden', `권한이 없습니다!`);
-  try {
+    try {
+      let nickname = await this.getChannelUserName(channel_id, user_id);
+      await this.deleteChannlUser(channel_id, user_id);
 
-    let nickname = await this.getChannelUserName(channel_id, user_id)
-    await this.deleteChannlUser(channel_id, user_id);
+      if (userSocket) server.in(userSocket).socketsLeave(`chat_${channel_id}`);
 
    if (userSocket)
     server.in(userSocket).socketsLeave(`chat_${channel_id}`);
@@ -253,15 +248,12 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
   } catch (error) {
     throw new SocketException('InternalServerError', `${error.message}`);
   }
-}
 
-
-
-  async createMessageLog(user_id: number, md: MessageDto, type: ChannelType) :Promise<MessageLog> {
+  async createMessageLog(user_id: number, md: MessageDto, type: ChannelType): Promise<MessageLog> {
     const newLog = this.messageLogRepository.create({
       channel_id: md.channel_id,
       user_id,
-      content: md.message
+      content: md.message,
     });
     try {
       await this.messageLogRepository.save(newLog);
@@ -271,63 +263,64 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
     }
   }
 
-  async updateDmUser(dmUser: DmChannel){
-   await this.dmRepository
-    .update({first_user_id: dmUser.first_user_id, second_user_id:dmUser.second_user_id}, {updated_at: new Date()});
+  async updateDmUser(dmUser: DmChannel) {
+    await this.dmRepository.update(
+      {
+        first_user_id: dmUser.first_user_id,
+        second_user_id: dmUser.second_user_id,
+      },
+      { updated_at: new Date() }
+    );
   }
 
-  async createMuteUser(muteDto: toggleTimeDto) :Promise<ChannelMuteList> {
+  async createMuteUser(muteDto: toggleTimeDto): Promise<ChannelMuteList> {
     const muteUser = this.muteRepository.create({
       user_id: muteDto.user_id,
       channel_id: muteDto.channel_id,
-      end_at: muteDto.end_at
+      end_at: muteDto.end_at,
     });
     await this.muteRepository.save(muteUser);
     return muteUser;
   }
 
-  async createBanUser(banDto: toggleTimeDto) :Promise<ChannelBanList> {
+  async createBanUser(banDto: toggleTimeDto): Promise<ChannelBanList> {
     const banUser = this.banRepository.create({
       user_id: banDto.user_id,
       channel_id: banDto.channel_id,
-      end_at: banDto.end_at
+      end_at: banDto.end_at,
     });
     await this.banRepository.save(banUser);
     return banUser;
   }
 
   async deleteChannlUser(channel_id: number, user_id: number) {
-    return await this.channelUserRepository.softDelete({channel_id, user_id});
+    return await this.channelUserRepository.softDelete({ channel_id, user_id });
   }
 
   async unmuteUser(channel_id: number, user_id: number) {
-    const result = await this.muteRepository.delete({channel_id, user_id});
-    if (result.affected === 0)
-      throw new NotFoundException(`Cant't find mute id ${user_id} in ${channel_id}`)
+    const result = await this.muteRepository.delete({ channel_id, user_id });
+    if (result.affected === 0) throw new NotFoundException(`Cant't find mute id ${user_id} in ${channel_id}`);
   }
 
   async releaseBanUser(channel_id: number, user_id: number) {
-    const result = await this.banRepository.delete({channel_id, user_id});
-    if (result.affected === 0)
-      throw new NotFoundException(`Cant't find ban id ${user_id} in ${channel_id}`)
+    const result = await this.banRepository.delete({ channel_id, user_id });
+    if (result.affected === 0) throw new NotFoundException(`Cant't find ban id ${user_id} in ${channel_id}`);
   }
 
-  async checkMuteUser(channel_id: number, user_id: number) : Promise <boolean> {
-    const muted = await this.muteRepository.findOne({where: {channel_id, user_id}});
+  async checkMuteUser(channel_id: number, user_id: number): Promise<boolean> {
+    const muted = await this.muteRepository.findOne({ where: { channel_id, user_id } });
     if (muted) {
       const time = new Date();
-      if (muted.end_at > time)
-        return true;
+      if (muted.end_at > time) return true;
     }
     return false;
   }
 
-  async checkBanUser(channel_id: number, user_id: number) : Promise <boolean> {
-    const banned = await this.banRepository.findOne({ where: {channel_id, user_id}});
+  async checkBanUser(channel_id: number, user_id: number): Promise<boolean> {
+    const banned = await this.banRepository.findOne({ where: { channel_id, user_id } });
     if (banned) {
       const time = new Date();
-      if (banned.end_at > time)
-        return true;
+      if (banned.end_at > time) return true;
     }
     return false;
   }
@@ -353,26 +346,25 @@ async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: 
       return false;
     return true;
   }
-  
-  async checkAdminUser(channel_id: number, user_id: number) : Promise <boolean> {
-    const channelUser = await this.channelUserRepository
-    .findOne({select: {channel_id:true, user_id:true, role:true}, where: {channel_id, user_id}});
-    if (!channelUser || channelUser.role === ChannelUserRoles.USER)
-      return false;
+
+  async checkAdminUser(channel_id: number, user_id: number): Promise<boolean> {
+    const channelUser = await this.channelUserRepository.findOne({
+      select: { channel_id: true, user_id: true, role: true },
+      where: { channel_id, user_id },
+    });
+    if (!channelUser || channelUser.role === ChannelUserRoles.USER) return false;
     return true;
   }
 
-  async getDmUser(channel_id: number, user_id: number)  : Promise <DmChannel>{
-    const dmChannel = await this.dmRepository.findOne({where: {channel_id}});
-    if (dmChannel.first_user_id !== user_id && dmChannel.second_user_id !== user_id)
-      return null;
+  async getDmUser(channel_id: number, user_id: number): Promise<DmChannel> {
+    const dmChannel = await this.dmRepository.findOne({ where: { channel_id } });
+    if (dmChannel.first_user_id !== user_id && dmChannel.second_user_id !== user_id) return null;
     return dmChannel;
   }
 
-  async getChannelType(channel_id: number) : Promise<ChatChannel>{
-    const channel = await this.channelRepository.findOne({select: {type:true}, where: {channel_id}})
-    if (!channel)
-      return null;
+  async getChannelType(channel_id: number): Promise<ChatChannel> {
+    const channel = await this.channelRepository.findOne({ select: { type: true }, where: { channel_id } });
+    if (!channel) return null;
     return channel;
   }
 

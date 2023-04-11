@@ -3,17 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
 import { DataSource, Repository } from 'typeorm';
 import * as QRCode from 'qrcode';
-import { Request, Response } from 'express';
-import { OtpService } from '../../../../common/otp/otp.service';
-import { SessionService } from '../../../../common/session/session.service';
+import { Response } from 'express';
+import { OtpService } from '../../../../auth/otp/otp.service';
 
 @Injectable()
 export class TwoFactorService {
   constructor(
     private dataSource: DataSource,
     @InjectRepository(User) private userRepository: Repository<User>,
-    private otpService: OtpService,
-    private sessionService: SessionService
+    private otpService: OtpService
   ) {}
 
   /**
@@ -24,19 +22,20 @@ export class TwoFactorService {
    *
    * stream?: test 용으로 stream이 정상적으로 생성되는지 테스트하고자 함.
    */
-  async getQRCode(userId: number, req: Request, res: Response, stream: any = res): Promise<void> {
+  async getQRCode(userId: number, res: Response, stream: any = res): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
       throw new UnauthorizedException('invalid user (session is not valid)');
     } else if (user.two_factor) {
       throw new BadRequestException('already activated');
     }
+    // generate otp secret & send QR code
     const runner = this.dataSource.createQueryRunner();
     await runner.connect();
     await runner.startTransaction();
     try {
       const { encrypted, otpURI } = this.otpService.generate(user.email, 'transcendence');
-      req.session.otpSecret = encrypted;
+      await runner.manager.update(User, { user_id: userId }, { two_factor: false, two_factor_secret: encrypted });
       await QRCode.toFileStream(stream, otpURI);
       await runner.commitTransaction();
     } catch (error) {
@@ -47,50 +46,42 @@ export class TwoFactorService {
     }
   }
 
-  async activateUserTwoFactor(userId: number, token: string, req: Request, res: Response): Promise<void> {
+  async activateUserTwoFactor(userId: number, token: string): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
-    const otpSecret: string = req.session.otpSecret;
     if (!user) {
       throw new UnauthorizedException('invalid user (session is not valid)');
     } else if (user.two_factor) {
       throw new BadRequestException('already activated');
+    } else if (!user.two_factor_secret) {
+      throw new BadRequestException('user 2fa is not initiated');
     }
+    // validate token
+    const otpSecret: string = user.two_factor_secret;
     const isValidated = await this.otpService.validate(otpSecret, token);
     if (!isValidated) {
       throw new BadRequestException('token is invalid');
     }
-
-    const runner = this.dataSource.createQueryRunner();
-    await runner.connect();
-    await runner.startTransaction();
+    // activate 2fa
     try {
-      await runner.manager.update(User, { user_id: userId }, { two_factor: true, two_factor_secret: otpSecret });
-      this.sessionService.clearSession(req, res);
-      await runner.commitTransaction();
+      await this.userRepository.update({ user_id: userId }, { two_factor: true, two_factor_secret: otpSecret });
     } catch (error) {
-      await runner.rollbackTransaction();
       throw new InternalServerErrorException('server error');
-    } finally {
-      await runner.release();
     }
   }
 
-  /**
-   * 2FA 를 비활성화 하기 위해서는 우선
-   */
-  async deactivateUserTwoFactor(userId: number, token: string, req: Request, res: Response): Promise<void> {
+  async deactivateUserTwoFactor(userId: number, token: string): Promise<void> {
     const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
     if (!user) {
       throw new UnauthorizedException('invalid user (session is not valid)');
     } else if (!user.two_factor) {
       throw new BadRequestException('user 2fa is not activated');
     }
-
+    // validate token
     const isValidated = await this.otpService.validate(user.two_factor_secret, token);
     if (!isValidated) {
       throw new BadRequestException('token is invalid');
     }
+    // deactivate 2fa
     await this.userRepository.update({ user_id: userId }, { two_factor: false, two_factor_secret: null });
-    this.sessionService.clearSession(req, res);
   }
 }

@@ -1,20 +1,18 @@
 import {
+  ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger, UseFilters} from '@nestjs/common';
+import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services/chatSocket.service';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
 import { ChannelUserRoles, ChatChannel } from '../entities';
 import {SocketExceptionFilter} from './socket.filter';
-
-
 
 @UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
@@ -23,14 +21,13 @@ import {SocketExceptionFilter} from './socket.filter';
   },
 })
 export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private chatSocketService: ChatSocketService) {}
-
   @WebSocketServer()
   server: Server;
   private users: { userId: number; socketId: string }[] = [];
   private activeRooms: {userId: number; channelId: number}[] = [];
   private logger = new Logger('ChatGateway');
-  
+
+  constructor(private chatSocketService: ChatSocketService) {}
 
   async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
     const { user_id } = socket.handshake.query; 
@@ -39,8 +36,8 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     try {
       const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
       if (userIndex >= 0) {
-          this.server.in(this.users[userIndex].socketId).disconnectSockets();
-          this.users[userIndex].socketId = socket.id;
+        this.server.in(this.users[userIndex].socketId).disconnectSockets();
+        this.users[userIndex].socketId = socket.id;
       } else {
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
@@ -51,9 +48,8 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
   }
 
-
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id } = socket.data.user
+    const { user_id } = socket.data.user;
     const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
     if (userIndex >= 0) {
       this.users.splice(userIndex, 1);
@@ -70,7 +66,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   @SubscribeMessage('enter-chat')
   async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto){
-
     const userId = this.getUserIdBySocketId(socket.id);
     // const userIndex = this.activeRooms.findIndex((u) => u.userId=== userId);
     // if (userIndex >= 0) {
@@ -84,31 +79,27 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
   }
-  
-  @SubscribeMessage('leave-chat')
-  async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto : ChannelIdDto) {
 
+  @SubscribeMessage('leave-chat')
+  async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
   }
 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
-
     const userId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.sendChatMessage(this.server, userId, md);
   }
 
   @SubscribeMessage('mute-chat')
   async muteChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() muteDto: toggleTimeDto) {
-
     const adminId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.muteUser(this.server, adminId, muteDto);
   }
 
   @SubscribeMessage('ban-chat')
   async banChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() banDto: toggleTimeDto) {
-
     const adminId = this.getUserIdBySocketId(socket.id);
     const userSocket = this.getSocketIdByUserId(banDto.user_id);
     return this.chatSocketService.banUser(this.server, adminId, banDto, userSocket);
@@ -116,14 +107,12 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   @SubscribeMessage('unban-chat')
   async unbanChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() unbanDto: toggleDto) {
-
     const adminId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.unBanUser(this.server, adminId, unbanDto);
   }
 
   @SubscribeMessage('kick-chat')
   async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickDto: toggleDto) {
-    
     const adminId = this.getUserIdBySocketId(socket.id);
     const userSocket = this.getSocketIdByUserId(kickDto.user_id);
     return this.chatSocketService.kickUser(this.server, adminId, kickDto, userSocket);
@@ -174,6 +163,5 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   getUserIdBySocketId(socketId: string) {
     return this.users.find((u) => u.socketId === socketId)?.userId;
-  } 
-
+  }
 }
