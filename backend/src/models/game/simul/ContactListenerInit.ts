@@ -1,6 +1,6 @@
 import * as Box2D from "../Box2D";
 import { MAP_WIDTH, MAP_HEIGHT, BALL_SPEED } from "../enum/GameEnv";
-import { BallSpeedCorrection } from "./object/ObjectController";
+import { BallAngleCorrection, BallSpeedCorrection } from "./object/ObjectController";
 
 export function ContactListenerInit(world: Box2D.World){
   //  world.GetContactManager().m_contactListener.BeginContact = ()=>{};
@@ -11,9 +11,9 @@ export function ContactListenerInit(world: Box2D.World){
     ).m_contactListener.PreSolve = function(
       contact: Box2D.Contact, oldManifold: Box2D.Manifold
     ): void {
-      const Ashape : Box2D.Fixture = contact.GetFixtureA();
-      const Bshape : Box2D.Fixture = contact.GetFixtureB();
-      const ball : Box2D.Body = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
+      const Abody : Box2D.Body = contact.GetFixtureA().GetBody();
+      const Bbody : Box2D.Body = contact.GetFixtureB().GetBody();
+      const ball : Box2D.Body = Abody.GetUserData().name === "ball" ? Abody : Bbody;
       const newManifold : Box2D.Manifold = contact.GetManifold();
       if (newManifold.localPoint.x === MAP_WIDTH && newManifold.localPoint.y === MAP_HEIGHT){
         ++ball.GetUserData().player1_score;
@@ -31,9 +31,14 @@ export function ContactListenerInit(world: Box2D.World){
     ).m_contactListener.PostSolve = function(
       contact: Box2D.Contact, impulse: Box2D.ContactImpulse
     ): void {
-      const Ashape : Box2D.Fixture = contact.GetFixtureA();
-      const Bshape : Box2D.Fixture = contact.GetFixtureB();
-      const ball : Box2D.Body = Ashape.GetUserData() === "ball" ? Ashape.GetBody() : Bshape.GetBody();
+      const Abody : Box2D.Body = contact.GetFixtureA().GetBody();
+      const Bbody : Box2D.Body = contact.GetFixtureB().GetBody();
+      const ball : Box2D.Body = Abody.GetUserData().name === "ball" ? Abody : Bbody;
+      if (Abody.GetUserData().name === "paddle"){
+        BallAngleCorrection(ball, Abody);
+      } else if (Bbody.GetUserData().name === "paddle"){
+        BallAngleCorrection(ball, Bbody);
+      }
       BallSpeedCorrection(ball, BALL_SPEED*2);
     }
 }

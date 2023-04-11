@@ -7,7 +7,7 @@ import { Server} from 'socket.io'
 import { GameService } from "../socket/services";
 import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
-import { MatchJoinData, ScoreData } from "../gameData";
+import { MatchJoinData, RenderData, ScoreData } from "../gameData";
 
 
 export class GameManager {
@@ -18,6 +18,8 @@ export class GameManager {
   public player1 : GamePlayer;
   public player2 : GamePlayer;
   public simulator : GameSimulator;
+  public renderDatas : RenderData[];
+  public scoreData : ScoreData;
 
   constructor(matchJoinData : MatchJoinData)
   {
@@ -44,10 +46,7 @@ export class GameManager {
     gameService : GameService,
     gameRooms : Map<string, GameManager>
   ){
-    this.simulator = new GameSimulator(this.player1, this.player2);
-    const renderDatas = gameService.initRenderDatas(this);
-    const scoreData = new ScoreData();
-    const timeStep = setInterval(step, 1000, server, this.gameId, this.simulator, renderDatas, scoreData);
+    const timeStep = setInterval(step, 1/60, server, this.gameId, this.simulator, 1/60 ,this.renderDatas, this.scoreData);
     const timeEndCheck = setInterval(
     (
       simulator : GameSimulator,
@@ -67,7 +66,7 @@ export class GameManager {
       simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
       console.log('allClear interval');
       gameService.gameEnd(gameRooms, gameManager, server);
-    }},1000, this.simulator, gameRooms, this, gameService)
+    }},1000, this.simulator, gameRooms, this, gameService, server)
   }
 
   public Keyboard(key : InputEnum, sid : string) {

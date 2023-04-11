@@ -1,7 +1,8 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Matches, MaxLength } from "class-validator";
 
 export class MessageDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '내용을 입력해주세요' })
+  @MaxLength(500)
   @IsString()
   message: string;
 

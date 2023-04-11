@@ -55,14 +55,13 @@ export class JoinDto {
 // }
 
 export class UserIdDto {
-  @IsNotEmpty()
-  @IsNumber()
-  @MinLength(1)
-  user_id: number;
+	@IsNotEmpty()
+	@IsNumber()
+	user_id: number;
 
-  @IsNotEmpty()
-  @IsString()
-  role: ChannelUserRoles;
+	@IsNotEmpty()
+	@IsString()
+	role: ChannelUserRoles;
 }
 
 // export class User {

@@ -9,13 +9,16 @@ import { DmDto } from '../dto/dm.dto';
 
 @Controller('/chat')
 export class ChatController {
-  constructor(private chatService: ChatService, private userService: ChatUserService) {}
+  constructor(
+    private chatService: ChatService,
+    private userService: ChatUserService,
+    ) {}
 
   @Get()
-  getMyChannels(): Promise<ChatChannel[]> {
-    return this.chatService.getMyChannels(16);
+  getMyChannels() : Promise<ChatChannel[]> {
+    return this.chatService.getMyChannels(18);
   }
-  함;
+  
   @Get('/search')
   getAllChannels(): Promise<ChatChannel[]> {
     return this.chatService.getAllChannels();
@@ -73,7 +76,7 @@ export class ChatController {
 
   @Put('/:channelId/out')
   leaveChannel(@Param('channelId', ParseIntPipe) channelId: number) {
-    return this.chatService.leaveChannel(51, channelId);
+    return this.chatService.leaveChannel(18, channelId);
   }
 
   @Put('/:channelId/role')
