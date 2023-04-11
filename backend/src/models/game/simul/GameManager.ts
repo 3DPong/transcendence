@@ -65,8 +65,10 @@ export class GameManager {
         simulator.matchInterrupt.isInterrupt
       ) {
         clearInterval(timeStep);
-        gameManager.player1.socore = gameManager.player1.socore == 0 ? 0 : simulator.ball.GetUserData().player1_score;
-        gameManager.player2.socore = gameManager.player2.socore == 0 ? 0 : simulator.ball.GetUserData().player2_score;
+        if (!simulator.matchInterrupt.isInterrupt){
+          gameManager.player1.socore = simulator.ball.GetUserData().player1_score;
+          gameManager.player2.socore = simulator.ball.GetUserData().player2_score;
+        }
         gameService.gameEndToClient(gameManager, server);
         clearInterval(timeEndCheck);
         await gameService.createMatch(gameManager).then(()=>{
