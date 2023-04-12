@@ -3,3 +3,9 @@ package-lock.json
 dist
 .idea/
 .vscode/
+backend
+nginx
+docker-compose.yml
+.env*
+env.sample
+Makefile
