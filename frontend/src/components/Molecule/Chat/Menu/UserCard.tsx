@@ -1,6 +1,6 @@
 import { ChatUser } from '@/types/chat';
 import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from '@mui/material';
-import { FC, useContext } from 'react';
+import { FC, useContext, useEffect } from 'react';
 import AvatarSet from '../AvatarSet';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import ChatContext from '@/context/ChatContext';

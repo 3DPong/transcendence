@@ -1,6 +1,6 @@
 import { FC, useContext, useEffect, useState, useRef } from 'react';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
-import { Channel, ChatUser, defaultChannel, Message } from '@/types/chat';
+import { Channel, ChatUser, defaultChannel, Message, UserRole } from '@/types/chat';
 
 import { useParams } from 'react-router-dom';
 import MessageSender from '@/components/Molecule/Chat/Detail/MessageSender';
@@ -23,7 +23,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const channelIdNumber = Number(channelId);
   const [channel, setChannel] = useState<Channel>(defaultChannel);
 
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [myRole, setMyRole] = useState<UserRole | null>(null);
+
   const [users, setUsers] = useState<ChatUser[]>([]);
   const [banList, setBanList] = useState<Record<number, number>>({});
   const [muteList, setMuteList] = useState<Record<number, number>>({});
@@ -48,8 +49,13 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       listRef: React.MutableRefObject<Record<number, number>>,
       setter: (list: Record<number, number>) => void
     ) {
+      console.log("unsetTimerHandler");
     clearTimeout(listRef.current[targetId]);
+      console.log("muteRef: ", muteListRef.current);
+      console.log("banRef: ", banListRef.current);
+      console.log("listRef: ", listRef.current);
     const {[targetId]: value, ...newList} = listRef.current;
+    // console.log("testNewLIst=>", newList);
     setter(newList);
   }
 
@@ -57,11 +63,13 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       targetId: number,
       listRef: React.MutableRefObject<Record<number, number>>,
       setter: (list: Record<number, number>) => void,
-      end_at: string
+      timer: number
     ) {
+      console.log("setTimerHandler");
+      console.log("time: ", timer);
     return setTimeout(
       () => { unsetTimerHandler(targetId, listRef, setter) }
-      , new Date(end_at).getTime() - Date.now()
+      , timer
     );
   }
 
@@ -93,10 +101,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
     const fetchBanList = await response.json();
 
-    console.log(fetchBanList);
     return fetchBanList.reduce((banRecord: Record<number, number>, user: any) => {
       const targetId = user.user.user_id;
-      banRecord[targetId] = setTimerHandler(targetId, banListRef, setBanList, user.end_at);
+      const timer = new Date(user.end_at).getTime() - (Date.now());
+      // 0.1초보다 큰 경우만 타이머 세팅 이러면 mute, unmute 따로 두는게 좋을수 있음
+      if (timer > 100)
+        banRecord[targetId] = setTimerHandler(targetId, banListRef, setBanList, timer);
       return banRecord;
     }, {});
   }
@@ -111,8 +121,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
     return fetchMuteList.reduce((muteRecord: Record<number, number>, user: any) => {
       const targetId = user.user.user_id;
-      muteRecord[targetId] = setTimerHandler(targetId, muteListRef, setMuteList, user.end_at);
-
+      const timer = new Date(user.end_at).getTime() - (Date.now());
+      console.log(timer);
+      if (timer > 100)
+        muteRecord[targetId] = setTimerHandler(targetId, muteListRef, setMuteList, timer);
       return muteRecord;
     }, {});
   }
@@ -123,7 +135,25 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     setBattleModalOpen(false);
   };
 
-  // 객체배열들의 최신 상태 유지
+  useEffect(() => {
+    async function fetchAdminList() {
+      const [bans, mutes] = await Promise.all([
+        fetchBanListByChannelId(channelIdNumber),
+        fetchMuteListByChannelId(channelIdNumber),
+      ]);
+      // console.log("fetchBans: ", bans);
+      // console.log("fetchMute: ", mutes);
+      setBanList(bans);
+      setMuteList(mutes);
+    }
+    if (myRole !== null) {
+      if (["admin", "owner"].includes(myRole)) {
+        fetchAdminList();
+      }
+    }
+  }, [myRole]);
+
+  // State들의 최신 상태 유지
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -141,7 +171,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }, [banList]);
 
   function setDeletedAtFromUsers(targetId : number) {
-    console.log(usersRef.current);
+    // console.log(usersRef.current);
     const updatedUsers = usersRef.current.map((user) => {
       if (user.id === targetId)
         return {...user, deleted_at: Date.now()};
@@ -169,7 +199,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
       chatSocket.on('error', (message) => {
         handleError('Socket Error', message.message);
-        console.log(message);
       });
 
       chatSocket.on('kick', (message) => {
@@ -188,7 +217,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           else {
             // Ban
             setDeletedAtFromUsers(targetId);
-            const timerId = setTimerHandler(targetId, banListRef, setBanList, message.end_at);
+            const timerId = setTimerHandler(targetId, banListRef, setBanList,
+              new Date(message.end_at).getTime() - (Date.now()));
             setBanList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
@@ -197,13 +227,16 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       chatSocket.on('mute', (message) => {
         if (message.channel_id === channelId) {
           const targetId = message.user_id;
-          console.log('muteList: ', muteListRef.current);
           if (targetId in muteListRef.current) {
             // UnMute
+            console.log("unmute");
             unsetTimerHandler(targetId, muteListRef, setMuteList);
           } else {
             // Mute
-            const timerId = setTimerHandler(targetId, muteListRef, setMuteList, message.end_at);
+            console.log("mute");
+
+            const timerId = setTimerHandler(targetId, muteListRef, setMuteList,
+              new Date(message.end_at).getTime() - (Date.now()));
             setMuteList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
@@ -226,29 +259,33 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   useEffect(() => {
+    function cleanupTimers() {
+      for (const timerId in banListRef.current) {
+        clearTimeout(banListRef.current[timerId]);
+      }
+      for (const timerId in muteListRef.current) {
+        clearTimeout(muteListRef.current[timerId]);
+      }
+    };
+
     async function init() {
+      setMyRole(null);
       setShowNotification(false);
       setDrawerOpen(false);
       try {
         const usrs = await fetchUsersByChannelId(channelIdNumber);
         setUsers(usrs);
-        setIsAdmin(['admin', 'owner'].includes(usrs.find((u) => u.id === loggedUserId)?.role || 'none'));
-        if (isAdmin) {
-          const [bans, mutes] = await Promise.all([
-            fetchBanListByChannelId(channelIdNumber),
-            fetchMuteListByChannelId(channelIdNumber),
-          ]);
-          setBanList(bans);
-          setMuteList(mutes);
-        }
+        setMyRole(usrs.find((u) => u.id === loggedUserId)?.role || 'none');
       } catch (error) {
         handleError('Init Fetch', (error as Error).message);
       }
     }
-    if (loggedUserId) init();
-
-    // 컴포넌트 언마운트. channelId가 변경될떄도 언마운트가 실행된다.
-    return () => {};
+    if (loggedUserId)
+      init();
+    return ()=>{
+      console.log("======cleanTimers()=======");
+      cleanupTimers();
+    }
   }, [channelId, loggedUserId]);
 
   useEffect(() => {
@@ -267,8 +304,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       />
       <ChatContext.Provider
         value={{
-          isAdmin,
-          setIsAdmin,
+          myRole,
+          setMyRole,
           muteList,
           setMuteList,
           banList,

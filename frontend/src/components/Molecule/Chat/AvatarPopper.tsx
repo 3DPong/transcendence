@@ -20,9 +20,11 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   const [banTime, setBanTime] = useState('10');
   const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
-  const { isAdmin, muteList, setMuteList, banList, setBanList } = useContext(ChatContext);
+  const { myRole, muteList, setMuteList, banList, setBanList } = useContext(ChatContext);
   const isTargetMuted = target.id in muteList;
   const isTargetBanned = target.id in banList;
+
+  const isAdmin = myRole ? ["owner", "admin"].includes(myRole) : false;
 
   const { chatSocket } = useSocket();
   const { channelId } = useParams();
@@ -89,7 +91,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
     chatSocket?.emit('ban-chat', {
       user_id: id,
       channel_id: channelId,
-      end_at: new Date(new Date().getTime() + minute * 60000),
+      end_at: new Date(Date.now() + minute * 60000),
     });
     //BanEvent가 Broadcast인 경우 활성화
     //setBanList([...banList, target]);
@@ -110,7 +112,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
     chatSocket?.emit('mute-chat', {
       user_id: id,
       channel_id: channelId,
-      end_at: new Date(new Date().getTime() + minute * 60000),
+      end_at:  new Date(Date.now() + minute * 60000),
     });
     //MuteEvent가 Broadcast인 경우 활성화
     //setMuteList([...muteList, id]);

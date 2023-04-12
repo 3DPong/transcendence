@@ -10,7 +10,9 @@ interface MenuFooterProps {
 }
 
 const MenuFooter: FC<MenuFooterProps> = ({ handleSetting, handleLeave, settingOpen }) => {
-  const { isAdmin } = useContext(ChatContext);
+  const { myRole } = useContext(ChatContext);
+
+  const isAdmin = myRole === "owner" || myRole ==="admin";
 
   return (
     <div className="bottom-0 w-full bg-white border-t border-gray-300 px-4 py-2 flex justify-between">

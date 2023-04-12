@@ -2,7 +2,7 @@ import ChatContext from '@/context/ChatContext';
 import GlobalContext from '@/context/GlobalContext';
 import { Channel, ChatUser } from '@/types/chat';
 import { API_URL } from '@/../config/backend';
-import { FC, useContext, useState } from 'react';
+import { FC, useContext, useEffect, useState } from 'react';
 import MenuFooter from '../../Molecule/Chat/Menu/MenuFooter';
 import MenuList from '../../Molecule/Chat/Menu/MenuList';
 import ChannelSetting from './ChannelSetting';
@@ -20,12 +20,17 @@ interface MenuDrawerProps {
 const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, channel }) => {
   const [settingOpen, setSettingOpen] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState<number>(0);
-  const { isAdmin, banList } = useContext(ChatContext);
+  const { myRole, banList, muteList } = useContext(ChatContext);
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
   const navigate = useNavigate();
   const { handleError } = useError();
 
+  const isAdmin = myRole === "owner" || myRole === "admin";
+
   const banUsers = users.filter((user) => user.id in banList);
+
+  // console.log("Drawer m=> ", muteList);
+  // console.log("Drawer b=> ", banList);
 
   async function leaveChannel() {
     const response = await fetch(API_URL + '/chat/' + channel.id + '/out' + '?id=' + loggedUserId, {
