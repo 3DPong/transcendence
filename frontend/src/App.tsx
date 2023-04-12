@@ -1,33 +1,35 @@
-import { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {  useEffect, useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { ErrorPage } from '@/components/ErrorPage';
+import { ErrorPage } from "@/components/ErrorPage";
 
-import L0Template from '@/components/L0Template';
-import L1Template from '@/components/L1Template';
-import L2Template from '@/components/L2Template';
-import L3Template from '@/components/L2Template';
+import L0Template from "@/components/L0Template";
+import L1Template from "@/components/L1Template";
+import L2Template from "@/components/L2Template";
+import L3Template from "@/components/L2Template";
 
-import Controller from '@/components/Organism/Controller/Controller';
-import Profile from '@/components/Organism/Profile/Profile';
-import LocalUserList from '@/components/Organism/Friends/LocalUserList/LocalUserList';
-import GlobalUserList from '@/components/Organism/Friends/GlobalUserList/GlobalUserList';
-import LocalChatList from '@/components/Organism/Chat/LocalChatList';
-import GlobalChatList from '@/components/Organism/Chat/GlobalChatList';
-import CreateChat from '@/components/Organism/Chat/CreateChat';
-import ChatDetail from '@/components/Organism/Chat/ChatDetail';
-import ChatTemplate from '@/components/ChatTemplate';
+import Controller from "@/components/Organism/Controller/Controller";
+import Profile from "@/components/Organism/Profile/Profile";
+import LocalUserList from "@/components/Organism/Friends/LocalUserList/LocalUserList";
+import GlobalUserList from "@/components/Organism/Friends/GlobalUserList/GlobalUserList";
+import LocalChatList from "@/components/Organism/Chat/LocalChatList";
+import GlobalChatList from "@/components/Organism/Chat/GlobalChatList";
+import CreateChat from "@/components/Organism/Chat/CreateChat";
+import ChatDetail from "@/components/Organism/Chat/ChatDetail";
+import ChatTemplate from "@/components/ChatTemplate";
 
-import GlobalContext from '@/context/GlobalContext';
-import useArray from '@/utils/CustomHooks/useArray';
-import { Channel } from '@/types/chat';
-import { friendData_t } from './types/user';
-import { SignIn } from './components/Organism/Login/SignIn';
-import { SignUp } from './components/Organism/Login/SignUp';
-import { ErrorProvider } from '@/context/ErrorContext';
-import AlertSnackbar from '@/components/Molecule/AlertSnackbar';
-import Game from '@/components/Organism/Game/Game';
-import { SocketProvider } from '@/context/SocketContext';
+import GlobalContext from "@/context/GlobalContext";
+import useArray from "@/utils/CustomHooks/useArray";
+import { Channel } from "@/types/chat";
+import { friendData_t } from "./types/user";
+import { SignIn } from "./components/Organism/Login/SignIn";
+import { SignUp } from "./components/Organism/Login/SignUp";
+import { ErrorProvider } from "@/context/ErrorContext";
+import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
+import Game from "@/components/Organism/Game/Game";
+import {SocketProvider} from "@/context/SocketContext";
+
+
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -35,13 +37,13 @@ const router = createBrowserRouter([
   // ----------------------------------------------------
   {
     // home. 버튼은 login 42 button 하나만 넣어주면 됨.
-    path: '/signin',
+    path: "/signin",
     element: <SignIn />,
     errorElement: <ErrorPage />,
   },
   {
     // 회원 가입 (프로필 설정)
-    path: '/signup',
+    path: "/signup",
     element: <SignUp />,
     errorElement: <ErrorPage />,
   },
@@ -50,54 +52,55 @@ const router = createBrowserRouter([
   // ----------------------------------------------------
   {
     // 홈화면 (로그인 후)
-    path: '/',
+    path: "/",
     element: (
       <div>
+        <Game />
         <L0Template organism={<Controller />} />
         <AlertSnackbar />
-        <Game />
+       
       </div>
     ),
     errorElement: <ErrorPage />,
     children: [
       {
-        path: 'profile',
+        path: "profile",
         element: <L1Template organism={<Profile />} />,
       },
       {
-        path: 'friends',
+        path: "friends",
         element: <L1Template organism={<LocalUserList />} />,
         children: [
           {
-            path: 'add', // nested routes. => /friends/add
+            path: "add", // nested routes. => /friends/add
             element: <L2Template organism={<GlobalUserList />} />,
             children: [
               {
-                path: ':userId', // Global User List에서 클릭시 L3 위치에서 프로필이 뜨도록.
+                path: ":userId", // Global User List에서 클릭시 L3 위치에서 프로필이 뜨도록.
                 element: <L3Template organism={<Profile />} />,
               },
             ],
           },
           {
-            path: ':userId',
+            path: ":userId",
             element: <L2Template organism={<Profile />} />,
           },
         ],
       },
       {
-        path: 'channels',
+        path: "channels",
         element: <L1Template organism={<LocalChatList />} />,
         children: [
           {
-            path: 'create',
+            path: "create",
             element: <L2Template organism={<CreateChat />} />,
           },
           {
-            path: 'add',
+            path: "add",
             element: <L2Template organism={<GlobalChatList />} />,
           },
           {
-            path: ':channelId',
+            path: ":channelId",
             element: <ChatTemplate organism={<ChatDetail />} />,
           },
         ],
@@ -105,6 +108,7 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
 
 function App() {
   // GLOBAL CONTEXTS
@@ -115,14 +119,29 @@ function App() {
   const [friends, setFriends] = useArray<friendData_t>();
   // logged userId
   // const [loggedUserId, setLoggedUserId] = useState<number | null>();
-  const [loggedUserId, setLoggedUserId] = useState<number | null>(Date.now() % 2 === 0 ? 1 : 2);
-  console.log('userId : ', loggedUserId);
+  const [loggedUserId, setLoggedUserId] = useState<number | null>();
+  console.log("userId : ", loggedUserId);
   // ---------------------------------------------------------------------------
 
   // Sockets
   // ---------------------------------------------------------------------------
 
   // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    // just for re-render check
+    console.log("App re-render");
+    // 페이지 re-fresh일 경우 sessionStorage에 loggedUserId가 존재하는지 체크, 있다면 불러오기.
+    // 이 데이터는 API (api/error/error.ts)에서 검증, 만약 api 요청의 response status가 401
+    const SAVED_USER_ID = sessionStorage.getItem("user_id");
+    if (SAVED_USER_ID) {
+      setLoggedUserId(parseInt(SAVED_USER_ID));
+    }
+    else {
+      sessionStorage.setItem("user_id", "1");
+    }
+  }, []);
+
 
   return (
     <div>
