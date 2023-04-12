@@ -45,22 +45,22 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   function unsetTimerHandler(
       targetId: number,
-      list: Record<number, number>,
+      listRef: React.MutableRefObject<Record<number, number>>,
       setter: (list: Record<number, number>) => void
     ) {
-    clearTimeout(list[targetId]);
-    const {[targetId]: value, ...newList} = list;
+    clearTimeout(listRef.current[targetId]);
+    const {[targetId]: value, ...newList} = listRef.current;
     setter(newList);
   }
 
   function setTimerHandler(
       targetId: number,
-      list: Record<number, number>,
+      listRef: React.MutableRefObject<Record<number, number>>,
       setter: (list: Record<number, number>) => void,
       end_at: string
     ) {
     return setTimeout(
-      () => { unsetTimerHandler(targetId, list, setter) }
+      () => { unsetTimerHandler(targetId, listRef, setter) }
       , new Date(end_at).getTime() - Date.now()
     );
   }
@@ -96,7 +96,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     console.log(fetchBanList);
     return fetchBanList.reduce((banRecord: Record<number, number>, user: any) => {
       const targetId = user.user.user_id;
-      banRecord[targetId] = setTimerHandler(targetId, banListRef.current, setBanList, user.end_at);
+      banRecord[targetId] = setTimerHandler(targetId, banListRef, setBanList, user.end_at);
       return banRecord;
     }, {});
   }
@@ -111,7 +111,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
     return fetchMuteList.reduce((muteRecord: Record<number, number>, user: any) => {
       const targetId = user.user.user_id;
-      muteRecord[targetId] = setTimerHandler(targetId, muteListRef.current, setMuteList, user.end_at);
+      muteRecord[targetId] = setTimerHandler(targetId, muteListRef, setMuteList, user.end_at);
 
       return muteRecord;
     }, {});
@@ -183,12 +183,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           const targetId = message.user_id;
           if (targetId in banListRef.current) {
             // UnBan
-            unsetTimerHandler(targetId, banListRef.current, setBanList);
+            unsetTimerHandler(targetId, banListRef, setBanList);
           }
           else {
             // Ban
             setDeletedAtFromUsers(targetId);
-            const timerId = setTimerHandler(targetId, banListRef.current, setBanList, message.end_at);
+            const timerId = setTimerHandler(targetId, banListRef, setBanList, message.end_at);
             setBanList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
@@ -200,10 +200,10 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           console.log('muteList: ', muteListRef.current);
           if (targetId in muteListRef.current) {
             // UnMute
-            unsetTimerHandler(targetId, muteListRef.current, setMuteList);
+            unsetTimerHandler(targetId, muteListRef, setMuteList);
           } else {
             // Mute
-            const timerId = setTimerHandler(targetId, muteListRef.current, setMuteList, message.end_at);
+            const timerId = setTimerHandler(targetId, muteListRef, setMuteList, message.end_at);
             setMuteList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
@@ -230,15 +230,17 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       setShowNotification(false);
       setDrawerOpen(false);
       try {
-        const [usrs, bans, mutes] = await Promise.all([
-          fetchUsersByChannelId(channelIdNumber),
-          fetchBanListByChannelId(channelIdNumber),
-          fetchMuteListByChannelId(channelIdNumber),
-        ]);
+        const usrs = await fetchUsersByChannelId(channelIdNumber);
         setUsers(usrs);
-        setBanList(bans);
-        setMuteList(mutes);
         setIsAdmin(['admin', 'owner'].includes(usrs.find((u) => u.id === loggedUserId)?.role || 'none'));
+        if (isAdmin) {
+          const [bans, mutes] = await Promise.all([
+            fetchBanListByChannelId(channelIdNumber),
+            fetchMuteListByChannelId(channelIdNumber),
+          ]);
+          setBanList(bans);
+          setMuteList(mutes);
+        }
       } catch (error) {
         handleError('Init Fetch', (error as Error).message);
       }
