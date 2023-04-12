@@ -43,19 +43,20 @@ export class ChatSocketService {
 
   async getAllUserChannel(user_id: number) {
     try {
-      const channelUsers: ChannelUser[] = await this.channelUserRepository
-        .createQueryBuilder('cu')
-        .select('cu.channel_id')
-        .where('cu.user_id = :user_id', { user_id })
-        .getMany();
+      const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
+        where: { user_id },
+        select: {
+          channel_id: true,
+        },
+      });      
       const channelIds = channelUsers.map((user) => user.channel_id);
 
-      const dmChannels: DmChannel[] = await this.dmRepository
-        .createQueryBuilder('dm')
-        .select('dm.channel_id')
-        .where('dm.first_user_id = :user_id', { user_id })
-        .orWhere('dm.second_user_id = :user_id', { user_id })
-        .getMany();
+      const dmChannels: DmChannel[] = await this.dmRepository.find({
+        where: [{ first_user_id: user_id }, { second_user_id: user_id }],
+        select: {
+          channel_id: true,
+        },
+      });
       dmChannels.map((dm) => channelIds.push(dm.channel_id));
 
       return channelIds;
