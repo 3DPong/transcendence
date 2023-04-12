@@ -137,14 +137,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   useEffect(() => {
     async function fetchAdminList() {
-      const [bans, mutes] = await Promise.all([
+      const [bans] = await Promise.all([
         fetchBanListByChannelId(channelIdNumber),
-        fetchMuteListByChannelId(channelIdNumber),
       ]);
       // console.log("fetchBans: ", bans);
       // console.log("fetchMute: ", mutes);
       setBanList(bans);
-      setMuteList(mutes);
     }
     if (myRole !== null) {
       if (["admin", "owner"].includes(myRole)) {
@@ -225,6 +223,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       });
 
       chatSocket.on('mute', (message) => {
+        console.log(channelId);
         if (message.channel_id === channelId) {
           const targetId = message.user_id;
           if (targetId in muteListRef.current) {
@@ -244,10 +243,17 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
 
     return () => {
-      console.log('socket userEffect out');
+      console.log('socket useEffect out');
+      if (chatSocket) {
+        chatSocket.off('chat');
+        chatSocket.off('error');
+        chatSocket.off('kick');
+        chatSocket.off('ban');
+        chatSocket.off('mute');
+      }
     };
     // channelId가 변할땐 메시지들을 그대로 둠
-  }, [chatSocket /*, channelId*/]);
+  }, [chatSocket, channelId]);
 
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
@@ -273,8 +279,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       setShowNotification(false);
       setDrawerOpen(false);
       try {
-        const usrs = await fetchUsersByChannelId(channelIdNumber);
+        const [usrs, mutes] = await Promise.all([
+          fetchUsersByChannelId(channelIdNumber),
+          fetchMuteListByChannelId(channelIdNumber),
+        ]);
         setUsers(usrs);
+        setMuteList(mutes);
         setMyRole(usrs.find((u) => u.id === loggedUserId)?.role || 'none');
       } catch (error) {
         handleError('Init Fetch', (error as Error).message);
