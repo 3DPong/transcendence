@@ -116,6 +116,17 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     banListRef.current = banList;
   }, [banList]);
 
+  function setDeletedAtFromUsers(targetId : number) {
+    console.log(usersRef.current);
+    const updatedUsers = usersRef.current.map((user) => {
+      if (user.id === targetId)
+        return {...user, deleted_at: Date.now()};
+      else
+        return user;
+    });
+    setUsers(updatedUsers as ChatUser[]);
+  }
+
   useEffect(() => {
     console.log('socket useEffect in');
     if (chatSocket) {
@@ -139,45 +150,34 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
       chatSocket.on('kick', (message) => {
         if (message.channel_id) {
-          const targetId = message.user_id;
-          console.log(usersRef.current);
-          const updatedUsers = usersRef.current.map((user) => {
-            if (user.id === targetId)
-              return {...user, deleted_at: Date.now()};
-            else
-              return user;
-          });
-          setUsers(updatedUsers as ChatUser[]);
+          setDeletedAtFromUsers(message.user_id);
         }
       });
+
       chatSocket.on('ban', (message) => {
-        // if (message.channel_id === channelId) {
-        //   const targetId = message.user_id;
-        //   if (banList.find((user)=>(user.id === targetId))) {
-        //     setBanList(banList.filter((user)=>(user.id !== targetId)));
-        //   }
-        //   else {
-        //     const target = users.find((user)=>(user.id === targetId));
-        //     if (target) {
-        //       console.log("=========2222222=========");
-        //       console.log("test", users);
-        //       // let tmp = users.map((elem)=>{return {...elem}});
-        //       let tmp: ChatUser[] = JSON.parse(JSON.stringify(users));
-        //       const user_filter = tmp.filter((user)=>(user.id !== targetId));
-        //       setUsers(user_filter);
-        //       console.log("filter_result", user_filter);
-        //       setBanList([...banList, target]);
-        //     }
-        //   }
-        // }
+        if (message.channel_id) {
+          const targetId = message.user_id;
+          if (banListRef.current.find((id)=>(id === targetId))) {
+            // UnBan
+            setBanList(banListRef.current.filter((id)=>(id !== targetId)));
+          }
+          else {
+            // Ban
+            setDeletedAtFromUsers(targetId);
+            setBanList([...banListRef.current, targetId]);
+          }
+        }
       });
+
       chatSocket.on('mute', (message) => {
         if (message.channel_id === channelId) {
           const targetId = message.user_id;
           console.log('muteList: ', muteListRef.current);
           if (muteListRef.current.indexOf(targetId) >= 0) {
+            // UnMute
             setMuteList(muteListRef.current.filter((id) => id !== targetId));
           } else {
+            // Mute
             setMuteList([...muteListRef.current, targetId]);
           }
         }
