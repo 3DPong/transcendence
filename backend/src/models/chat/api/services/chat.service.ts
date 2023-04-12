@@ -24,6 +24,8 @@ import { ChannelDto, JoinDto, UserIdDto } from '../../dto/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
+import { UserRelation } from 'src/models/user/entities';
+import { RelationStatus } from 'src/common/enums/relationStatus.enum';
 
 @Injectable()
 export class ChatService {
@@ -42,6 +44,8 @@ export class ChatService {
     private muteRepository: Repository<ChannelMuteList>,
     @Inject(forwardRef(() => ChatUserService))
     private readonly userService: ChatUserService,
+    @InjectRepository(UserRelation)
+    private relationRepository: Repository<UserRelation>,
     private dataSource: DataSource,
     private chatGateway: ChatSocketGateway
   ) {}
@@ -78,16 +82,22 @@ export class ChatService {
 
     const dmChannels: DmChannel[] = await this.dmRepository.find({
       where: [{ first_user_id: user_id }, { second_user_id: user_id }],
-      order: { updated_at: 'DESC' },
-      take: 5,
-      select: {
-        channel_id: true,
-      },
+      order: { updated_at: 'DESC' }
     });
 
-    dmChannels.forEach((dm) => {
-      channelIds.push(dm.channel_id);
-    });
+    const users: UserRelation[] = await this.getBlockedUsers(user_id);
+    
+    let count = 0;
+    for (const dm of dmChannels) {
+      if (users.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
+        channelIds.push(dm.channel_id);
+        count++;
+      }
+      if (count >= 5) {
+        break;
+      }
+    }
+
     return await this.channelRepository
       .createQueryBuilder('channel')
       .innerJoin('channel.owner', 'owner')
@@ -274,7 +284,7 @@ export class ChatService {
   }
 
   async createDmRoom(second_user: User, first_user: User): Promise<ChatChannel> {
-
+    console.log(second_user, first_user)
     let dmChannel = await this.dmRepository.findOne({
       where: { first_user_id: first_user.user_id, second_user_id: second_user.user_id },
     });
@@ -291,7 +301,7 @@ export class ChatService {
         },
         { updated_at: new Date() }
       );
-      return this.channelResult(dmChannel.channel);
+      return await this.getChannel(dmChannel.channel_id);
     }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -520,6 +530,18 @@ export class ChatService {
       case ChannelUserRoles.OWNER:
         return ChannelUserRoles.OWNER;
     }
+  }
+
+  async getBlockedUsers( user_id: number): Promise<UserRelation[]> {
+    return await this.relationRepository.find({
+      where: {
+        user_id,
+        status: RelationStatus.BLOCK
+      },
+      select : {
+        target_id: true
+      }
+    });
   }
 
   async checkAdminUser(user_id: number, channel_id: number): Promise<boolean> {

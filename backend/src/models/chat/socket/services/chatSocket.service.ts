@@ -16,6 +16,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/socket.dto';
 import { Server, Socket } from 'socket.io';
 import { SocketException } from '../../../../common/filters/socket/socket.filter';
+import { RelationStatus } from 'src/common/enums/relationStatus.enum';
+import { UserRelation } from 'src/models/user/entities';
 
 @Injectable()
 export class ChatSocketService {
@@ -31,7 +33,10 @@ export class ChatSocketService {
     @InjectRepository(ChannelBanList)
     private banRepository: Repository<ChannelBanList>,
     @InjectRepository(ChannelMuteList)
-    private muteRepository: Repository<ChannelMuteList>
+    private muteRepository: Repository<ChannelMuteList>,
+    @InjectRepository(UserRelation)
+    private relationRepository: Repository<UserRelation>
+    
   ) {}
 
   async joinAllChatRooms(socket: Socket, user_id: number) {
@@ -48,7 +53,7 @@ export class ChatSocketService {
         select: {
           channel_id: true,
         },
-      });      
+      });
       const channelIds = channelUsers.map((user) => user.channel_id);
 
       const dmChannels: DmChannel[] = await this.dmRepository.find({
@@ -98,6 +103,8 @@ export class ChatSocketService {
       throw new SocketException('BadRequest', `채널을 찾을 수 없습니다!`);
     } else if (channel.type === ChannelType.DM && !(dmUser = await this.getDmUser(md.channel_id, user_id))) {
       throw new SocketException('BadRequest', `디엠 유저를 찾을 수 없습니다!`);
+    } else if (channel.type === ChannelType.DM && await this.checkBlocked(dmUser, user_id)) {
+      throw new SocketException('Forbidden', `차단 상태 입니다!`);
     } else if (channel.type !== ChannelType.DM && !(await this.checkChannelUser(md.channel_id, user_id))) {
       throw new SocketException('BadRequest', `채팅 유저를 찾을 수 없습니다!`);
     }
@@ -342,14 +349,37 @@ export class ChatSocketService {
     return BanStatus.NoneBan;
   }
 
-  async getChannelUserName(channel_id: number, user_id: number): Promise<string> {
-    const chatUser = await this.channelUserRepository.findOne({ where: { channel_id, user_id } });
-    if (chatUser) return chatUser.user.nickname;
-    return null;
+  async checkBlocked(dm: DmChannel, target_id: number): Promise<boolean> {
+    let user_id;
+    if (dm.first_user_id == target_id) {
+      user_id = dm.second_user_id;
+    } else {
+      user_id = dm.first_user_id;
+    }
+
+    const relation = await this.relationRepository.findOne({
+      where: {
+        user_id,
+        target_id,
+        status: RelationStatus.BLOCK
+      } 
+    });
+
+    return !!relation;
   }
 
   async checkChannelUser(channel_id: number, user_id: number): Promise<boolean> {
-    const chatUser = await this.channelUserRepository.findOne({ where: { channel_id, user_id } });
+    const chatUser = await this.channelUserRepository.findOne({
+      where: {
+        channel_id,
+        user_id 
+      },
+      select: {
+        channel_id: true,
+        user_id: true
+      } 
+    });
+    console.log(chatUser)
     return !!chatUser;
   }
 
@@ -360,16 +390,34 @@ export class ChatSocketService {
         user_id,
         role: ChannelUserRoles.USER,
       },
+      select: {
+        channel_id: true,
+        user_id: true,
+        role: true
+      }
     });
     return !!chatUser;
   }
 
   async checkAdminUser(channel_id: number, user_id: number): Promise<boolean> {
     const channelUser = await this.channelUserRepository.findOne({
-      select: { channel_id: true, user_id: true, role: true },
-      where: { channel_id, user_id },
+      where: {
+        channel_id,
+        user_id 
+      },
+      select: { 
+        channel_id: true,
+        user_id: true,
+        role: true 
+      }
     });
     return !(!channelUser || channelUser.role === ChannelUserRoles.USER);
+  }
+
+  async getChannelUserName(channel_id: number, user_id: number): Promise<string> {
+    const chatUser = await this.channelUserRepository.findOne({ where: { channel_id, user_id } });
+    if (chatUser) return chatUser.user.nickname;
+    return null;
   }
 
   async getDmUser(channel_id: number, user_id: number): Promise<DmChannel> {
