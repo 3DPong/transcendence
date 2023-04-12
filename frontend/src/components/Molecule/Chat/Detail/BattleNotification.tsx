@@ -1,9 +1,9 @@
 // src/BattleNotification.tsx
 
-import React, { useEffect, useState } from "react";
-import { Button } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import LinearProgress from "@mui/material/LinearProgress";
+import React, { useEffect, useState } from 'react';
+import { Button } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import LinearProgress from '@mui/material/LinearProgress';
 
 interface BattleNotificationProps {
   onClose: () => void;
@@ -49,7 +49,7 @@ const BattleNotification: React.FC<BattleNotificationProps> = ({ onClose }) => {
           variant="determinate"
           value={((10000 - timeLeft) / 10000) * 100}
           color="secondary"
-          style={{ height: "4px" }}
+          style={{ height: '4px' }}
         />
       </div>
     </div>

@@ -10,15 +10,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState } from "react";
-import SearchTextField from "@/components/Molecule/SearchTextField";
-import VirtualizedUserList from "@/components/Organism/Friends/LocalUserList/List";
-import MediaCard from "@/components/Molecule/MediaCard";
-import ButtonLink from "@/components/Molecule/Link/ButtonLink";
-import AddBoxIcon from "@mui/icons-material/AddBox";
+import { useState } from 'react';
+import SearchTextField from '@/components/Molecule/SearchTextField';
+import VirtualizedUserList from '@/components/Organism/Friends/LocalUserList/List';
+import MediaCard from '@/components/Molecule/MediaCard';
+import ButtonLink from '@/components/Molecule/Link/ButtonLink';
+import AddBoxIcon from '@mui/icons-material/AddBox';
 
 export default function LocalUserList() {
-  const [searchString, setSearchString] = useState<string>(""); // 검색 문자열.
+  const [searchString, setSearchString] = useState<string>(''); // 검색 문자열.
 
   return (
     <>
@@ -31,14 +31,14 @@ export default function LocalUserList() {
       />
 
       <div className=" absolute top-32 right-4">
-        <ButtonLink primary="Add Friend" to="./add" sx={{ color: "#ffffffff" }}>
+        <ButtonLink primary="Add Friend" to="./add" sx={{ color: '#ffffffff' }}>
           <AddBoxIcon fontSize="large" />
         </ButtonLink>
       </div>
 
       {/*  */}
       <div className=" border m-0 p-4 pr-8 pb-6">
-        <SearchTextField state={searchString} setState={setSearchString} label={"친구 찾기"} />
+        <SearchTextField state={searchString} setState={setSearchString} label={'친구 찾기'} />
       </div>
 
       {/*  */}

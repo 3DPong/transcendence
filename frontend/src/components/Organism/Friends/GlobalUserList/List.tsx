@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as React from "react";
-import { ListItem } from "@mui/material";
-import UserListRow from "@/components/Organism/Friends/GlobalUserList/UserListRow";
-import { Box } from "@mui/material";
-import { globalUserData_t, friendData_t } from "@/types/user";
-import { FixedSizeList } from "react-window";
-import { UpdateFunctionOverload } from "@/utils/CustomHooks/useArray";
-import ActionMenu from "@/components/Organism/Friends/GlobalUserList/ActionMenu";
+import * as React from 'react';
+import { ListItem } from '@mui/material';
+import UserListRow from '@/components/Organism/Friends/GlobalUserList/UserListRow';
+import { Box } from '@mui/material';
+import { globalUserData_t, friendData_t } from '@/types/user';
+import { FixedSizeList } from 'react-window';
+import { UpdateFunctionOverload } from '@/utils/CustomHooks/useArray';
+import ActionMenu from '@/components/Organism/Friends/GlobalUserList/ActionMenu';
 
 const Row = (props: {
   index: number;
@@ -47,16 +47,16 @@ export interface UserListProps {
 
 export default function VirtualizedUserList(props: UserListProps) {
   const LIST_HEIGHT = 400;
-  const ROW_WIDTH = "100%";
+  const ROW_WIDTH = '100%';
   const ROW_HEIGHT = 70;
 
   return (
     <Box
       sx={{
-        width: "100%",
+        width: '100%',
         height: 400,
         maxWidth: 360,
-        bgcolor: "background.paper",
+        bgcolor: 'background.paper',
       }}
     >
       {/* Virtualization for performance. --> react window */}

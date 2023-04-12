@@ -1,9 +1,9 @@
-import { ChatUser } from "@/types/chat";
-import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from "@mui/material";
-import { FC, useContext } from "react";
-import AvatarSet from "../AvatarSet";
-import VolumeOffIcon from "@mui/icons-material/VolumeOff";
-import ChatContext from "@/context/ChatContext";
+import { ChatUser } from '@/types/chat';
+import { IconButton, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText } from '@mui/material';
+import { FC, useContext } from 'react';
+import AvatarSet from '../AvatarSet';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import ChatContext from '@/context/ChatContext';
 
 interface UserCardProps {
   user: ChatUser;
@@ -23,7 +23,7 @@ const UserCard: FC<UserCardProps> = ({ user, scrollY }) => {
         <ListItemText title={user.nickname} primaryTypographyProps={{ noWrap: true }} primary={user.nickname} />
         <ListItemSecondaryAction>
           {isMuted && (
-            <IconButton style={{ color: "darkorange" }} disabled edge="end" aria-label="mute">
+            <IconButton style={{ color: 'darkorange' }} disabled edge="end" aria-label="mute">
               <VolumeOffIcon />
             </IconButton>
           )}

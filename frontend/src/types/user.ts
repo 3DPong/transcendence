@@ -10,15 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-
 // 친구 사용자 정보
 export interface friendData_t {
-    user_id       : number;
-    profile_url   : string;
-    nickname      : string;
+  user_id: number;
+  profile_url: string;
+  nickname: string;
 }
 
 // 일반 사용자 정보 (친구 포함. 여기엔 relation이 필요함)
 export interface globalUserData_t extends friendData_t {
-    status      : 'friend' | 'block' | 'none';
+  status: 'friend' | 'block' | 'none';
 }

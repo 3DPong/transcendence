@@ -10,27 +10,27 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useContext, useEffect, useState, useMemo } from "react";
-import ProfileCard from "./ProfileCard";
-import ProfileStatistic from "./ProfileStatistic";
-import { useLocation, useParams } from "react-router";
-import * as API from "@/api/API";
-import GlobalContext from "@/context/GlobalContext";
-import { Assert } from "@/utils/Assert";
-import {useError} from "@/context/ErrorContext";
+import { useContext, useEffect, useState, useMemo } from 'react';
+import ProfileCard from './ProfileCard';
+import ProfileStatistic from './ProfileStatistic';
+import { useLocation, useParams } from 'react-router';
+import * as API from '@/api/API';
+import GlobalContext from '@/context/GlobalContext';
+import { Assert } from '@/utils/Assert';
+import { useError } from '@/context/ErrorContext';
 
 export default function Profile() {
   const [profileState, setProfileState] = useState<API.GET_UserDataResponseFormat>();
   const { pathname } = useLocation();
   const { loggedUserId } = useContext(GlobalContext);
-  const {handleError} = useError();
+  const { handleError } = useError();
 
   // (1) initial data loading
   useEffect(() => {
     (async () => {
       // (1) parse :user_id to get user_id
       let user_id: number;
-      const lastIdx = pathname.lastIndexOf("/");
+      const lastIdx = pathname.lastIndexOf('/');
       const subUrl = pathname.slice(lastIdx + 1);
       const convertResult = parseInt(subUrl);
       console.log(`URL parse result: url param (userId) is ${convertResult}`);

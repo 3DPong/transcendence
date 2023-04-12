@@ -10,16 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, { useContext, useEffect, useState } from "react";
-import { friendData_t } from "@/types/user";
-import UserListRow from "@/components/Organism/Friends/LocalUserList/UserListRow";
-import { Box } from "@mui/material";
-import { FixedSizeList } from "react-window";
-import { Assert } from "@/utils/Assert";
-import { ListItem } from "@mui/material";
-import ActionMenu from "@/components/Organism/Friends/LocalUserList/ActionMenu";
-import GlobalContext from "@/context/GlobalContext";
-import * as API from "@/api/API";
+import React, { useContext, useEffect, useState } from 'react';
+import { friendData_t } from '@/types/user';
+import UserListRow from '@/components/Organism/Friends/LocalUserList/UserListRow';
+import { Box } from '@mui/material';
+import { FixedSizeList } from 'react-window';
+import { Assert } from '@/utils/Assert';
+import { ListItem } from '@mui/material';
+import ActionMenu from '@/components/Organism/Friends/LocalUserList/ActionMenu';
+import GlobalContext from '@/context/GlobalContext';
+import * as API from '@/api/API';
 
 const Row = (props: { index: number; style: React.CSSProperties; data: { isLoading: boolean } }) => {
   const { index, style, data } = props;
@@ -66,15 +66,15 @@ export default function VirtualizedUserList(props: UserListProps) {
   }, []);
 
   const LIST_HEIGHT = 400;
-  const ROW_WIDTH = "100%";
+  const ROW_WIDTH = '100%';
   const ROW_HEIGHT = 70;
 
   let searchedArray: Array<friendData_t> | null = null;
   if (props.searchString) {
     searchedArray = friends.filter((user) => {
-      Assert.NonNullish(props.searchString, "search string is null");
-      Assert.NonNullish(user.nickname, "서버에서 null 들어옴.");
-      Assert.NonNullish(user.profile_url, "서버에서 null 들어옴.");
+      Assert.NonNullish(props.searchString, 'search string is null');
+      Assert.NonNullish(user.nickname, '서버에서 null 들어옴.');
+      Assert.NonNullish(user.profile_url, '서버에서 null 들어옴.');
       return user.nickname.includes(props.searchString);
     });
   } else {
@@ -84,10 +84,10 @@ export default function VirtualizedUserList(props: UserListProps) {
   return (
     <Box
       sx={{
-        width: "100%",
+        width: '100%',
         height: 400,
         maxWidth: 360,
-        bgcolor: "background.paper",
+        bgcolor: 'background.paper',
       }}
     >
       {/* Virtualization for performance. --> react window */}

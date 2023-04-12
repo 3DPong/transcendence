@@ -1,10 +1,10 @@
-import { ChannelType, Channel } from "@/types/chat";
-import { Box } from "@mui/material";
-import React from "react";
-import { FC } from "react";
-import { FixedSizeList } from "react-window";
-import ChannelCard from "./ChannelCard";
-import clsx from "clsx";
+import { ChannelType, Channel } from '@/types/chat';
+import { Box } from '@mui/material';
+import React from 'react';
+import { FC } from 'react';
+import { FixedSizeList } from 'react-window';
+import ChannelCard from './ChannelCard';
+import clsx from 'clsx';
 
 interface ChannelListProps {
   channels: Channel[];
@@ -28,7 +28,7 @@ const Row: FC<RowProps> = ({ index, style, data }) => {
   return (
     <Box
       key={channel.id}
-      className={clsx("flex items-center justify-start gap-2", index % 2 === 0 ? "bg-white" : "bg-gray-50")}
+      className={clsx('flex items-center justify-start gap-2', index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}
       style={style}
     >
       <ChannelCard channel={channel} isLoading={data.isLoading} handleCardClick={data.handleCardClick} />
@@ -40,9 +40,9 @@ const VirtualizedChannelList: FC<ChannelListProps> = ({ channels, isLoading, han
   const renderChannels: Channel[] = isLoading
     ? Array.from({ length: 5 }, (_, index) => ({
         id: index,
-        title: "",
-        type: "public",
-        owner: { id: 1, profile: "", nickname: "" },
+        title: '',
+        type: 'public',
+        owner: { id: 1, profile: '', nickname: '' },
       }))
     : channels;
 
@@ -51,10 +51,10 @@ const VirtualizedChannelList: FC<ChannelListProps> = ({ channels, isLoading, han
       {
         <Box
           sx={{
-            width: "100%",
+            width: '100%',
             height: 400,
             maxWidth: 360,
-            bgcolor: "background.paper",
+            bgcolor: 'background.paper',
           }}
         >
           <FixedSizeList

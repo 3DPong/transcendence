@@ -14,11 +14,11 @@
  * User relations API
  */
 
-import { Assert } from "@/utils/Assert";
-import { globalUserData_t } from "@/types/user";
-import { useNavigate } from "react-router";
-import {API_URL} from "../../../config/backend";
-import {handleErrorFunction, useError} from "@/context/ErrorContext";
+import { Assert } from '@/utils/Assert';
+import { globalUserData_t } from '@/types/user';
+import { useNavigate } from 'react-router';
+import { API_URL } from '../../../config/backend';
+import { handleErrorFunction, useError } from '@/context/ErrorContext';
 
 /*----------------------------------------*
  *    GET user_relations API              *
@@ -31,20 +31,15 @@ export interface GET_GlobalSearchResponseFormat {
 const validateSessionStatus = async (handleError: handleErrorFunction, res: Response) => {
   if (!res.ok) {
     const errorData = await res.json();
-    handleError(
-        "UserData",
-        errorData.message,
-       errorData.status === 401 ? "/login" : null,
-        ); // redirect to /login page
+    handleError('UserData', errorData.message, errorData.status === 401 ? '/login' : null); // redirect to /login page
     return;
   }
-  return (res);
-}
+  return res;
+};
 
 export async function getUserListBySearchString(handleError: handleErrorFunction, searchString: string) {
-
   const requestUrl = `${API_URL}/api/user/search/${searchString}`;
-  const userListResponse = await fetch(requestUrl, { method: "GET" });
+  const userListResponse = await fetch(requestUrl, { method: 'GET' });
 
   // on error
   const validatedResponse = await validateSessionStatus(handleError, userListResponse);
@@ -53,9 +48,8 @@ export async function getUserListBySearchString(handleError: handleErrorFunction
   }
   // on success
   const userData: GET_GlobalSearchResponseFormat = await validatedResponse.json();
-  return (userData.relations);
-};
-
+  return userData.relations;
+}
 
 /*----------------------------------*
  *             GET API              *
@@ -83,7 +77,7 @@ export interface GET_RelationResponseFormat {
 
 export async function getUserListByRelationType(handleError: handleErrorFunction, type: GET_RelationType) {
   let requestUrl;
-  switch(type) {
+  switch (type) {
     case GET_RelationType.none: // 전체 사용자 그룹.
       requestUrl = `${API_URL}/api/user_relation`;
       break;
@@ -94,7 +88,7 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
       requestUrl = `${API_URL}/api/user_relation?relation=block`;
       break;
   }
-  const userListResponse = await fetch(requestUrl, { method: "GET" });
+  const userListResponse = await fetch(requestUrl, { method: 'GET' });
   // on error
   const validatedResponse = await validateSessionStatus(handleError, userListResponse);
   if (!validatedResponse) {
@@ -102,7 +96,7 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
   }
   // on success
   const userData: GET_RelationResponseFormat = await validatedResponse.json();
-  return (userData.relations);
+  return userData.relations;
 }
 
 /*----------------------------------*
@@ -113,11 +107,11 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
 export interface PUT_RelationRequestFormat {
   target_id: number;
   status: 'friend' | 'block' | 'none';
-};
+}
 export interface PUT_RelationResponseFormat {
   target_id: number;
   status: 'friend' | 'block' | 'none'; // 대소문자 주의
-};
+}
 
 export enum PUT_RelationActionType {
   addFriend,
@@ -126,27 +120,30 @@ export enum PUT_RelationActionType {
 }
 
 // PUT /user_relation
-export async function changeUserRelation(handleError: handleErrorFunction, targetId: number, action: PUT_RelationActionType) {
-
+export async function changeUserRelation(
+  handleError: handleErrorFunction,
+  targetId: number,
+  action: PUT_RelationActionType
+) {
   const requestUrl = `${API_URL}/api/user_relation`;
 
-  let requestPayload: PUT_RelationRequestFormat = { target_id: targetId, status: 'none'};
+  let requestPayload: PUT_RelationRequestFormat = { target_id: targetId, status: 'none' };
   switch (action) {
     case PUT_RelationActionType.addFriend:
-      requestPayload.status = "friend";
+      requestPayload.status = 'friend';
       break;
     case PUT_RelationActionType.blockUser:
-      requestPayload.status = "block";
+      requestPayload.status = 'block';
       break;
     case PUT_RelationActionType.unBlockUser:
-      requestPayload.status = "none";
+      requestPayload.status = 'none';
       break;
     default:
-      Assert.MustBeTrue(false, "No matching relation action");
+      Assert.MustBeTrue(false, 'No matching relation action');
   }
 
   const userListResponse = await fetch(requestUrl, {
-    method: "PUT",
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -159,5 +156,5 @@ export async function changeUserRelation(handleError: handleErrorFunction, targe
   }
   // on success
   const userData: PUT_RelationResponseFormat = await validatedResponse.json();
-  return (userData);
-};
+  return userData;
+}

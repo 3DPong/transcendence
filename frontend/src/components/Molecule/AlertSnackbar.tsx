@@ -1,11 +1,11 @@
-import { AlertTitle, Snackbar } from "@mui/material";
-import React, { FC, useEffect, useState } from "react";
-import { useError } from "@/context/ErrorContext";
-import Button from "@mui/material/Button";
-import { useNavigate } from "react-router";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
-import MuiAlert, { AlertProps } from "@mui/material/Alert";
+import { AlertTitle, Snackbar } from '@mui/material';
+import React, { FC, useEffect, useState } from 'react';
+import { useError } from '@/context/ErrorContext';
+import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 // https://mui.com/material-ui/react-snackbar/
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
@@ -22,7 +22,7 @@ function AlertSnackbar() {
   }, [errorTitle]);
 
   const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === "clickaway") {
+    if (reason === 'clickaway') {
       return;
     }
     setOpen(false);
@@ -50,9 +50,9 @@ function AlertSnackbar() {
       // autoHideDuration={3000}
       // message={`${errorTitle}: ${errorMessage}`}
       onClose={handleClose}
-      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
     >
-      <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+      <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
         <AlertTitle>{errorTitle}</AlertTitle>
         <strong>{errorMessage}</strong>
       </Alert>

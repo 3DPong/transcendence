@@ -10,13 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-export interface Pair<T0, T1>
-{
-    first: T0;
-    second: T1;
+export interface Pair<T0, T1> {
+  first: T0;
+  second: T1;
 }
 
-export function makePair<T0, T1>(a: T0, b: T1) 
-{
-    return { first: a, second: b } as Pair<T0, T1>;
+export function makePair<T0, T1>(a: T0, b: T1) {
+  return { first: a, second: b } as Pair<T0, T1>;
 }

@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
-import ButtonLink from "@/components/Molecule/Link/ButtonLink";
-import CloseIcon from "@mui/icons-material/Close";
-import { Outlet } from "react-router-dom";
+import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
+import ButtonLink from '@/components/Molecule/Link/ButtonLink';
+import CloseIcon from '@mui/icons-material/Close';
+import { Outlet } from 'react-router-dom';
 
 export interface templateProps {
   organism: ReactJSXElement;
@@ -25,7 +25,7 @@ export default function L2Template({ organism }: templateProps) {
       <div className=" shadow-lg w-72">
         {organism}
         <div className=" absolute right-2 top-1">
-          {" "}
+          {' '}
           {/* 뒤로가기 버튼. */}
           <ButtonLink primary="close" to="../" children={<CloseIcon fontSize="small" />} />
         </div>

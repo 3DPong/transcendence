@@ -10,18 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, { useEffect, useState } from "react";
-import SearchTextField from "@/components/Molecule/SearchTextField";
-import VirtualizedUserList from "@/components/Organism/Friends/GlobalUserList/List";
-import MediaCard from "@/components/Molecule/MediaCard";
-import { friendData_t, globalUserData_t } from "@/types/user";
-import useArray from "@/utils/CustomHooks/useArray";
-import * as API from "@/api/API";
+import React, { useEffect, useState } from 'react';
+import SearchTextField from '@/components/Molecule/SearchTextField';
+import VirtualizedUserList from '@/components/Organism/Friends/GlobalUserList/List';
+import MediaCard from '@/components/Molecule/MediaCard';
+import { friendData_t, globalUserData_t } from '@/types/user';
+import useArray from '@/utils/CustomHooks/useArray';
+import * as API from '@/api/API';
 
 export default function GlobalUserList() {
   const [globalUsers, setGlobalUsers] = useArray<globalUserData_t>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [searchString, setSearchString] = useState<string>(""); // 검색할 문자열.
+  const [searchString, setSearchString] = useState<string>(''); // 검색할 문자열.
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
 
   // API GET global user list
@@ -29,7 +29,7 @@ export default function GlobalUserList() {
   // TODO: 나중에 onClick 꼭 지울 것!
   const onClick = () => {
     if (submitDisabled) return;
-    console.log("API GET global list");
+    console.log('API GET global list');
 
     (async () => {
       setIsLoading(true);
@@ -43,7 +43,7 @@ export default function GlobalUserList() {
 
   const onKeyUp = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       onClick();
     }
   };
@@ -73,9 +73,9 @@ export default function GlobalUserList() {
           setState={setSearchString}
           onClick={onClick}
           onKeyUp={onKeyUp}
-          label={"친구를 찾아보세요"}
+          label={'친구를 찾아보세요'}
           disabled={submitDisabled}
-          disabledHelperText={"3글자 이상 입력하세요"}
+          disabledHelperText={'3글자 이상 입력하세요'}
         />
       </div>
 

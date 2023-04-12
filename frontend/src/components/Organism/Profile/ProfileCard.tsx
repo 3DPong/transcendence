@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import { Skeleton } from "@mui/material";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import { Skeleton } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 // import type { user_t } from '@/types/user';
-import "react-lazy-load-image-component/src/effects/blur.css";
-import * as API from "@/api/API";
-import React from "react";
+import 'react-lazy-load-image-component/src/effects/blur.css';
+import * as API from '@/api/API';
+import React from 'react';
 
 interface profileProps {
   userData?: API.GET_UserDataResponseFormat;

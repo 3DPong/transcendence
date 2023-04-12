@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState } from "react";
+import { useState } from 'react';
 
 export type SignalStatePair = [boolean, () => void];
 

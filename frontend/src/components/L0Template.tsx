@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { Outlet } from "react-router-dom";
-import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
-import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
+import { Outlet } from 'react-router-dom';
+import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
+import AlertSnackbar from '@/components/Molecule/AlertSnackbar';
 
 export interface templateProps {
   organism: ReactJSXElement;

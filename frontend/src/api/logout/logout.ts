@@ -1,17 +1,14 @@
+import { API_URL } from '../../../config/backend';
+import { handleErrorFunction } from '@/context/ErrorContext';
 
-import { API_URL } from "../../../config/backend";
-import { handleErrorFunction } from "@/context/ErrorContext";
-
-
-export async function requestLogOut(handleError: handleErrorFunction)
-{
+export async function requestLogOut(handleError: handleErrorFunction) {
   const requestUrl = `${API_URL}/api/auth/logout`;
-  const signUpResponse = await fetch(requestUrl, { method: "GET" });
+  const signUpResponse = await fetch(requestUrl, { method: 'GET' });
 
   // on error
   if (!signUpResponse.ok) {
     const errorData = await signUpResponse.json();
-    handleError("LogOut", errorData.message);
-    return ;
+    handleError('LogOut', errorData.message);
+    return;
   }
-};
+}

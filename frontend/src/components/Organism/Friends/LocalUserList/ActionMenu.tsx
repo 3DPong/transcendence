@@ -10,19 +10,19 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, { useContext } from "react";
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import Divider from "@mui/material/Divider";
-import { useLocation, useNavigate } from "react-router-dom";
-import GlobalContext from "@/context/GlobalContext";
-import { friendData_t, globalUserData_t } from "@/types/user";
-import { Assert } from "@/utils/Assert";
-import * as API from "@/api/API";
+import React, { useContext } from 'react';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Divider from '@mui/material/Divider';
+import { useLocation, useNavigate } from 'react-router-dom';
+import GlobalContext from '@/context/GlobalContext';
+import { friendData_t, globalUserData_t } from '@/types/user';
+import { Assert } from '@/utils/Assert';
+import * as API from '@/api/API';
 
 interface userActionMenuProps {
   user: friendData_t;
@@ -42,13 +42,13 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
     setAnchorEl(null);
     // curr URL 1 = /home/friends
     // curr URL 2 = /home/friends/add
-    const index = currentUrl.lastIndexOf("/");
+    const index = currentUrl.lastIndexOf('/');
     const substr = currentUrl.substring(index + 1);
     let urlTo;
-    if (substr === "friends") {
-      urlTo = "../";
+    if (substr === 'friends') {
+      urlTo = '../';
     } else {
-      urlTo = "./";
+      urlTo = './';
     }
     navigate(urlTo + `${user.user_id}`);
   };
@@ -56,20 +56,20 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   // DM 보내기 버튼
   const handleSendMessageRoute = () => {
     setAnchorEl(null);
-    console.log("DM 보내기");
+    console.log('DM 보내기');
     // ...
   };
 
   // 친구 삭제 버튼 (= 사용자 차단.)
   const handleDeleteAndBlockFriend = () => {
-    console.log("Delete and Block friend");
+    console.log('Delete and Block friend');
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.blockUser);
-      if (RESPONSE?.status === "friend") {
+      if (RESPONSE?.status === 'friend') {
         // server handle error
-        alert("[SERVER]: 친구가 삭제 되지 않았습니다.");
+        alert('[SERVER]: 친구가 삭제 되지 않았습니다.');
         return;
       }
       // (2) delete from friendList
@@ -94,8 +94,8 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
         <IconButton
           aria-label="more"
           id="long-button"
-          aria-controls={open ? "user-menu" : undefined}
-          aria-expanded={open ? "true" : undefined}
+          aria-controls={open ? 'user-menu' : undefined}
+          aria-expanded={open ? 'true' : undefined}
           aria-haspopup="true"
           onClick={handleClick}
           size="small"
@@ -114,44 +114,44 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
         PaperProps={{
           elevation: 0,
           sx: {
-            overflow: "visible",
-            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+            overflow: 'visible',
+            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
             mt: 1.5,
-            "& .MuiAvatar-root": {
+            '& .MuiAvatar-root': {
               width: 32,
               height: 32,
               ml: -0.5,
               mr: 1,
             },
-            "&:before": {
+            '&:before': {
               content: '""',
-              display: "block",
-              position: "absolute",
+              display: 'block',
+              position: 'absolute',
               top: 0,
               right: 14,
               width: 10,
               height: 10,
-              bgcolor: "background.paper",
-              transform: "translateY(-50%) rotate(45deg)",
+              bgcolor: 'background.paper',
+              transform: 'translateY(-50%) rotate(45deg)',
               zIndex: 0,
             },
           },
         }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         {/* show profile route */}
-        <MenuItem onClick={() => handleProfileRoute(currentUrl)} children={"See profile"} disableRipple />
+        <MenuItem onClick={() => handleProfileRoute(currentUrl)} children={'See profile'} disableRipple />
 
         <Divider sx={{ my: 0.5 }} />
 
         {/* go to DM room route */}
-        <MenuItem onClick={handleSendMessageRoute} children={"Send messege"} disableRipple />
+        <MenuItem onClick={handleSendMessageRoute} children={'Send messege'} disableRipple />
 
         <Divider sx={{ my: 0.5 }} />
 
         {/* Delete friend handle */}
-        <MenuItem onClick={handleDeleteAndBlockFriend} children={"Delete friend"} disableRipple />
+        <MenuItem onClick={handleDeleteAndBlockFriend} children={'Delete friend'} disableRipple />
       </Menu>
     </div>
   );

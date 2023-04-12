@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as React from "react";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
+import * as React from 'react';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
 /************************************************
  * List의 각 요소를 Router로 연결해주는 컴포넌트.  *
@@ -22,13 +22,13 @@ import ListItemIcon from "@mui/material/ListItemIcon";
  * - @link3 https://mui.com/material-ui/guides/routing/#list
  */
 
-import { Link as RouterLink, LinkProps as RouterLinkProps } from "react-router-dom";
+import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom';
 
-import Tooltip from "@mui/material/Tooltip"; // 마우스 hover시에 힌트 뜨기 위함.
-import Badge from "@mui/material/Badge";
-import Skeleton from "@mui/material/Skeleton";
-import { SxProps } from "@mui/material";
-import { Theme } from "@emotion/react";
+import Tooltip from '@mui/material/Tooltip'; // 마우스 hover시에 힌트 뜨기 위함.
+import Badge from '@mui/material/Badge';
+import Skeleton from '@mui/material/Skeleton';
+import { SxProps } from '@mui/material';
+import { Theme } from '@emotion/react';
 
 const Link = React.forwardRef<HTMLAnchorElement, RouterLinkProps>(function Link(itemProps, ref) {
   return <RouterLink ref={ref} {...itemProps} role={undefined} />;
@@ -39,10 +39,10 @@ const Link = React.forwardRef<HTMLAnchorElement, RouterLinkProps>(function Link(
  */
 function notificationsLabel(count: number) {
   if (count === 0) {
-    return "no notifications";
+    return 'no notifications';
   }
   if (count > 99) {
-    return "more than 99 notifications";
+    return 'more than 99 notifications';
   }
   return `${count} notifications`;
 }
@@ -71,13 +71,13 @@ export default function ListItemButtonLink(props: ListItemLinkProps) {
             <ListItemIcon
               onClick={onClick}
               aria-label={notificationsLabel(badge ? badge : 0)}
-              sx={{ minWidth: 0, mr: "auto", maxWidth: "100%", flex: 1 }}
+              sx={{ minWidth: 0, mr: 'auto', maxWidth: '100%', flex: 1 }}
             >
               <Badge
                 badgeContent={props.badge}
                 color="primary"
                 max={99}
-                sx={{ flex: 1, "& .MuiBadge-badge": { fontSize: 7, height: 15, minWidth: 15 } }}
+                sx={{ flex: 1, '& .MuiBadge-badge': { fontSize: 7, height: 15, minWidth: 15 } }}
               >
                 {children}
               </Badge>

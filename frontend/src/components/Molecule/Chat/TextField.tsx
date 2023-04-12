@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { IconButton, InputAdornment } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useState } from 'react';
+import { IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
-type fieldType = "text" | "password" | "radio" | "number" | "month" | "file" | "email"; /* and more... */ // * [How to set up optinal props] // https://bobbyhadz.com/blog/react-optional-props-typescript // https://dev.to/fullstackchris/react-with-typescript-optional-props-with-default-values-33nc
+type fieldType = 'text' | 'password' | 'radio' | 'number' | 'month' | 'file' | 'email'; /* and more... */ // * [How to set up optinal props] // https://bobbyhadz.com/blog/react-optional-props-typescript // https://dev.to/fullstackchris/react-with-typescript-optional-props-with-default-values-33nc
 
 interface ITextFieldProps {
   state: string;
@@ -15,9 +15,9 @@ interface ITextFieldProps {
 export function TextField({
   state,
   setState,
-  label = "Label",
-  placeholder = "Placeholder",
-  type = "text",
+  label = 'Label',
+  placeholder = 'Placeholder',
+  type = 'text',
 }: ITextFieldProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -30,7 +30,7 @@ export function TextField({
       <label className="text-gray-700 form-label mb-2">{label}</label>
       <div className="relative flex">
         <input
-          type={showPassword ? "text" : type}
+          type={showPassword ? 'text' : type}
           value={state}
           onChange={(event) => {
             setState(event.target.value);
@@ -43,7 +43,7 @@ export function TextField({
                       focus:bg-white focus:border-blue-600 focus:outline-none"
         />
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-          {type === "password" && (
+          {type === 'password' && (
             <IconButton onClick={handleVisibilityClick}>{showPassword ? <Visibility /> : <VisibilityOff />}</IconButton>
           )}
         </div>

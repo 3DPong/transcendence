@@ -16,13 +16,13 @@
 
 // 이 컴포넌트는 User LIst Row 한칸에 표기할 정보들입니다. (flex.) (리스트에서 User 1명)
 
-import Avatar from "@mui/material/Avatar";
-import Typography from "@mui/material/Typography";
-import Skeleton from "@mui/material/Skeleton";
-import Tooltip from "@mui/material/Tooltip";
-import Badge from "@mui/material/Badge";
-import { friendData_t } from "@/types/user";
-import Chip from "@mui/material/Chip";
+import Avatar from '@mui/material/Avatar';
+import Typography from '@mui/material/Typography';
+import Skeleton from '@mui/material/Skeleton';
+import Tooltip from '@mui/material/Tooltip';
+import Badge from '@mui/material/Badge';
+import { friendData_t } from '@/types/user';
+import Chip from '@mui/material/Chip';
 
 export interface UserCardProps {
   user: friendData_t;

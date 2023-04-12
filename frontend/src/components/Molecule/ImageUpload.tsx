@@ -1,14 +1,14 @@
-import { PhotoCamera } from "@mui/icons-material";
-import { Avatar, Box, IconButton } from "@mui/material";
-import { FC, useEffect, useState, useRef } from "react";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContentText from "@mui/material/DialogContentText";
-import Button from "@mui/material/Button";
-import AvatarEditor from "react-avatar-editor";
-import CloseIcon from "@mui/icons-material/Close";
+import { PhotoCamera } from '@mui/icons-material';
+import { Avatar, Box, IconButton } from '@mui/material';
+import { FC, useEffect, useState, useRef } from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
+import Button from '@mui/material/Button';
+import AvatarEditor from 'react-avatar-editor';
+import CloseIcon from '@mui/icons-material/Close';
 
 /** [ Avater editor library ]
  * --------------------------------------------------------
@@ -19,7 +19,7 @@ import CloseIcon from "@mui/icons-material/Close";
  */
 
 const ALLOWED_FILE_MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_FORMAT = ["jpg", "jpeg", "png"];
+const ALLOWED_FILE_FORMAT = ['jpg', 'jpeg', 'png'];
 
 interface ImageUploadProps {
   thumbnail: string;
@@ -71,20 +71,20 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("handleImageChange");
+    console.log('handleImageChange');
     if (event.target.files && event.target.files[0]) {
       setIsEditDone(false);
       const file = event.target.files[0];
       // Validate file size
       if (!isValidSize(file)) {
-        alert("Image file is larger than 5MB");
-        event.target.value = "";
+        alert('Image file is larger than 5MB');
+        event.target.value = '';
         return;
       }
       // Validate file format
       if (!isValidFormat(file)) {
-        alert("Only jpeg, jpg, png format is allowed.");
-        event.target.value = "";
+        alert('Only jpeg, jpg, png format is allowed.');
+        event.target.value = '';
         return;
       }
       const reader = new FileReader();
@@ -93,7 +93,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
       };
       setOpenEditor(true); // 업로드 후 editor 열기
       reader.readAsDataURL(file);
-      event.target.value = "";
+      event.target.value = '';
     }
   };
 
@@ -115,26 +115,26 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
     <>
       <Box
         sx={{
-          position: "relative",
+          position: 'relative',
           width: 250,
           height: 250,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          mx: "auto",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mx: 'auto',
           mb: 2,
-          maxWidth: "250px",
-          maxHeight: "250px",
+          maxWidth: '250px',
+          maxHeight: '250px',
         }}
       >
         <Avatar
           alt="썸네일"
           src={thumbnail}
           sx={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            bgcolor: thumbnail ? "transparent" : "grey.300",
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            bgcolor: thumbnail ? 'transparent' : 'grey.300',
           }}
         />
         <input
@@ -143,7 +143,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
           // accept=".jpg, .jpeg, .png"
           id="image-upload"
           type="file"
-          style={{ display: "none" }}
+          style={{ display: 'none' }}
           onChange={handleImageChange}
         />
         <label htmlFor="image-upload">
@@ -151,12 +151,12 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
             // onClick={}
             component="span"
             sx={{
-              position: "absolute",
+              position: 'absolute',
               bottom: 0,
               right: 0,
-              backgroundColor: "background.paper",
-              borderRadius: "50%",
-              padding: "5px",
+              backgroundColor: 'background.paper',
+              borderRadius: '50%',
+              padding: '5px',
               // width: "50%",
               // height: "50%"
             }}

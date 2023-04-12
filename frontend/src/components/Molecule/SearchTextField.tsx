@@ -10,10 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as React from "react";
-import IconButton from "@mui/material/IconButton";
-import SearchIcon from "@mui/icons-material/Search";
-import TextField from "@mui/material/TextField";
+import * as React from 'react';
+import IconButton from '@mui/material/IconButton';
+import SearchIcon from '@mui/icons-material/Search';
+import TextField from '@mui/material/TextField';
 
 export interface SearchBarProps {
   state: string;
@@ -46,14 +46,14 @@ export default function SearchTextField(props: SearchBarProps) {
         onKeyUp={props.onKeyUp}
         placeholder={props.placeholder}
         error={props.disabled}
-        helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+        helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
         // required={true}
       />
 
       {/* onClick 콜백이 있을 경우에만 검색 버튼을 보여주기 */}
       <div className=" items-center flex">
         {props.onClick ? (
-          <IconButton onClick={props.onClick} disabled={props.disabled} sx={{ alignItems: "center", padding: 0 }}>
+          <IconButton onClick={props.onClick} disabled={props.disabled} sx={{ alignItems: 'center', padding: 0 }}>
             <SearchIcon />
           </IconButton>
         ) : (

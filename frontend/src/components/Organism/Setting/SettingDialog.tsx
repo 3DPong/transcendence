@@ -10,35 +10,35 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect, useInsertionEffect } from "react";
+import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect, useInsertionEffect } from 'react';
 
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContentText from "@mui/material/DialogContentText";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import { LoadingButton } from "@mui/lab";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContentText from '@mui/material/DialogContentText';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import { LoadingButton } from '@mui/lab';
 
-import { alpha, styled, SxProps } from "@mui/material/styles";
-import { pink } from "@mui/material/colors";
-import Switch from "@mui/material/Switch";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
+import { alpha, styled, SxProps } from '@mui/material/styles';
+import { pink } from '@mui/material/colors';
+import Switch from '@mui/material/Switch';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 
-import ImageUpload from "@/components/Molecule/ImageUpload";
-import * as Utils from "@/utils/Validator";
-import { Assert } from "@/utils/Assert";
-import * as API from "@/api/API";
-import GlobalContext from "@/context/GlobalContext";
-import { RepeatOneSharp } from "@mui/icons-material";
-import { Container, Stack } from "@mui/material";
-import { Typography } from "@mui/material";
-import { useNavigate } from "react-router";
-import { useError } from "@/context/ErrorContext";
-import {useSocket} from "@/context/SocketContext";
+import ImageUpload from '@/components/Molecule/ImageUpload';
+import * as Utils from '@/utils/Validator';
+import { Assert } from '@/utils/Assert';
+import * as API from '@/api/API';
+import GlobalContext from '@/context/GlobalContext';
+import { RepeatOneSharp } from '@mui/icons-material';
+import { Container, Stack } from '@mui/material';
+import { Typography } from '@mui/material';
+import { useNavigate } from 'react-router';
+import { useError } from '@/context/ErrorContext';
+import { useSocket } from '@/context/SocketContext';
 
 /**
  * 1. [ How to Re-fresh ]
@@ -86,24 +86,24 @@ function TextFieldWrapper(props: TextFieldWrapperProps) {
       InputLabelProps={{ style: { fontSize: props.labelSize } }} // font size of input label
       placeholder={props.placeholder}
       error={props.disabled}
-      helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+      helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
     />
   );
 }
 
 const CustomSwitch = styled(Switch)(({ theme }) => ({
-  "& .MuiSwitch-switchBase.Mui-checked": {
+  '& .MuiSwitch-switchBase.Mui-checked': {
     color: pink[600],
-    "&:hover": {
+    '&:hover': {
       backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
     },
   },
-  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
     backgroundColor: pink[600],
   },
 }));
 
-const label = { inputProps: { "aria-label": "Color switch demo" } };
+const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
 interface settingDialogProps {
   open: boolean;
@@ -116,8 +116,8 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [imageFile, setImageFile] = useState<string>("");
-  const [nickname, setNickname] = useState<string>("");
+  const [imageFile, setImageFile] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
   const [isNicknameOk, setIsNicknameOk] = useState<boolean>(false);
 
   let initialTwoFactorAuth: boolean; // 기존 사용자 설정
@@ -127,7 +127,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
     if (!gameSocket) return;
     (async () => {
       setIsLoading(true);
-      console.log("[DEV] 사용자의 세팅을 불러오는 중입니다.");
+      console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
       // test
       const loadedSettings = await API.getMySettings(handleError);
       if (loadedSettings) {
@@ -145,18 +145,18 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   useEffect(() => {
     if (gameSocket) return;
     gameConnect();
-  }, [])
+  }, []);
 
   // Nickname Change handle
   // ---------------------------------------------------------------------
   const _validator = useMemo(() => {
-    console.log("setting validator...");
+    console.log('setting validator...');
     return new Utils.Validator();
   }, []); // calculate only on first render.
 
   useEffect(() => {
     if (!nickname) return;
-    if (_validator.isAcceptable("@Nickname", nickname)) {
+    if (_validator.isAcceptable('@Nickname', nickname)) {
       setIsNicknameOk(true);
     } else {
       setIsNicknameOk(false);
@@ -175,8 +175,8 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   useEffect(() => {
     if (!twoFactorAuth) return;
     if (!initialTwoFactorAuth && twoFactorAuth) {
-      console.log("2차 인증이 off 에서 on으로 변경됨.");
-      alert("");
+      console.log('2차 인증이 off 에서 on으로 변경됨.');
+      alert('');
       // ... 경고 모달 활성화
     }
   }, [twoFactorAuth]);
@@ -224,7 +224,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
         <DialogTitle>Settings</DialogTitle>
         {/* X 버튼 */}
         <IconButton
-          sx={{ position: "absolute", right: 0, paddingRight: "24px", paddingTop: "16px" }}
+          sx={{ position: 'absolute', right: 0, paddingRight: '24px', paddingTop: '16px' }}
           onClick={handleClose}
         >
           <CloseIcon fontSize="medium" />
@@ -236,19 +236,19 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
           <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
           {/* 이름 변경 */}
           <TextFieldWrapper
-            sx={{ maxWidth: "300px" }}
+            sx={{ maxWidth: '300px' }}
             fontSize={24}
             value={nickname}
             onChange={setNickname}
-            type={"text"}
-            label={"Nickname"}
+            type={'text'}
+            label={'Nickname'}
             labelSize={18}
             disabled={!isNicknameOk}
-            disabledHelperText={_validator.getRuleHint("@Nickname")}
+            disabledHelperText={_validator.getRuleHint('@Nickname')}
           />
         </DialogContent>
 
-        <DialogContent sx={{ paddingBottom: 4, display: "flex", justifyContent: "space-between" }}>
+        <DialogContent sx={{ paddingBottom: 4, display: 'flex', justifyContent: 'space-between' }}>
           {/* 설정 저장 버튼 */}
           <LoadingButton
             color="info"

@@ -1,8 +1,8 @@
-import { FC } from "react";
-import { ToggleButton, ToggleButtonGroup } from "@mui/lab";
-import { FormControl } from "@mui/material";
-import { ChannelType } from "@/types/chat";
-import { Lock, LockOpen, Public } from "@mui/icons-material";
+import { FC } from 'react';
+import { ToggleButton, ToggleButtonGroup } from '@mui/lab';
+import { FormControl } from '@mui/material';
+import { ChannelType } from '@/types/chat';
+import { Lock, LockOpen, Public } from '@mui/icons-material';
 
 interface ChatTypeToggleProps {
   type: ChannelType;
@@ -21,17 +21,17 @@ const ChatTypeToggle: FC<ChatTypeToggleProps> = ({ type, setType }) => {
         value={type}
         exclusive
         onChange={handleTypeChange}
-        sx={{ justifyContent: "center", borderRadius: 1 }}
+        sx={{ justifyContent: 'center', borderRadius: 1 }}
       >
-        <ToggleButton value="public" sx={{ borderRadius: 1, flexDirection: "column" }}>
+        <ToggleButton value="public" sx={{ borderRadius: 1, flexDirection: 'column' }}>
           <Public />
           Public
         </ToggleButton>
-        <ToggleButton value="protected" sx={{ borderRadius: 1, flexDirection: "column" }}>
+        <ToggleButton value="protected" sx={{ borderRadius: 1, flexDirection: 'column' }}>
           <LockOpen />
           Protected
         </ToggleButton>
-        <ToggleButton value="private" sx={{ borderRadius: 1, flexDirection: "column" }}>
+        <ToggleButton value="private" sx={{ borderRadius: 1, flexDirection: 'column' }}>
           <Lock />
           Private
         </ToggleButton>

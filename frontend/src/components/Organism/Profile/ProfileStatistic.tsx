@@ -12,20 +12,20 @@
 
 // import type { userStatistic_t } from '@/types/user';
 // import type { recentGames_t } from '@/types/user';
-import { Skeleton } from "@mui/material";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import { FixedSizeList } from "react-window";
-import { ListItem } from "@mui/material";
-import * as API from "@/api/API";
+import { Skeleton } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import { FixedSizeList } from 'react-window';
+import { ListItem } from '@mui/material';
+import * as API from '@/api/API';
 
 const Row = (props: { index: number; style: React.CSSProperties; data?: any }) => {
   const { index, style, data } = props;
 
   return (
-    <ListItem style={style} key={index} divider={true} sx={{ display: "inline" /* flex 끄기 위함. */ }}>
+    <ListItem style={style} key={index} divider={true} sx={{ display: 'inline' /* flex 끄기 위함. */ }}>
       {data ? (
-        "Recent game result"
+        'Recent game result'
       ) : (
         <Box sx={{ pt: 0.5 }}>
           <Skeleton width="100%" />
@@ -45,10 +45,10 @@ function StatisticsList({ userData }: statisticsListProps) {
   return (
     <Box
       sx={{
-        width: "100%",
+        width: '100%',
         height: HEIGHT,
         maxWidth: 360,
-        bgcolor: "background.paper",
+        bgcolor: 'background.paper',
       }}
     >
       <FixedSizeList

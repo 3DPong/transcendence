@@ -1,15 +1,14 @@
-
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
-import {useSocket} from "@/context/SocketContext";
-import {useContext} from "react";
-import GlobalContext from "@/context/GlobalContext";
-import {Assert} from "@/utils/Assert";
-import {gameType, MatchJoinData, roomType} from "@/types/game";
-import {useError} from "@/context/ErrorContext";
+import { useSocket } from '@/context/SocketContext';
+import { useContext } from 'react';
+import GlobalContext from '@/context/GlobalContext';
+import { Assert } from '@/utils/Assert';
+import { gameType, MatchJoinData, roomType } from '@/types/game';
+import { useError } from '@/context/ErrorContext';
 
 // https://mui.com/material-ui/react-button/
 const images = [
@@ -94,90 +93,87 @@ interface ChooseModeButtonProps {
   setIsModeSelected: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ChooseModeButton({setIsModeSelected}: ChooseModeButtonProps) {
-  const {gameSocket} = useSocket();
-  const {handleError} = useError();
-  const {loggedUserId} = useContext(GlobalContext);
+export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButtonProps) {
+  const { gameSocket } = useSocket();
+  const { handleError } = useError();
+  const { loggedUserId } = useContext(GlobalContext);
   const handleNormalModeClick = () => {
     if (!loggedUserId) {
-      handleError("logged user_id", "logged user_id is currently null", "/login");
-      return ;
+      handleError('logged user_id', 'logged user_id is currently null', '/login');
+      return;
+    } else if (!gameSocket) {
+      console.log('Here');
+      handleError('gameSocket', 'gameSocket is currently null', '/');
+      return;
     }
-    else if (!gameSocket) {
-      console.log("Here");
-      handleError("gameSocket", "gameSocket is currently null", "/");
-      return ;
-    }
-    console.log("NormalMode selected");
+    console.log('NormalMode selected');
     console.log(loggedUserId);
     const matchJoinData: MatchJoinData = {
       userId: loggedUserId,
       roomType: roomType.random,
       gameType: gameType.normal,
-    }
-    gameSocket.emit("matchJoin", matchJoinData);
+    };
+    gameSocket.emit('matchJoin', matchJoinData);
     setIsModeSelected(true);
-  }
+  };
   const handleSpecialModeClick = () => {
     if (!loggedUserId) {
-      handleError("logged user_id", "logged user_id is currently null", "/login");
-      return ;
+      handleError('logged user_id', 'logged user_id is currently null', '/login');
+      return;
+    } else if (!gameSocket) {
+      console.log('Here');
+      handleError('gameSocket', 'gameSocket is currently null', '/');
+      return;
     }
-    else if (!gameSocket) {
-      console.log("Here");
-      handleError("gameSocket", "gameSocket is currently null", "/");
-      return ;
-    }
-    Assert.NonNullish(loggedUserId, "UserId is null");
-    console.log("SpecialMode selected");
+    Assert.NonNullish(loggedUserId, 'UserId is null');
+    console.log('SpecialMode selected');
     console.log(loggedUserId);
     const matchJoinData: MatchJoinData = {
       userId: loggedUserId,
       roomType: roomType.random,
       gameType: gameType.special,
-    }
-    gameSocket.emit("matchJoin", matchJoinData);
+    };
+    gameSocket.emit('matchJoin', matchJoinData);
     setIsModeSelected(true);
-  }
+  };
 
   return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', minWidth: 300, width: '100%' }}>
-        {images.map((image, idx) => (
-            <ImageButton
-                onClick={() => {
-                    if (idx === 0) {
-                      handleNormalModeClick();
-                    } else if (idx === 1) {
-                      handleSpecialModeClick();
-                    }
-                  }
-                }
-                focusRipple
-                key={image.title}
-                style={{
-                  width: image.width,
-                }}
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', minWidth: 300, width: '100%' }}>
+      {images.map((image, idx) => (
+        <ImageButton
+          onClick={() => {
+            if (idx === 0) {
+              handleNormalModeClick();
+            } else if (idx === 1) {
+              handleSpecialModeClick();
+            }
+          }}
+          focusRipple
+          key={image.title}
+          style={{
+            width: image.width,
+          }}
+        >
+          <ImageSrc style={{ backgroundImage: `url(${image.url})` }} />
+          <ImageBackdrop className="MuiImageBackdrop-root" />
+          <Image>
+            <Typography
+              component="span"
+              variant="subtitle1"
+              color="inherit"
+              sx={{
+                position: 'relative',
+                p: 4,
+                pt: 2,
+                pb: (theme) => `calc(${theme.spacing(1)} + 6px)`,
+              }}
             >
-              <ImageSrc style={{ backgroundImage: `url(${image.url})` }} />
-              <ImageBackdrop className="MuiImageBackdrop-root" />
-              <Image>
-                <Typography
-                    component="span"
-                    variant="subtitle1"
-                    color="inherit"
-                    sx={{
-                      position: 'relative',
-                      p: 4,
-                      pt: 2,
-                      pb: (theme) => `calc(${theme.spacing(1)} + 6px)`,
-                    }}
-                >
-                  {image.title}
-                  <ImageMarked className="MuiImageMarked-root" />
-                </Typography>
-              </Image>
-            </ImageButton>
-        ))}
-      </Box>
+              {image.title}
+              <ImageMarked className="MuiImageMarked-root" />
+            </Typography>
+          </Image>
+        </ImageButton>
+      ))}
+    </Box>
   );
 }

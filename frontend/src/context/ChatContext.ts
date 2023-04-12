@@ -11,8 +11,8 @@ interface ChatContextProps {
   muteList: number[];
   setMuteList: (mutes: number[]) => void;
 
-  banList: ChatUser[];
-  setBanList: (bans: ChatUser[]) => void;
+  banList: number[];
+  setBanList: (bans: number[]) => void;
 };
 
 const ChatContext = createContext<ChatContextProps>({

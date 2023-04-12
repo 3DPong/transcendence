@@ -11,7 +11,6 @@ interface MessageHeaderProps {
 }
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, handleMenuButton }) => {
-
   const getChannelTypeIcon = (type: ChannelType) => {
     switch (type) {
       case 'protected':
@@ -29,22 +28,20 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
 
   return (
     <div className=" flex-shrink-0 p-2 pl-4 pr-4 border border-gray-200 flex items-center">
-      <IconButton component={Link} to={"/channels"} edge="start" color="inherit" aria-label="back">
+      <IconButton component={Link} to={'/channels'} edge="start" color="inherit" aria-label="back">
         <ArrowBack />
       </IconButton>
       <div className="flex-grow flex items-center justify-center">
         <div className="flex items-center">
-          <span className="px-1.5 py-0.5 rounded text-blue-700 pr-2">
-            {getChannelTypeIcon(channel.type)}
-          </span>
+          <span className="px-1.5 py-0.5 rounded text-blue-700 pr-2">{getChannelTypeIcon(channel.type)}</span>
           <Typography
             variant="h6"
             title={channel.title}
             className="underline bold text-black-700 text-center
                         truncate overflow-ellipsis overflow-hidden
                         max-w-[220px] min-w-[100px]"
-            style={{whiteSpace: "pre"}}
-            >
+            style={{ whiteSpace: 'pre' }}
+          >
             {channel.title}
           </Typography>
         </div>

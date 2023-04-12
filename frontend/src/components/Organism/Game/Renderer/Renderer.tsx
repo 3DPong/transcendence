@@ -10,33 +10,48 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as BABYLON from "@babylonjs/core";
-import {ArcRotateCamera, MeshBuilder, Mesh, Scene, Vector3, Color3} from "@babylonjs/core";
-import SceneComponent from "./SceneComponent"; // uses above component in same directory
-import {Assert} from "@/utils/Assert";
-import React, {useEffect, useRef} from "react";
-import * as ObjectConverter from "@/components/Organism/Game/Renderer/ObjectConverter";
-import * as gameType from "@/types/game";
-import {useSocket} from "@/context/SocketContext";
-import {Socket} from "socket.io-client";
-import {convertVec2ArrayToVec3} from "./ObjectConverter";
-import {useError} from "@/context/ErrorContext";
-
+import * as BABYLON from '@babylonjs/core';
+import { ArcRotateCamera, MeshBuilder, Mesh, Scene, Vector3, Color3 } from '@babylonjs/core';
+import SceneComponent from './SceneComponent'; // uses above component in same directory
+import { Assert } from '@/utils/Assert';
+import React, { useEffect, useRef } from 'react';
+import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
+import * as gameType from '@/types/game';
+import { useSocket } from '@/context/SocketContext';
+import { Socket } from 'socket.io-client';
+import { convertVec2ArrayToVec3 } from './ObjectConverter';
+import { useError } from '@/context/ErrorContext';
 
 // camera class for extension function
 class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
-  constructor(name: string, alpha: number, beta: number, radius: number, target: BABYLON.Vector3, scene?: BABYLON.Scene | undefined, setActiveOnSceneIfNoneActive?: boolean | undefined) {
+  constructor(
+    name: string,
+    alpha: number,
+    beta: number,
+    radius: number,
+    target: BABYLON.Vector3,
+    scene?: BABYLON.Scene | undefined,
+    setActiveOnSceneIfNoneActive?: boolean | undefined
+  ) {
     super(name, alpha, beta, radius, target, scene, setActiveOnSceneIfNoneActive);
   }
   public spinTo(property: string, to: any, FramePerSecond: number, totalFrame: number) {
     let ease = new BABYLON.CubicEase();
     ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-    BABYLON.Animation.CreateAndStartAnimation('at4', this, property, FramePerSecond, totalFrame, this[property as keyof typeof this], to, 0, ease);
-    console.log("camera spinTo animation");
+    BABYLON.Animation.CreateAndStartAnimation(
+      'at4',
+      this,
+      property,
+      FramePerSecond,
+      totalFrame,
+      this[property as keyof typeof this],
+      to,
+      0,
+      ease
+    );
+    console.log('camera spinTo animation');
   }
 }
-
-
 
 export interface RenderSceneProps {
   matchData: gameType.matchStartData;
@@ -54,8 +69,8 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
   // https://socket.io/how-to/use-with-react
   useEffect(() => {
     if (!gameSocket) {
-      handleError("gameSocket", "gameSocket is currently null", "/");
-      return ;
+      handleError('gameSocket', 'gameSocket is currently null', '/');
+      return;
     }
     // 변경된 친구들.
     function onFrameSentFromSever(renderDataArray: readonly gameType.renderData[]) {
@@ -68,12 +83,12 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       }
     }
 
-    gameSocket.on("render", onFrameSentFromSever);
+    gameSocket.on('render', onFrameSentFromSever);
 
     return () => {
-      console.log("gameSocket: [render] off");
-      gameSocket.off("render", onFrameSentFromSever);
-    }
+      console.log('gameSocket: [render] off');
+      gameSocket.off('render', onFrameSentFromSever);
+    };
   }, []);
 
   const onSceneReady = (scene3D: Scene) => {
@@ -83,7 +98,7 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
     if (!_Canvas) return;
     _Canvas.focus(); // 게임 화면에 포커스 설정.
     const camera = new CustomArchRotateCamera(
-      "camera",
+      'camera',
       -Math.PI / 2,
       0.01,
       150, // Distance from Target
@@ -93,62 +108,73 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
     // camera.attachControl(true);
     camera.upVector = new BABYLON.Vector3(0, 0, 1);
     const canvas = scene3D.getEngine().getRenderingCanvas();
-    Assert.NonNullish(canvas, "canvas is null");
+    Assert.NonNullish(canvas, 'canvas is null');
 
     // (1) Attach Control
     if (!gameSocket) {
-      handleError("gameSocket", "gameSocket is currently null", "/");
-      return ;
+      handleError('gameSocket', 'gameSocket is currently null', '/');
+      return;
     }
     attachGameEventToCanvas(_Canvas, gameSocket, matchData.gameId, matchData.playerLocation);
 
     // (2) create Light, ambient light
     scene3D.ambientColor = new BABYLON.Color3(1, 1, 1);
-    const light = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(-1, 1, 0), scene3D);
+    const light = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(-1, 1, 0), scene3D);
     light.diffuse = new BABYLON.Color3(1, 0, 0);
     light.specular = new BABYLON.Color3(0, 1, 0);
     light.groundColor = new BABYLON.Color3(0, 1, 0);
 
     // (TEST : delete later)
     // --------------------------------------------------------------
-    MeshBuilder.CreateSphere("LeftBall", {
-      diameter: 5,
-    }, scene3D).position = new Vector3(-20, 0, 0);
+    MeshBuilder.CreateSphere(
+      'LeftBall',
+      {
+        diameter: 5,
+      },
+      scene3D
+    ).position = new Vector3(-20, 0, 0);
 
-    MeshBuilder.CreateSphere("RightBall", {
-      diameter: 5,
-    }, scene3D).position = new Vector3(20, 0, 0);
+    MeshBuilder.CreateSphere(
+      'RightBall',
+      {
+        diameter: 5,
+      },
+      scene3D
+    ).position = new Vector3(20, 0, 0);
 
     const verticiesArray2D = [
-      {x: 25, y: 10},
-      {x: -25, y: 10},
-      {x: -25, y: -10},
-      {x: 25, y: -10},
+      { x: 25, y: 10 },
+      { x: -25, y: 10 },
+      { x: -25, y: -10 },
+      { x: 25, y: -10 },
     ];
     const verticiesArray3D = convertVec2ArrayToVec3(verticiesArray2D, 2);
     verticiesArray3D.push(verticiesArray3D[0]); // end cap
-    const lines = MeshBuilder.CreateLines("lines", {
-      points: verticiesArray3D,
-    }, scene3D);
+    const lines = MeshBuilder.CreateLines(
+      'lines',
+      {
+        points: verticiesArray3D,
+      },
+      scene3D
+    );
     lines.color = new Color3(1, 0, 0);
     // --------------------------------------------------------------
 
-
     const CAMERA_ANIMATION_TIME_MS = 2000;
-    const TOTAL_FRAME = CAMERA_ANIMATION_TIME_MS * 60 / 1000;
+    const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     // (3) Set up Camera via player type
     if (matchData.playerLocation === gameType.PlayerLocation.LEFT) {
-      camera.spinTo("radius", 50, 60, TOTAL_FRAME);
-      camera.spinTo("alpha", -Math.PI, 60, TOTAL_FRAME);
-      camera.spinTo("beta", Math.PI/2 - 0.2, 60, TOTAL_FRAME);
-    } else { // RIGHT
-      camera.spinTo("radius", 50, 60, TOTAL_FRAME);
-      camera.spinTo("alpha", 0.01, 60, TOTAL_FRAME);
-      camera.spinTo("beta", Math.PI/2 - 0.2, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('alpha', -Math.PI, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
+    } else {
+      // RIGHT
+      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('alpha', 0.01, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
     }
 
     // (4) Apply color, texture, etc...
-
 
     // (5) create Objects using simulator's data
     if (!matchData.sceneData) return;
@@ -172,17 +198,17 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
           m_MeshMap.set(obj2D.objectId, mesh);
           break;
         default:
-          console.log("no matching type");
+          console.log('no matching type');
           break;
       }
 
       // (6) Start Game after 120 frame.
       setTimeout(() => {
-        gameSocket.emit("start");
-        console.log("[DEV] : GAME START!")
+        gameSocket.emit('start');
+        console.log('[DEV] : GAME START!');
       }, CAMERA_ANIMATION_TIME_MS * 1.3);
     }
-  } // onSceneReady
+  }; // onSceneReady
 
   // https://doc.babylonjs.com/features/featuresDeepDive/animation/animation_introduction
   // const onRender = (scene: Scene) => {
@@ -205,45 +231,52 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
   );
 }
 
-  function attachGameEventToCanvas (canvas: HTMLCanvasElement, gameSocket: Socket, gameId: string, playerLocation: gameType.PlayerLocation) {
-    let isDown = false;
-    function onKeyDown(event: KeyboardEvent) {
-      let inputData: gameType.inputData;
-      if (isDown) return;
+function attachGameEventToCanvas(
+  canvas: HTMLCanvasElement,
+  gameSocket: Socket,
+  gameId: string,
+  playerLocation: gameType.PlayerLocation
+) {
+  let isDown = false;
+  function onKeyDown(event: KeyboardEvent) {
+    let inputData: gameType.inputData;
+    if (isDown) return;
 
-      let movePaddleLeft, movePaddleRight;
-      if (playerLocation === gameType.PlayerLocation.LEFT) { // Left Player
-        // 왼쪽 플레이어에게 왼쪽 움직임은 위로 움직이는것과 동일.
-        movePaddleLeft = gameType.inputEnum.UP;
-        movePaddleRight = gameType.inputEnum.DOWN;
-      } else { // Right Player
-        movePaddleLeft = gameType.inputEnum.DOWN;
-        movePaddleRight = gameType.inputEnum.UP;
-      }
+    let movePaddleLeft, movePaddleRight;
+    if (playerLocation === gameType.PlayerLocation.LEFT) {
+      // Left Player
+      // 왼쪽 플레이어에게 왼쪽 움직임은 위로 움직이는것과 동일.
+      movePaddleLeft = gameType.inputEnum.UP;
+      movePaddleRight = gameType.inputEnum.DOWN;
+    } else {
+      // Right Player
+      movePaddleLeft = gameType.inputEnum.DOWN;
+      movePaddleRight = gameType.inputEnum.UP;
+    }
 
-      switch (event.key) {
-        case "ArrowLeft": // Move Left
-          inputData = {gameId: gameId, key: movePaddleLeft};
-          gameSocket.emit("keyInput", inputData);
-          isDown = true;
-          break;
-        case "ArrowRight": // Move Right
-          inputData = {gameId: gameId, key: movePaddleRight};
-          gameSocket.emit("keyInput", inputData);
-          isDown = true;
-          break;
-        case "Control": // Skill
-          inputData = {gameId: gameId, key: gameType.inputEnum.SKILL};
-          gameSocket.emit("keyInput", inputData);
-          isDown = true;
-          break;
-        default: // no handling
-          return;
-      }
+    switch (event.key) {
+      case 'ArrowLeft': // Move Left
+        inputData = { gameId: gameId, key: movePaddleLeft };
+        gameSocket.emit('keyInput', inputData);
+        isDown = true;
+        break;
+      case 'ArrowRight': // Move Right
+        inputData = { gameId: gameId, key: movePaddleRight };
+        gameSocket.emit('keyInput', inputData);
+        isDown = true;
+        break;
+      case 'Control': // Skill
+        inputData = { gameId: gameId, key: gameType.inputEnum.SKILL };
+        gameSocket.emit('keyInput', inputData);
+        isDown = true;
+        break;
+      default: // no handling
+        return;
     }
-    function onKeyUp(event: KeyboardEvent) {
-      isDown = false;
-    }
-    canvas.addEventListener("keydown", onKeyDown, false);
-    canvas.addEventListener("keyup", onKeyUp, false);
-  };
+  }
+  function onKeyUp(event: KeyboardEvent) {
+    isDown = false;
+  }
+  canvas.addEventListener('keydown', onKeyDown, false);
+  canvas.addEventListener('keyup', onKeyUp, false);
+}

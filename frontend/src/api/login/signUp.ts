@@ -1,14 +1,12 @@
-
-
-import { uploadImageToServer } from "@/api/upload/upload";
-import { API_URL } from "../../../config/backend";
-import {handleErrorFunction, useError} from "@/context/ErrorContext";
-import GlobalContext from "@/context/GlobalContext";
-import {useContext} from "react";
+import { uploadImageToServer } from '@/api/upload/upload';
+import { API_URL } from '../../../config/backend';
+import { handleErrorFunction, useError } from '@/context/ErrorContext';
+import GlobalContext from '@/context/GlobalContext';
+import { useContext } from 'react';
 
 export interface POST_SignUpRequestFormat {
-  nickname: string,
-  profile_url: string,
+  nickname: string;
+  profile_url: string;
 }
 
 export interface POST_SignUpResponseFormat {
@@ -17,9 +15,11 @@ export interface POST_SignUpResponseFormat {
 
 type user_id = number;
 // SUCCESS = 201 Created
-export async function requestSignUp(handleError: handleErrorFunction, _nickname: string, clientSideImageUrl: string)
-    : Promise<user_id | void>
-{
+export async function requestSignUp(
+  handleError: handleErrorFunction,
+  _nickname: string,
+  clientSideImageUrl: string
+): Promise<user_id | void> {
   // 1. 서버에 프로필 이미지부터 전송.
   const serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
   if (!serverSideImageUrl) return; // 여기서 에러나면 걍 끝내ㅓ기
@@ -29,11 +29,11 @@ export async function requestSignUp(handleError: handleErrorFunction, _nickname:
   const requestPayload: POST_SignUpRequestFormat = {
     nickname: _nickname,
     profile_url: serverSideImageUrl,
-  }
+  };
 
   const signUpResponse = await fetch(requestUrl, {
-    method: "POST",
-    headers:{
+    method: 'POST',
+    headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(requestPayload),
@@ -42,12 +42,12 @@ export async function requestSignUp(handleError: handleErrorFunction, _nickname:
   // on error
   if (!signUpResponse.ok) {
     const errorData = await signUpResponse.json();
-    handleError("Sign Up", errorData.message);
-    return ;
+    handleError('Sign Up', errorData.message);
+    return;
   }
 
   // on success
-  const {setLoggedUserId} = useContext(GlobalContext);
+  const { setLoggedUserId } = useContext(GlobalContext);
   const responseData: POST_SignUpResponseFormat = await signUpResponse.json();
-  return (responseData.user_id);
-};
+  return responseData.user_id;
+}

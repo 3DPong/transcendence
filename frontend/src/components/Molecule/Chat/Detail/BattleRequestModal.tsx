@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -8,9 +8,9 @@ import {
   FormControlLabel,
   Radio,
   Button,
-} from "@mui/material";
-import { SportsEsports } from "@mui/icons-material";
-import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+} from '@mui/material';
+import { SportsEsports } from '@mui/icons-material';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 interface BattleRequestModalProps {
   open: boolean;
@@ -19,7 +19,7 @@ interface BattleRequestModalProps {
 }
 
 const BattleRequestModal: React.FC<BattleRequestModalProps> = ({ open, onClose, onGameCreate }) => {
-  const [gameType, setGameType] = useState("normal");
+  const [gameType, setGameType] = useState('normal');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setGameType(event.target.value);

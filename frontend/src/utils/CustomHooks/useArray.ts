@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState } from "react";
+import { useState } from 'react';
 
 /**
  * @ImprovementsNeeded
@@ -107,7 +107,7 @@ export default function useArray<S extends ObjectLiteral>(initialState?: Array<S
     // https://stackoverflow.com/questions/52616172/how-to-initialize-an-object-in-typescript
     const copyObj: typeof object = {};
     for (const key in object) {
-      if (typeof object[key] == "object" && key != null) {
+      if (typeof object[key] == 'object' && key != null) {
         copyObj[key] = __getDeepCopiedObject(object[key]); // 재귀적 호출.
       } else {
         copyObj[key] = object[key];
@@ -124,16 +124,16 @@ export default function useArray<S extends ObjectLiteral>(initialState?: Array<S
    * @UpdatePatterns
    * ```
    * // add at back
-   * update(draft => { 
-   *     draft.push({id: "id3", done: false, body: "Buy bananas"}) 
+   * update(draft => {
+   *     draft.push({id: "id3", done: false, body: "Buy bananas"})
    * })
    *
    * // insert at index (Ex. by index 3)
-   * update(draft => { 
-   *     draft.splice(3, 0, {id: "id3", done: false, body: "Buy bananas"}) 
+   * update(draft => {
+   *     draft.splice(3, 0, {id: "id3", done: false, body: "Buy bananas"})
    * })
-   * 
-   * 
+   *
+   *
    * // add item at the beginning of the array
    * update(draft => {
    *     draft.unshift({id: "id3", done: false, body: "Buy bananas"})
@@ -150,25 +150,25 @@ export default function useArray<S extends ObjectLiteral>(initialState?: Array<S
    *
    * // delete by index (Ex. by index 3)
    * update(draft => { draft.splice(3, 1) })
-   * 
+   *
    * // delete by id
    * update(draft => {
    *     const index = draft.findIndex(todo => todo.id === "id1")
    *     if (index !== -1) draft.splice(index, 1)
    * })
-   * 
+   *
    * // update by id
    * update(draft => {
    *     const index = draft.findIndex(todo => todo.id === "id1")
    *     if (index !== -1) draft[index].done = true
    * })
-   * 
+   *
    * ```
    * @More https://immerjs.github.io/immer/update-patterns
    *
    */
   function update(param: ((draft: S[]) => void) /*function*/ | S[] /*array*/): void {
-    if (typeof param === "function") {
+    if (typeof param === 'function') {
       // create newState by deep copying original state
       const newArr = __array.map((arrElem: ObjectLiteral) => {
         return __getDeepCopiedObject(arrElem) as S;

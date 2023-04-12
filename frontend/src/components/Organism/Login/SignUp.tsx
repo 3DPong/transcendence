@@ -10,16 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState, useEffect, useContext, useMemo, useLayoutEffect } from "react";
-import { LoadingButton } from "@mui/lab";
-import TextField from "@mui/material/TextField";
-import { useNavigate } from "react-router";
+import { useState, useEffect, useContext, useMemo, useLayoutEffect } from 'react';
+import { LoadingButton } from '@mui/lab';
+import TextField from '@mui/material/TextField';
+import { useNavigate } from 'react-router';
 
-import GlobalContext from "@/context/GlobalContext";
-import ImageUpload from "@/components/Molecule/ImageUpload";
-import * as Utils from "@/utils/Validator";
-import * as API from "@/api/API";
-import { useError } from "@/context/ErrorContext";
+import GlobalContext from '@/context/GlobalContext';
+import ImageUpload from '@/components/Molecule/ImageUpload';
+import * as Utils from '@/utils/Validator';
+import * as API from '@/api/API';
+import { useError } from '@/context/ErrorContext';
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -47,7 +47,7 @@ function TextFieldWrapper(props: TextFieldWrapperProps) {
       }}
       placeholder={props.placeholder}
       error={props.disabled}
-      helperText={props.disabled ? props.disabledHelperText : ""} // 에러일 때만 표시
+      helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
       required={true}
     />
   );
@@ -55,8 +55,8 @@ function TextFieldWrapper(props: TextFieldWrapperProps) {
 
 export function SignUp() {
   const { setLoggedUserId } = useContext(GlobalContext);
-  const [imageFile, setImageFile] = useState<string>("");
-  const [nickname, setNickname] = useState<string>("");
+  const [imageFile, setImageFile] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { handleError } = useError();
@@ -72,9 +72,9 @@ export function SignUp() {
     // loggedUserId가 있고 세션스토리지도 있다는 얘기는 앱 로그인 후 사용자가 /signin 경로를 입력한 경우이다.
     // 이 경우는 암것도 하지 않고 home으로 리다이렉트만 시킨다.
     console.log(1);
-    if (sessionStorage.getItem("user_id") !== null) {
+    if (sessionStorage.getItem('user_id') !== null) {
       console.log(2);
-      navigate("/"); // home 경로로 이동한다.
+      navigate('/'); // home 경로로 이동한다.
       return;
     }
   }, []);
@@ -82,7 +82,7 @@ export function SignUp() {
   const handleSubmit = () => {
     if (submitDisabled) return;
     (async () => {
-      console.log("handle submit");
+      console.log('handle submit');
       // 1. 서버에 가입 요청.
       setIsLoading(true);
       const user_id = await API.requestSignUp(handleError, nickname, imageFile);
@@ -90,19 +90,19 @@ export function SignUp() {
       if (user_id) {
         setLoggedUserId(user_id);
       }
-      navigate("/");
+      navigate('/');
     })(/* IIFE */);
   };
 
   // Validator instance with useMemo. V-dom update랑 관계없이 항상 보유.
   const _validator = useMemo(() => {
-    console.log("setting validator...");
+    console.log('setting validator...');
     return new Utils.Validator();
   }, []); // calculate only on first render.
 
   // nickname이 바뀔 때 마다 검증 시도 --> 통과시 submit 버튼 활성화
   useEffect(() => {
-    if (_validator.isAcceptable("@Nickname", nickname) /* && imageFile*/) {
+    if (_validator.isAcceptable('@Nickname', nickname) /* && imageFile*/) {
       setSubmitDisabled(false);
     } else {
       setSubmitDisabled(true);
@@ -110,7 +110,7 @@ export function SignUp() {
   }, [nickname]);
 
   // navigate 함수 사용시 컴포넌트 깜빡임 문제 해결을 위한 시도.
-  if (sessionStorage.getItem("user_id") !== null) return <></>;
+  if (sessionStorage.getItem('user_id') !== null) return <></>;
   else
     return (
       <div className=" w-screen h-screen flex justify-center items-center">
@@ -128,10 +128,10 @@ export function SignUp() {
           <TextFieldWrapper
             value={nickname}
             onChange={setNickname}
-            type={"text"}
-            label={"nickname"}
+            type={'text'}
+            label={'nickname'}
             disabled={submitDisabled}
-            disabledHelperText={_validator.getRuleHint("@Nickname")}
+            disabledHelperText={_validator.getRuleHint('@Nickname')}
           />
 
           {/* Submit Button */}

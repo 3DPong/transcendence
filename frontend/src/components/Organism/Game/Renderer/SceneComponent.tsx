@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import * as BABYLON from "@babylonjs/core";
-import { Assert } from "@/utils/Assert";
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import * as BABYLON from '@babylonjs/core';
+import { Assert } from '@/utils/Assert';
 
 /*************************************************************
  *  UseRef는 HTML Component (ex <canvas>, <input>...etc)
@@ -78,7 +78,7 @@ function SceneComponent({
     });
 
     const resize = () => {
-      console.log("resizing render canvas...");
+      console.log('resizing render canvas...');
       scene.getEngine().resize();
       // const ctx = canvas.getContext("2d");
       // Assert.NonNullish(ctx, "ctx is null");
@@ -87,7 +87,7 @@ function SceneComponent({
     };
 
     if (window) {
-      window.addEventListener("resize", resize);
+      window.addEventListener('resize', resize);
     }
 
     // on element destory
@@ -95,7 +95,7 @@ function SceneComponent({
       scene.getEngine().dispose();
 
       if (window) {
-        window.removeEventListener("resize", resize);
+        window.removeEventListener('resize', resize);
       }
     };
   }, [antialias, engineOptions, adaptToDeviceRatio, sceneOptions, /* onRender,*/ onSceneReady]);

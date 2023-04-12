@@ -1,10 +1,7 @@
-
-import {API_URL} from "../../../config/backend";
+import { API_URL } from '../../../config/backend';
 
 export interface GET_SignInResponseFormat {
-  status:   "SUCCESS" /*로그인성공 */ 
-          | "SIGNUP_MODE" /*회원가입*/ 
-          | "2FA"; /*2차인증(QR코드 받기)*/
+  status: 'SUCCESS' /*로그인성공 */ | 'SIGNUP_MODE' /*회원가입*/ | '2FA' /*2차인증(QR코드 받기)*/;
   user_id?: number; // SUCCESS일 경우에만 날라옴.
 }
 
@@ -14,8 +11,8 @@ export async function requestSignIn() {
 
   // 이제 서버에서 보내준 상태 처리
   const mock: GET_SignInResponseFormat = {
-    status: "SUCCESS",
+    status: 'SUCCESS',
     user_id: 42,
-  }
+  };
   return mock;
-};
+}

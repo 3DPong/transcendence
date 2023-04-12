@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-type fieldType = "text" | "password" | "radio" | "number" | "month" | "file" | "email"; /* and more... */
+type fieldType = 'text' | 'password' | 'radio' | 'number' | 'month' | 'file' | 'email'; /* and more... */
 // * [How to set up optinal props]
 // https://bobbyhadz.com/blog/react-optional-props-typescript
 // https://dev.to/fullstackchris/react-with-typescript-optional-props-with-default-values-33nc
@@ -39,9 +39,9 @@ interface ITextFieldProps {
 export function TextFields({
   state,
   setState,
-  label = "Label",
-  placeholder = "Placeholder",
-  type = "text",
+  label = 'Label',
+  placeholder = 'Placeholder',
+  type = 'text',
 }: ITextFieldProps): /* Returns */ JSX.Element {
   return (
     <div className="mb-6 form-group">
