@@ -25,7 +25,7 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
   const navigate = useNavigate();
   const { handleError } = useError();
 
-  const banUsers = users.filter((user) => banList.includes(user.id));
+  const banUsers = users.filter((user) => user.id in banList);
 
   async function leaveChannel() {
     const response = await fetch(API_URL + '/chat/' + channel.id + '/out' + '?id=' + loggedUserId, {

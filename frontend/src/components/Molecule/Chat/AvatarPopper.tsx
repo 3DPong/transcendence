@@ -21,8 +21,8 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   const openScrollY = useRef<number>(scrollY);
   const open = Boolean(anchorEl);
   const { isAdmin, muteList, setMuteList, banList, setBanList } = useContext(ChatContext);
-  const isTargetMuted = muteList.includes(target.id);
-  const isTargetBanned = banList.includes(target.id);
+  const isTargetMuted = target.id in muteList;
+  const isTargetBanned = target.id in banList;
 
   const { chatSocket } = useSocket();
   const { channelId } = useParams();

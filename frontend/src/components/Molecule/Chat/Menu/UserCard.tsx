@@ -12,7 +12,7 @@ interface UserCardProps {
 
 const UserCard: FC<UserCardProps> = ({ user, scrollY }) => {
   const { muteList } = useContext(ChatContext);
-  const isMuted = muteList.includes(user.id);
+  const isMuted = user.id in muteList;
 
   return (
     <div className="pr-4">

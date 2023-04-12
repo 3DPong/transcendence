@@ -25,8 +25,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [users, setUsers] = useState<ChatUser[]>([]);
-  const [banList, setBanList] = useState<number[]>([]);
-  const [muteList, setMuteList] = useState<number[]>([]);
+  const [banList, setBanList] = useState<Record<number, number>>({});
+  const [muteList, setMuteList] = useState<Record<number, number>>({});
 
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -39,9 +39,31 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   // 최신 상태 유지를 위한 ref
   const messagesRef = useRef<Message[]>([]);
-  const muteListRef = useRef<number[]>([]);
-  const banListRef = useRef<number[]>([]);
+  const muteListRef = useRef<Record<number, number>>({});
+  const banListRef = useRef<Record<number, number>>({});
   const usersRef = useRef<ChatUser[]>([]);
+
+  function unsetTimerHandler(
+      targetId: number,
+      list: Record<number, number>,
+      setter: (list: Record<number, number>) => void
+    ) {
+    clearTimeout(list[targetId]);
+    const {[targetId]: value, ...newList} = list;
+    setter(newList);
+  }
+
+  function setTimerHandler(
+      targetId: number,
+      list: Record<number, number>,
+      setter: (list: Record<number, number>) => void,
+      end_at: string
+    ) {
+    return setTimeout(
+      () => { unsetTimerHandler(targetId, list, setter) }
+      , new Date(end_at).getTime() - Date.now()
+    );
+  }
 
   async function fetchUsersByChannelId(_channelId: number) {
     const response = await fetch(API_URL + '/chat/' + _channelId + '/users' + '?id=' + loggedUserId, {
@@ -71,11 +93,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
     const fetchBanList = await response.json();
 
-    const banlist: number[] = fetchBanList.map((usr: any) => {
-      // 여기서 각각 시간체크 setTimeout
-      return usr.user.user_id;
-    });
-    return banlist;
+    console.log(fetchBanList);
+    return fetchBanList.reduce((banRecord: Record<number, number>, user: any) => {
+      const targetId = user.user.user_id;
+      banRecord[targetId] = setTimerHandler(targetId, banListRef.current, setBanList, user.end_at);
+      return banRecord;
+    }, {});
   }
 
   async function fetchMuteListByChannelId(_channelId: number) {
@@ -86,11 +109,12 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
     const fetchMuteList = await response.json();
 
-    const mutelist: number[] = fetchMuteList.map((usr: any) => {
-      // usr.end_at 으로 settimeout
-      return usr.user.user_id;
-    });
-    return mutelist;
+    return fetchMuteList.reduce((muteRecord: Record<number, number>, user: any) => {
+      const targetId = user.user.user_id;
+      muteRecord[targetId] = setTimerHandler(targetId, muteListRef.current, setMuteList, user.end_at);
+
+      return muteRecord;
+    }, {});
   }
 
   const handleGameCreate = (gameType: string) => {
@@ -157,14 +181,15 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       chatSocket.on('ban', (message) => {
         if (message.channel_id) {
           const targetId = message.user_id;
-          if (banListRef.current.find((id)=>(id === targetId))) {
+          if (targetId in banListRef.current) {
             // UnBan
-            setBanList(banListRef.current.filter((id)=>(id !== targetId)));
+            unsetTimerHandler(targetId, banListRef.current, setBanList);
           }
           else {
             // Ban
             setDeletedAtFromUsers(targetId);
-            setBanList([...banListRef.current, targetId]);
+            const timerId = setTimerHandler(targetId, banListRef.current, setBanList, message.end_at);
+            setBanList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
       });
@@ -173,16 +198,18 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         if (message.channel_id === channelId) {
           const targetId = message.user_id;
           console.log('muteList: ', muteListRef.current);
-          if (muteListRef.current.indexOf(targetId) >= 0) {
+          if (targetId in muteListRef.current) {
             // UnMute
-            setMuteList(muteListRef.current.filter((id) => id !== targetId));
+            unsetTimerHandler(targetId, muteListRef.current, setMuteList);
           } else {
             // Mute
-            setMuteList([...muteListRef.current, targetId]);
+            const timerId = setTimerHandler(targetId, muteListRef.current, setMuteList, message.end_at);
+            setMuteList(prevState => ({...prevState, [targetId]: timerId}));
           }
         }
       });
     }
+
     return () => {
       console.log('socket userEffect out');
     };
@@ -208,7 +235,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           fetchBanListByChannelId(channelIdNumber),
           fetchMuteListByChannelId(channelIdNumber),
         ]);
-        console.log('=========33333333333========');
         setUsers(usrs);
         setBanList(bans);
         setMuteList(mutes);

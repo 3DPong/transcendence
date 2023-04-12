@@ -1,4 +1,3 @@
-import { ChatUser } from '@/types/chat';
 import { createContext } from 'react';
 
 interface ChatContextProps {
@@ -8,11 +7,11 @@ interface ChatContextProps {
   // userList: ChatUser[];
   // setUserList: (users: ChatUser[]) => void;
 
-  muteList: number[];
-  setMuteList: (mutes: number[]) => void;
+  muteList: Record<number, number>;
+  setMuteList: (mutes: Record<number, number>) => void;
 
-  banList: number[];
-  setBanList: (bans: number[]) => void;
+  banList: Record<number, number>;
+  setBanList: (bans: Record<number, number>) => void;
 };
 
 const ChatContext = createContext<ChatContextProps>({
@@ -20,9 +19,9 @@ const ChatContext = createContext<ChatContextProps>({
   setIsAdmin: () => {},
   // userList: [],
   // setUserList: () => {},
-  muteList: [],
+  muteList: {},
   setMuteList: () => {},
-  banList: [],
+  banList: {},
   setBanList: () => {},
 });
 
