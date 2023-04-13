@@ -433,28 +433,47 @@ describe('UserService', () => {
       expect(error.message).toEqual('invalid user (session is not valid)');
     });
 
-    /**
-     * SESSION FAIL 이후 세션이 꼬일 수 있다. 해당 부분은 잡지 못함.
-     */
-    it('세션상의 에러일 경우 롤백 후 500반환', async () => {
-      request = createRequest();
-      response = createResponse();
-      const newUser: User = userRepository.create({
-        nickname: 'test',
-        email: 'test@gmail.com',
-        profile_url: 'http://test.com/img/1',
+  describe('search', () => {
+    it('정상 200', async () => {
+      const users: User[] = [];
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `test${i}`,
+            email: `test${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
+      const savedUsers: User[] = await userRepository.save(users);
+      let i = 0;
+      const userRelations: UserRelation[] = savedUsers.map((user) => {
+        const userRelation: UserRelation = userRelationRepository.create({
+          user_id: user.user_id,
+          target_id: savedUsers[(i + 1) % 10].user_id,
+          status: i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+        ++i;
+        return userRelation;
       });
-      const savedUser: User = await userRepository.save(newUser);
+      userRelations.pop(); // 마지막 요소는 관계가 없는 상태로..
+      await userRelationRepository.save(userRelations);
       let error;
+      let result;
       try {
-        await userService.deleteUser(savedUser.user_id, request, response);
+        result = await userService.searchUser(1, 'test');
       } catch (e) {
         error = e;
       }
-      expect(error).toBeInstanceOf(InternalServerErrorException);
-      expect(error.message).toEqual('server error');
-      const findUser: User = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
-      expect(findUser).toEqual(savedUser);
+      expect(error).toBeUndefined();
+      for (let i = 0; i < 10; i++) {
+        expect(result.users[i]).toEqual({
+          user_id: savedUsers[i].user_id,
+          nickname: savedUsers[i].nickname,
+          profile_url: savedUsers[i].profile_url,
+          status: i % 3 === 1 ? RelationStatus.BLOCK : i % 3 === 2 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+      }
     });
   });
 });

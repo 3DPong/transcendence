@@ -10,6 +10,7 @@ import { TokenDto } from '../../../auth/otp/token.dto';
 import { GetUserSettingResDto } from './dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
 import { VerifyNicknameResponseDto } from './dtos/verifyNickname.dto';
+import { SearchUserResDto } from './dtos/searchUserRes.dto';
 
 @Controller('user')
 export class UserController {
@@ -72,5 +73,14 @@ export class UserController {
   @Delete('/me/2fa')
   async deactivateTwoFactor(@GetGuardData() data: JwtPayloadInterface, @Body() tokenDto: TokenDto): Promise<void> {
     return this.twoFactorService.deactivateUserTwoFactor(data.user_id, tokenDto.token);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/search/:searchString')
+  async searchUser(
+    @GetGuardData() data: JwtPayloadInterface,
+    @Param('searchString') searchString: string
+  ): Promise<SearchUserResDto> {
+    return this.userService.searchUser(data.user_id, searchString);
   }
 }
