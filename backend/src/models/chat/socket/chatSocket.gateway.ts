@@ -11,7 +11,7 @@ import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelUserRoles, ChatChannel } from '../entities';
+import { ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
 import { SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
 
 @UseFilters(new SocketExceptionFilter())
@@ -24,7 +24,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @WebSocketServer()
   server: Server;
   private users: { userId: number; socketId: string }[] = [];
-  // private activeRooms: { userId: number; channelId: number }[] = [];
+  private activeRooms: { userId: number; channelId: number }[] = [];
   private logger = new Logger('ChatGateway');
 
   constructor(private chatSocketService: ChatSocketService) {}
@@ -62,28 +62,48 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.joinAllChatRooms(socket, userId);
   }
-
+  
   @SubscribeMessage('enter-chat')
   async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    // const userIndex = this.activeRooms.findIndex((u) => u.userId=== userId);
-    // if (userIndex >= 0) {
-    //     //error or 바꾸기
-    //     // this.server.in(this.activeRooms[userIndex].socketId).disconnectSockets();
-    //     //this.handleLeaveRoom(socket, dto);
-    //     this.activeRooms[userIndex].channelId =  dto.channel_id;
-    // } else {
-    //   this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
-    // }
-
-    return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
+    // 채널 존재여부 체크
+    if (userId) {
+      const userIndex = this.activeRooms.findIndex((u) => u.userId === userId);
+      if (userIndex >= 0) this.activeRooms[userIndex].channelId =  dto.channel_id;
+      else this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
+    }
+    socket.join(`chat_active_${dto.channel_id}`);
+    //return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
   }
 
   @SubscribeMessage('leave-chat')
   async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
+    const userIndex = this.activeRooms.findIndex((u) => u.userId === userId && u.channelId === dto.channel_id);
+    if (userIndex >= 0) {
+      this.activeRooms.splice(userIndex, 1);
+      socket.leave(`chat_active_${dto.channel_id}`);
+    }
   }
+  // @SubscribeMessage('enter-chat')
+  // async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
+  //   const userId = this.getUserIdBySocketId(socket.id);
+  //   // 채널 존재여부 체크
+  //   const userIndex = this.activeRooms.findIndex((u) => u.userId === userId);
+  //   if (userIndex >= 0) {
+  //       this.activeRooms[userIndex].channelId =  dto.channel_id;
+  //   } else {
+  //     this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
+  //   }
+
+  //   //return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
+  // }
+
+  // @SubscribeMessage('leave-chat')
+  // async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
+  //   const userId = this.getUserIdBySocketId(socket.id);
+  //   return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
+  // }
 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
@@ -121,41 +141,57 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       Func From Api Reqeust
   */
 
+  handleEmitRoom(channel_id: number, user: ChannelUser[]) {
+    this.server.to(`chat_active_${channel_id}`).emit('user', {
+      type: 'join',
+      user 
+    });
+  }
+
   handleJoinUsers(userIds: number[], channel_id: number, channel: ChatChannel) {
     if (userIds !== null) {
       for (const userId of userIds) {
         const userSocket = this.getSocketIdByUserId(userId);
         if (userSocket) {
-          if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-            this.server.in(userSocket).socketsJoin(`chat_${channel_id}`);
-            this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
+          if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_alarm_${channel_id}`)) {
+            this.server.in(userSocket).socketsJoin(`chat_alarm_${channel_id}`);
+            //this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
           }
         }
       }
+      this.server.to(`chat_alarm_${channel_id}`).emit('alarm', { type: 'invite', message: channel });
     }
   }
 
-  handleLeaveUser(user_id: number, channel_id: number, userNickname: string) {
+  handleLeaveUser(channel_id: number, user_id: number) {
     const userSocket = this.getSocketIdByUserId(user_id);
     if (userSocket) {
-      if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-        this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-      }
+      this.server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
+      this.server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
+
+      // if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
+      //   this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+      // }
     }
-    this.server.to(`chat_${channel_id}`).emit('leave', {
-      user_id: user_id,
-      nickname: userNickname,
-      channel_id: channel_id,
-      message: `${userNickname} 가 나갔습니다.`,
+
+    this.server.to(`chat_active_${channel_id}`).emit('user', {
+      type: 'leave',
+      user_id
     });
   }
 
   handleAdminRoleUpdate(user_id: number, channel_id: number, changedRole: ChannelUserRoles) {
     const userSocket = this.getSocketIdByUserId(user_id);
     this.server
-      .to(`chat_${channel_id}`)
-      .except(userSocket)
-      .emit('alarm', { type: 'update', user_id: user_id, channel_id: channel_id, message: changedRole });
+      .to(`chat_active_${channel_id}`)
+      .emit('role', { type: changedRole, user_id: user_id });
+    
+    //   if (changedRole === ChannelUserRoles.OWNER) {
+    //  //getChannelUserName(user_id)
+    //     this.server
+    //     .to(`chat_alarm_${channel_id}`)
+    //     .emit('alarm', { type: ChannelUserRoles.OWNER, channel_id: channel_id, user_id: user_id });
+    // }
   }
 
   getSocketIdByUserId(userId: number) {
