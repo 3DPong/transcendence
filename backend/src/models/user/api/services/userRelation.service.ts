@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRelation } from '../../entities';
-import { Not, Repository } from 'typeorm';
+import { Not, QueryFailedError, Repository } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { GetUserRelationResDto, UpdateUserRelationReqDto, UpdateUserRelationResDto, UserRelationDto } from '../dtos';
 import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
@@ -76,10 +76,16 @@ export class UserRelationService {
     if (payload.target_id === userId) {
       throw new BadRequestException('본인과의 관계는 설정 불가능합니다.');
     }
-    return await this.userRelationRepository.save({
-      user_id: userId,
-      target_id: payload.target_id,
-      status: payload.status,
-    });
+    try {
+      return await this.userRelationRepository.save({
+        user_id: userId,
+        target_id: payload.target_id,
+        status: payload.status,
+      });
+    } catch (e) {
+      if (e instanceof QueryFailedError) {
+        throw new BadRequestException('없는 유저와의 관계는 불가능합니다.');
+      }
+    }
   }
 }
