@@ -8,7 +8,7 @@ services:
     depends_on:
       - postgresql
     expose:
-      - "5000"
+      - "${APP_PORT}"
     networks:
       - backend
     volumes:
@@ -42,7 +42,7 @@ services:
     image: postgres:15-alpine
     container_name: postgresql
     expose:
-      - "5432"
+      - "${POSTGRES_PORT}"
     networks:
       - backend
     volumes:
@@ -51,21 +51,22 @@ services:
         target: /var/lib/postgresql/data
     env_file:
       - .env
+    command: -p "${POSTGRES_PORT}"
+
 
   redis:
-    image: redis:7-alpine
+    image: bitnami/redis
     container_name: redis
     expose:
-      - "6379"
+      - "${REDIS_PORT_NUMBER}"
     networks:
       - backend
     volumes:
       - type: bind
         source: /Users/${USER}/docker-volume/redis-data
-        target: /data
+        target: /bitnami
     env_file:
       - .env
-    command: redis-server --appendonly yes
 
   pgadmin:
     image: dpage/pgadmin4
@@ -84,17 +85,19 @@ services:
     image: nginx:1.23.4-alpine
     container_name: nginx
     ports:
-      - "3000:3000"
+      - "${EXTERNAL_PORT}:${NGINX_PORT}"
     networks:
       - backend
     env_file:
       - .env
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template
+      - ./nginx/apply_nginx_env.sh:/apply_nginx_env.sh
       - /Users/${USER}/docker-volume/nginx-data/log:/var/log/nginx
     depends_on:
       - front-server
       - api-server
+    command: ["/bin/sh", "/apply_nginx_env.sh"]
 
 networks:
   backend:
