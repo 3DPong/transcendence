@@ -7,7 +7,7 @@ npm install
 ```
 2. How to run webkit dev-server
 ```
-2. npm run rev    
+2. npm run dev    
 ```
 
 3. How to build project
