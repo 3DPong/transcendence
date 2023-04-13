@@ -100,7 +100,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
-    gameManager.Keyboard(inputData.key, client.id);
+    if (gameManager.started){
+      gameManager.Keyboard(inputData.key, client.id);
+    }
   }
 
   @SubscribeMessage('start')

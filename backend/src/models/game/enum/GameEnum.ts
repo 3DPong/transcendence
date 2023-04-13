@@ -20,7 +20,9 @@ export enum PlayerLocation {
 }
 
 export enum InputEnum{
-	UP,
-	DOWN,
+	UP_START,
+	DOWN_START,
 	SKILL,
+  UP_END,
+  DOWN_END,
 }
