@@ -128,9 +128,11 @@ export class UserService {
       relations: ['relatedOf'],
     });
     return {
-      users: foundUsers.map((user: User) => {
-        return new SearchedUser(user);
-      }),
+      users: foundUsers
+        .map((user: User) => {
+          return new SearchedUser(user);
+        })
+        .filter((user: SearchedUser) => user.user_id !== userId),
     };
   }
 }

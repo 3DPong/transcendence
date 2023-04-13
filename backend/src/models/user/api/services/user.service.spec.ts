@@ -11,6 +11,7 @@ import { BadRequestException, ConflictException, UnauthorizedException } from '@
 import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
 import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
+import { SearchedUser } from '../dtos/searchUserRes.dto';
 
 describe('UserService', () => {
   let dataSource: DataSource;
@@ -392,6 +393,63 @@ describe('UserService', () => {
           })
         );
       }
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `notSame${i}`,
+            email: `notSame${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
+      const savedUsers: User[] = await userRepository.save(users);
+      let i = 0;
+      const userRelations: UserRelation[] = savedUsers.map((user) => {
+        const userRelation: UserRelation = userRelationRepository.create({
+          user_id: user.user_id,
+          target_id: savedUsers[(i + 1) % 20].user_id,
+          status: i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+        ++i;
+        return userRelation;
+      });
+      userRelations.pop(); // 마지막 요소는 관계가 없는 상태로..
+      await userRelationRepository.save(userRelations);
+      let error;
+      let result;
+      expect(savedUsers[0].user_id).toEqual(1);
+      try {
+        result = await userService.searchUser(savedUsers[0].user_id, 'test');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeUndefined();
+      // 요청 유저와 같은 유저는 제외되어야함
+      expect(result.users.filter((user) => user.user_id === savedUsers[0].user_id).length).toEqual(0);
+      expect(result.users.length).toEqual(9);
+      for (let i = 0; i < result.users.length; i++) {
+        const answer: SearchedUser = {
+          user_id: savedUsers[i + 1].user_id,
+          nickname: savedUsers[i + 1].nickname,
+          profile_url: savedUsers[i + 1].profile_url,
+          relationWithMe:
+            i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        };
+        expect(result.users[i]).toEqual(answer);
+      }
+    });
+
+    it('빈문자열 닉네임', async () => {
+      const users: User[] = [];
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `test${i}`,
+            email: `test${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
       const savedUsers: User[] = await userRepository.save(users);
       let i = 0;
       const userRelations: UserRelation[] = savedUsers.map((user) => {
@@ -403,23 +461,26 @@ describe('UserService', () => {
         ++i;
         return userRelation;
       });
-      userRelations.pop(); // 마지막 요소는 관계가 없는 상태로..
       await userRelationRepository.save(userRelations);
       let error;
       let result;
       try {
-        result = await userService.searchUser(1, 'test');
+        result = await userService.searchUser(savedUsers[0].user_id, '');
       } catch (e) {
         error = e;
       }
       expect(error).toBeUndefined();
-      for (let i = 0; i < 10; i++) {
+      // 요청 유저와 같은 유저는 제외되어야함
+      expect(result.users.filter((user) => user.user_id === savedUsers[0].user_id).length).toEqual(0);
+      // 모든 유저가 검색되어야함
+      expect(result.users.length).toEqual(9);
+      for (let i = 0; i < result.users.length; i++) {
         expect(result.users[i]).toEqual({
-          user_id: savedUsers[i].user_id,
-          nickname: savedUsers[i].nickname,
-          profile_url: savedUsers[i].profile_url,
+          user_id: savedUsers[i + 1].user_id,
+          nickname: savedUsers[i + 1].nickname,
+          profile_url: savedUsers[i + 1].profile_url,
           relationWithMe:
-            i % 3 === 1 ? RelationStatus.BLOCK : i % 3 === 2 ? RelationStatus.FRIEND : RelationStatus.NONE,
+            i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
         });
       }
     });
