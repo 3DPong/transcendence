@@ -418,7 +418,8 @@ describe('UserService', () => {
           user_id: savedUsers[i].user_id,
           nickname: savedUsers[i].nickname,
           profile_url: savedUsers[i].profile_url,
-          status: i % 3 === 1 ? RelationStatus.BLOCK : i % 3 === 2 ? RelationStatus.FRIEND : RelationStatus.NONE,
+          relationWithMe:
+            i % 3 === 1 ? RelationStatus.BLOCK : i % 3 === 2 ? RelationStatus.FRIEND : RelationStatus.NONE,
         });
       }
     });

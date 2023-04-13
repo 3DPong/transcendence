@@ -6,12 +6,12 @@ export class SearchedUser {
     this.user_id = user.user_id;
     this.nickname = user.nickname;
     this.profile_url = user.profile_url;
-    this.status = user.relatedOf[0]?.status || RelationStatus.NONE;
+    this.relationWithMe = user.relatedOf[0]?.status || RelationStatus.NONE;
   }
   user_id: number;
   nickname: string;
   profile_url: string;
-  status: RelationStatus;
+  relationWithMe: RelationStatus;
 }
 
 export class SearchUserResDto {
