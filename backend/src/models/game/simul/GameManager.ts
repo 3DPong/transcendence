@@ -30,7 +30,7 @@ export class GameManager {
     this.gameId = uuidv4();
     this.playerCount = 0;
     this.started = false;
-    this.logger = new Logger();
+    this.logger = new Logger('GameManager');
   }
 
   public createPlayer(sid : string, dbId : number) {
