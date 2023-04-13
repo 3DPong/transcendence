@@ -17,7 +17,7 @@ import { ENV_FILE } from '../envFile.constant';
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
         REDIS_HOST: Joi.string().default('localhost'),
-        REDIS_PORT: Joi.number().default('6379'),
+        REDIS_PORT_NUMBER: Joi.number().default('6379'),
         REDIS_PASSWORD: Joi.string().required(),
         REDIS_SESSION_DB: Joi.number().default('0'),
         REDIS_SOCKET_DB: Joi.number().default('1'),
