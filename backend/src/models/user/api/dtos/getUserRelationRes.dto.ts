@@ -1,5 +1,10 @@
-import { UserRelationDto } from './userRelation.dto';
+export class UserRelationAndInfo {
+  target_id: number;
+  status: string;
+  nickname: string;
+  profile_url: string;
+}
 
 export class GetUserRelationResDto {
-  relations: UserRelationDto[];
+  relations: UserRelationAndInfo[];
 }
