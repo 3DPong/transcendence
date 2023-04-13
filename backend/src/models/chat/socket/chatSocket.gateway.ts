@@ -13,6 +13,7 @@ import { ChatSocketService } from './services';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
 import { ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
 import { SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
+import { channel } from 'diagnostics_channel';
 
 @UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
@@ -42,7 +43,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
       this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
-      //this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
+      this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
     } catch (error) {
       socket.disconnect();
     }
@@ -104,11 +105,23 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   //   const userId = this.getUserIdBySocketId(socket.id);
   //   return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
   // }
+  getActiveChannelUsersSocketIds(channel_id: number): string[]{
+    const userIds = this.activeRooms
+      .filter(room => room.channelId === channel_id).map(room => room.userId);
+    const socketIds = this.users
+      .filter(user => userIds.includes(user.userId))
+      .map(user => user.socketId.toString());
+
+    console.log("\nuserIds = ["+ userIds +"]\n\n");
+    console.log("socketIds = ["+ socketIds +"]\n\n");
+    return socketIds;
+  }
 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.sendChatMessage(this.server, userId, md);
+    const socketIds = this.getActiveChannelUsersSocketIds(md.channel_id);
+    return this.chatSocketService.sendChatMessage(this.server, userId, md, socketIds);
   }
 
   @SubscribeMessage('mute-chat')

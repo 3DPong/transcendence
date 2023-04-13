@@ -93,7 +93,7 @@ export class ChatSocketService {
   //   }
   // }
 
-  async sendChatMessage(server: Server, user_id: number, md: MessageDto) {
+  async sendChatMessage(server: Server, user_id: number, md: MessageDto, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
     if (md.message === '' || isWhitespace(md.message)) throw new SocketException('BadRequest', `내용을 입력해주세요!`);
 
@@ -120,11 +120,14 @@ export class ChatSocketService {
       if (channel.type === ChannelType.DM) {
         await this.updateDmUser(dmUser);
       }
-      server.to(`chat_${md.channel_id}`).emit('chat', newMessage);
+      server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
+      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('chat', newMessage);
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
+
+
 
   async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto) {
     const { user_id, channel_id } = muteDto;
@@ -142,7 +145,7 @@ export class ChatSocketService {
 
       await this.unmuteUser(channel_id, user_id);
       server
-        .to(`chat_${channel_id}`)
+        .to(`chat_active${channel_id}`)
         .emit('mute', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 뮤트 해제 되었습니다.` });
 
     } else {
@@ -152,7 +155,7 @@ export class ChatSocketService {
         else if (muted === MuteStatus.NoneMute) await this.createMuteUser(muteDto);   
       
         server
-          .to(`chat_${channel_id}`)
+          .to(`chat_active_${channel_id}`)
           .emit('mute', { user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}`,message:`${nickname} 가 뮤트 되었습니다.` })
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
@@ -176,7 +179,7 @@ export class ChatSocketService {
     if (banned === BanStatus.Ban) {
       throw new SocketException('Conflict', `이 유저는 이미 밴 상태입니다!`);
     } else {
-      if (banDto.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
+      if (banDto.end_at === null) throw new SocketException('BadRequest', `밴 해제 시간을 추가하세요!`);
       
       try {
         if (banned === BanStatus.PassedBan) await this.updateBanUser(banDto);
@@ -185,14 +188,16 @@ export class ChatSocketService {
         await this.deleteChannelUser(channel_id, user_id);
 
         if (userSocket) {
-          server.in(userSocket).socketsLeave(`chat_${channel_id}`);
+          server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
+          //active 리스트에서 삭제
+          //server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
         }
         const title = await this.getChannelName(channel_id);
         server
           .in(userSocket)
           .emit('alarm', { type: 'ban', channel_id: channel_id, message: `${title} 에서 밴 되었습니다.` }); //당사자
         server
-          .to(`chat_${channel_id}`)
+          .to(`chat_active_${channel_id}`)
           .emit('ban', { user_id: user_id, channel_id: channel_id, end_at: `${banDto.end_at}`}); //일반 유저들
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
@@ -211,7 +216,7 @@ export class ChatSocketService {
     if (banned === BanStatus.Ban) {
       await this.releaseBanUser(channel_id, user_id);
       server
-        .to(`chat_${channel_id}`)
+        .to(`chat_active_${channel_id}`)
         .emit('ban', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 해제 되었습니다.` });
     } else {
       throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
@@ -241,7 +246,7 @@ export class ChatSocketService {
           .in(userSocket)
           .emit('alarm', { type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장  되었습니다.` }); //당사자
         server
-          .to(`chat_${channel_id}`)
+          .to(`chat_active_${channel_id}`)
           .emit(`kick`, { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 강제 퇴장 되었습니다.` }); //일반유저
       }
     } catch (error) {
