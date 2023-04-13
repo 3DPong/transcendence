@@ -2,9 +2,7 @@
  * 세션을 바탕으로 나에 대한 정보를 요청할 수 있는 API 입니다.
  * */
 
-import { API_URL } from '../../../config/backend';
-import { handleErrorFunction, useError } from '@/context/ErrorContext';
-import { useNavigate } from 'react-router';
+import { handleErrorFunction } from '@/context/ErrorContext';
 
 interface GET_responseFormat {
   user_id: number;
@@ -42,17 +40,12 @@ export function getMySettings(handleError: handleErrorFunction) {
   return (loadedSettings);
    */
 
-  let i = 0;
-  return (function () {
-    i++;
-    const mock: GET_responseFormat = {
-      user_id: Date.now() % 3 === 0 ? 1 : 2,
-      nickname: 'Jane',
-      profile_url:
+  const mock: GET_responseFormat = {
+    user_id: 999999,
+    nickname: 'Jane',
+    profile_url:
         'https://media.istockphoto.com/id/1317804578/photo/one-businesswoman-headshot-smiling-at-the-camera.jpg?s=612x612&w=0&k=20&c=EqR2Lffp4tkIYzpqYh8aYIPRr-gmZliRHRxcQC5yylY=',
-      two_factor: false,
-    };
-    // console.log("user_id", mock.user_id);
-    return mock;
-  })();
+    two_factor: false,
+  };
+  return mock;
 }
