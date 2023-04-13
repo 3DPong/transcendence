@@ -10,14 +10,24 @@ export class UserRelationService {
   constructor(@InjectRepository(UserRelation) private userRelationRepository: Repository<UserRelation>) {}
 
   async getUserAllRelation(userId: number): Promise<GetUserRelationResDto> {
-    const relations: UserRelationDto[] = await this.userRelationRepository.find({
+    const relations: UserRelation[] = await this.userRelationRepository.find({
       where: {
         user_id: userId,
         status: Not(RelationStatus.NONE),
       },
       select: ['target_id', 'status'],
+      relations: ['target'],
     });
-    return { relations: relations };
+    return {
+      relations: relations.map((relation: UserRelation) => {
+        return {
+          target_id: relation.target_id,
+          status: relation.status,
+          nickname: relation.target.nickname,
+          profile_url: relation.target.profile_url,
+        };
+      }),
+    };
   }
 
   async getUserFriendRelation(userId: number): Promise<GetUserRelationResDto> {
@@ -27,8 +37,18 @@ export class UserRelationService {
         status: RelationStatus.FRIEND,
       },
       select: ['target_id', 'status'],
+      relations: ['target'],
     });
-    return { relations: relations };
+    return {
+      relations: relations.map((relation: UserRelation) => {
+        return {
+          target_id: relation.target_id,
+          status: relation.status,
+          nickname: relation.target.nickname,
+          profile_url: relation.target.profile_url,
+        };
+      }),
+    };
   }
 
   async getUserBlockRelation(userId: number): Promise<GetUserRelationResDto> {
@@ -38,8 +58,18 @@ export class UserRelationService {
         status: RelationStatus.BLOCK,
       },
       select: ['target_id', 'status'],
+      relations: ['target'],
     });
-    return { relations: relations };
+    return {
+      relations: relations.map((relation: UserRelation) => {
+        return {
+          target_id: relation.target_id,
+          status: relation.status,
+          nickname: relation.target.nickname,
+          profile_url: relation.target.profile_url,
+        };
+      }),
+    };
   }
 
   async updateUserRelation(userId: number, payload: UpdateUserRelationReqDto): Promise<UpdateUserRelationResDto> {
