@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
-import { QueryFailedError, Repository } from 'typeorm';
+import { Like, QueryFailedError, Repository } from 'typeorm';
 import {
   BadRequestException,
   ConflictException,
@@ -12,6 +12,7 @@ import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } f
 import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
 import { VerifyNicknameResponseDto } from '../dtos/verifyNickname.dto';
+import { SearchedUser, SearchUserResDto } from '../dtos/searchUserRes.dto';
 
 @Injectable()
 export class UserService {
@@ -113,6 +114,25 @@ export class UserService {
     });
     return {
       isDuplicate: !!user,
+    };
+  }
+
+  async searchUser(userId: number, nickname: string): Promise<SearchUserResDto> {
+    const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
+    if (!user) throw new UnauthorizedException('invalid user (session is not valid)');
+    const foundUsers: User[] = await this.userRepository.find({
+      where: {
+        nickname: Like(`%${nickname}%`),
+      },
+      select: ['user_id', 'nickname', 'profile_url'],
+      relations: ['relatedOf'],
+    });
+    return {
+      users: foundUsers
+        .map((user: User) => {
+          return new SearchedUser(user);
+        })
+        .filter((user: SearchedUser) => user.user_id !== userId),
     };
   }
 }

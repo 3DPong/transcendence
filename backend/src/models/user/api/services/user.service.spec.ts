@@ -1,29 +1,23 @@
 import { DataSource, Repository } from 'typeorm';
 import { UserService } from './user.service';
-import { User } from '../../entities';
+import { User, UserRelation } from '../../entities';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CreateUserReqDto, CreateUserResDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
+import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
 import { SessionService } from '../../../../common/session/session.service';
 import { PostgresDatabaseProviderModule } from '../../../../providers/database/postgres/provider.module';
-import { createRequest, createResponse, MockRequest, MockResponse } from 'node-mocks-http';
 import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
-import { Request, Response } from 'express';
-import {
-  BadRequestException,
-  ConflictException,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
-import { UserStatusEnum } from '../../../../common/enums';
+import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
+import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
+import { SearchedUser } from '../dtos/searchUserRes.dto';
 
 describe('UserService', () => {
   let dataSource: DataSource;
   let userService: UserService;
   let userRepository: Repository<User>;
-  let request: MockRequest<Request>;
-  let response: MockResponse<Response>;
+  let userRelationRepository: Repository<UserRelation>;
   /**
    * 실제 각 테스트마다 데이터 베이스를 하나 생성합니다.
    */
@@ -37,14 +31,7 @@ describe('UserService', () => {
     dataSource = module.get<DataSource>(DataSource);
     userService = module.get<UserService>(UserService);
     userRepository = dataSource.getRepository(User);
-    request = createRequest({
-      session: {
-        user_id: null,
-        userStatus: null,
-        sessionStatus: null,
-        email: null,
-      },
-    });
+    userRelationRepository = dataSource.getRepository(UserRelation);
   });
 
   afterEach(async () => {
@@ -98,18 +85,21 @@ describe('UserService', () => {
 
   describe('createUser', () => {
     it('유저 데이터를 정상적으로 입력한 경우 유저의 정보를 반환한다.', async () => {
-      const sessionData = {
-        sessionStatus: TokenStatusEnum.SIGNUP,
+      const jwtData: JwtPayloadInterface = {
+        status: TokenStatusEnum.SIGNUP,
         user_id: null,
-        userStatus: null,
         email: 'tester@test.com',
       };
       const dto: CreateUserReqDto = {
         nickname: 'tester',
         profile_url: 'http://test.com/img/1',
       };
-      const result: CreateUserResDto = await userService.createUser(sessionData, dto, request);
-      expect(result).toHaveProperty('user_id');
+      try {
+        const result = await userService.createUser(jwtData, dto);
+        expect(result).toBeUndefined();
+      } catch (e) {
+        expect(e).toBeUndefined();
+      }
 
       const savedUser: User = await userRepository.findOne({
         where: {
@@ -121,10 +111,9 @@ describe('UserService', () => {
     });
 
     it('중복된 nickname을 요청한 경우 409 에러를 던진다.', async () => {
-      const sessionData = {
-        sessionStatus: TokenStatusEnum.SIGNUP,
+      const jwtData: JwtPayloadInterface = {
+        status: TokenStatusEnum.SIGNUP,
         user_id: null,
-        userStatus: null,
         email: 'tester@test.com',
       };
       const dto: CreateUserReqDto = {
@@ -133,17 +122,17 @@ describe('UserService', () => {
       };
       const newUser: User = userRepository.create({
         nickname: dto.nickname,
-        email: 'sessionData.email@gmail.com',
+        email: 'jwtData.email@gmail.com',
         profile_url: dto.profile_url,
       });
       // make duplicate
       await userRepository.save(newUser);
       try {
-        const result = await userService.createUser(sessionData, dto, request);
+        const result = await userService.createUser(jwtData, dto);
         expect(result).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(ConflictException);
-        expect(e.message).toEqual('duplicate nickname');
+        expect(e.message).toEqual('duplicate column (nickname or email)');
         // rollback 확인
         const tableData: Array<User> = await userRepository.find();
         expect(tableData.length).toEqual(1);
@@ -151,10 +140,9 @@ describe('UserService', () => {
     });
 
     it('중복된 email을 요청한 경우 409 에러를 던진다.', async () => {
-      const sessionData = {
-        sessionStatus: TokenStatusEnum.SIGNUP,
+      const jwtData: JwtPayloadInterface = {
+        status: TokenStatusEnum.SIGNUP,
         user_id: null,
-        userStatus: null,
         email: 'tester@test.com',
       };
       const dto: CreateUserReqDto = {
@@ -163,44 +151,20 @@ describe('UserService', () => {
       };
       const newUser: User = userRepository.create({
         nickname: 'dto.nickname',
-        email: sessionData.email,
+        email: jwtData.email,
         profile_url: dto.profile_url,
       });
       // make duplicate
       await userRepository.save(newUser);
       try {
-        const result = await userService.createUser(sessionData, dto, request);
+        const result = await userService.createUser(jwtData, dto);
         expect(result).toBeUndefined();
       } catch (e) {
         expect(e).toBeInstanceOf(ConflictException);
-        expect(e.message).toEqual('duplicate nickname'); // email 구분 따로 안함...
+        expect(e.message).toEqual('duplicate column (nickname or email)'); // email 구분 따로 안함...
         // rollback 확인
         const tableData: Array<User> = await userRepository.find();
         expect(tableData.length).toEqual(1);
-      }
-    });
-
-    it('session 이 request에 존재하지 않는 경우, 500을 던진다.', async () => {
-      const sessionData = {
-        sessionStatus: TokenStatusEnum.SIGNUP,
-        user_id: null,
-        userStatus: null,
-        email: 'tester@test.com',
-      };
-      const dto: CreateUserReqDto = {
-        nickname: 'tester',
-        profile_url: 'http://test.com/img/1',
-      };
-
-      const invalidReq: MockRequest<Request> = createRequest();
-      try {
-        const result = await userService.createUser(sessionData, dto, invalidReq);
-        expect(result).toBeUndefined();
-      } catch (e) {
-        expect(e).toBeInstanceOf(InternalServerErrorException);
-        // rollback 확인
-        const tableData: Array<User> = await userRepository.find();
-        expect(tableData.length).toEqual(0);
       }
     });
   });
@@ -387,21 +351,7 @@ describe('UserService', () => {
   });
 
   describe('deleteUser', () => {
-    const requestOption = {
-      session: {
-        user_id: 1,
-        userStatus: UserStatusEnum.ONLINE,
-        sessionStatus: TokenStatusEnum.SUCCESS,
-        otpSecret: null,
-        email: null,
-        destroy: (callback) => {
-          callback();
-        },
-      },
-    };
     it('정상적인 삭제 요청의 경우 200', async () => {
-      request = createRequest(requestOption);
-      response = createResponse();
       const newUser: User = userRepository.create({
         nickname: 'test',
         email: 'test@gmail.com',
@@ -410,51 +360,129 @@ describe('UserService', () => {
       const savedUser: User = await userRepository.save(newUser);
       let error;
       try {
-        await userService.deleteUser(savedUser.user_id, request, response);
+        await userService.deleteUser(savedUser.user_id);
       } catch (e) {
         error = e;
       }
       expect(error).toBeUndefined();
       const findUser: User = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
       expect(findUser).toBeNull();
-      expect(response.cookies['connect.sid'].options.expires).toStrictEqual(new Date(1)); // session cookie clear
     });
 
     it('없는 유저 세션일 경우 401에러 반환', async () => {
-      request = createRequest(requestOption);
-      response = createResponse();
       let error;
       try {
-        await userService.deleteUser(0, request, response);
+        await userService.deleteUser(0);
       } catch (e) {
         error = e;
       }
       expect(error).toBeInstanceOf(UnauthorizedException);
       expect(error.message).toEqual('invalid user (session is not valid)');
     });
+  });
 
-    /**
-     * SESSION FAIL 이후 세션이 꼬일 수 있다. 해당 부분은 잡지 못함.
-     */
-    it('세션상의 에러일 경우 롤백 후 500반환', async () => {
-      request = createRequest();
-      response = createResponse();
-      const newUser: User = userRepository.create({
-        nickname: 'test',
-        email: 'test@gmail.com',
-        profile_url: 'http://test.com/img/1',
+  describe('search', () => {
+    it('정상 200', async () => {
+      const users: User[] = [];
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `test${i}`,
+            email: `test${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `notSame${i}`,
+            email: `notSame${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
+      const savedUsers: User[] = await userRepository.save(users);
+      let i = 0;
+      const userRelations: UserRelation[] = savedUsers.map((user) => {
+        const userRelation: UserRelation = userRelationRepository.create({
+          user_id: user.user_id,
+          target_id: savedUsers[(i + 1) % 20].user_id,
+          status: i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+        ++i;
+        return userRelation;
       });
-      const savedUser: User = await userRepository.save(newUser);
+      userRelations.pop(); // 마지막 요소는 관계가 없는 상태로..
+      await userRelationRepository.save(userRelations);
       let error;
+      let result;
+      expect(savedUsers[0].user_id).toEqual(1);
       try {
-        await userService.deleteUser(savedUser.user_id, request, response);
+        result = await userService.searchUser(savedUsers[0].user_id, 'test');
       } catch (e) {
         error = e;
       }
-      expect(error).toBeInstanceOf(InternalServerErrorException);
-      expect(error.message).toEqual('server error');
-      const findUser: User = await userRepository.findOne({ where: { user_id: savedUser.user_id } });
-      expect(findUser).toEqual(savedUser);
+      expect(error).toBeUndefined();
+      // 요청 유저와 같은 유저는 제외되어야함
+      expect(result.users.filter((user) => user.user_id === savedUsers[0].user_id).length).toEqual(0);
+      expect(result.users.length).toEqual(9);
+      for (let i = 0; i < result.users.length; i++) {
+        const answer: SearchedUser = {
+          user_id: savedUsers[i + 1].user_id,
+          nickname: savedUsers[i + 1].nickname,
+          profile_url: savedUsers[i + 1].profile_url,
+          relationWithMe:
+            i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        };
+        expect(result.users[i]).toEqual(answer);
+      }
+    });
+
+    it('빈문자열 닉네임', async () => {
+      const users: User[] = [];
+      for (let i = 0; i < 10; i++) {
+        users.push(
+          userRepository.create({
+            nickname: `test${i}`,
+            email: `test${i}@test.com`,
+            profile_url: `http://test.com/img/${i}`,
+          })
+        );
+      }
+      const savedUsers: User[] = await userRepository.save(users);
+      let i = 0;
+      const userRelations: UserRelation[] = savedUsers.map((user) => {
+        const userRelation: UserRelation = userRelationRepository.create({
+          user_id: user.user_id,
+          target_id: savedUsers[(i + 1) % 10].user_id,
+          status: i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+        ++i;
+        return userRelation;
+      });
+      await userRelationRepository.save(userRelations);
+      let error;
+      let result;
+      try {
+        result = await userService.searchUser(savedUsers[0].user_id, '');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeUndefined();
+      // 요청 유저와 같은 유저는 제외되어야함
+      expect(result.users.filter((user) => user.user_id === savedUsers[0].user_id).length).toEqual(0);
+      // 모든 유저가 검색되어야함
+      expect(result.users.length).toEqual(9);
+      for (let i = 0; i < result.users.length; i++) {
+        expect(result.users[i]).toEqual({
+          user_id: savedUsers[i + 1].user_id,
+          nickname: savedUsers[i + 1].nickname,
+          profile_url: savedUsers[i + 1].profile_url,
+          relationWithMe:
+            i % 3 === 0 ? RelationStatus.BLOCK : i % 3 === 1 ? RelationStatus.FRIEND : RelationStatus.NONE,
+        });
+      }
     });
   });
 });
