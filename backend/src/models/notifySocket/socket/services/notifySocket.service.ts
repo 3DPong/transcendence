@@ -4,23 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../../user/entities';
 import { UserStatusEnum } from '../../../../common/enums';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Redis } from 'ioredis';
 import { Notifier } from '../../../notifier/services/notifier.class';
 import { TopicEnum } from '../../../notifier/enums/topic.enum';
 import { ChannelEnum } from '../../../notifier/enums/channel.enum';
+import { SocketMapService } from '../../../../providers/redis/socketMap.service';
 
 @Injectable()
 export class NotifySocketService {
   private readonly logger = new Logger('NotifySocketService');
-  private readonly redisClient: Redis;
   constructor(
-    private readonly redisService: RedisService,
+    private readonly socketMapService: SocketMapService,
     private readonly notifier: Notifier,
     @InjectRepository(User) private userRepository: Repository<User>
-  ) {
-    this.redisClient = this.redisService.getClient();
-  }
+  ) {}
 
   async connect(socket: Socket) {
     const { user_id } = socket.handshake.query;
@@ -32,8 +28,7 @@ export class NotifySocketService {
     // update in db
     await this.userRepository.update({ user_id: +userId }, { status: UserStatusEnum.ONLINE });
     // update socket information in redis
-    await this.redisClient.hmset(userId, 'notify', socket.id);
-    await this.redisClient.set(`socketToUser:${socket.id}`, userId);
+    await this.socketMapService.setUserSocket(+userId, 'notify', socket.id);
     // notify to user status that subscribed to this user
     const userUpdated: User = await this.userRepository.findOne({
       where: { user_id: +user_id },
@@ -45,6 +40,7 @@ export class NotifySocketService {
       },
     });
     await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.ALL, 0);
+    await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.USER, 1);
     socket.emit('message', 'connected');
     this.logger.log(`user ${user_id} connect with socket id: ${socket.id}`);
   }
@@ -56,8 +52,7 @@ export class NotifySocketService {
     // update in db
     await this.userRepository.update(user_id, { status: UserStatusEnum.OFFLINE });
     // delete socket information in redis
-    await this.redisClient.hdel(userId, 'notify');
-    await this.redisClient.del(`socketToUser:${socket.id}`);
+    await this.socketMapService.deleteUserSocket(+userId, 'notify');
     // notify to user status that subscribed to this user
     const userUpdated: User = await this.userRepository.findOne({
       where: { user_id: +user_id },

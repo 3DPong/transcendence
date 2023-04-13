@@ -1,19 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Namespace, Server } from 'socket.io';
-import { Redis } from 'ioredis';
-import { RedisService } from '@liaoliaots/nestjs-redis';
+import { SocketMapService } from '../../../providers/redis/socketMap.service';
 
 @Injectable()
 export class NotifierService {
-  private readonly redisClient: Redis;
   private readonly logger = new Logger('NotifierService');
 
-  constructor(private readonly redisService: RedisService) {
-    this.redisClient = redisService.getClient();
-  }
+  constructor(private readonly socketMapService: SocketMapService) {}
 
   async notifyToUser(server: Server, userId: number, event: string, data: any) {
-    const userSockets = await this.redisClient.hgetall(`${userId}`);
+    const userSockets = await this.socketMapService.getUserSockets(userId);
     if (!userSockets) return;
     const socketId = userSockets.notify;
     if (!socketId) return;
