@@ -62,10 +62,12 @@ export interface renderData {
   angle: number;
 }
 
-export enum inputEnum {
-  UP,
-  DOWN,
+export enum inputEnum{
+  UP_START,
+  DOWN_START,
   SKILL,
+  UP_END,
+  DOWN_END,
 }
 
 export interface inputData {
