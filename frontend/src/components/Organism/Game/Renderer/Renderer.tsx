@@ -124,55 +124,22 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
     light.specular = new BABYLON.Color3(0, 1, 0);
     light.groundColor = new BABYLON.Color3(0, 1, 0);
 
-    // (TEST : delete later)
-    // --------------------------------------------------------------
-    MeshBuilder.CreateSphere(
-      'LeftBall',
-      {
-        diameter: 5,
-      },
-      scene3D
-    ).position = new Vector3(-20, 0, 0);
 
-    MeshBuilder.CreateSphere(
-      'RightBall',
-      {
-        diameter: 5,
-      },
-      scene3D
-    ).position = new Vector3(20, 0, 0);
-
-    const verticiesArray2D = [
-      { x: 25, y: 10 },
-      { x: -25, y: 10 },
-      { x: -25, y: -10 },
-      { x: 25, y: -10 },
-    ];
-    const verticiesArray3D = convertVec2ArrayToVec3(verticiesArray2D, 2);
-    verticiesArray3D.push(verticiesArray3D[0]); // end cap
-    const lines = MeshBuilder.CreateLines(
-      'lines',
-      {
-        points: verticiesArray3D,
-      },
-      scene3D
-    );
-    lines.color = new Color3(1, 0, 0);
-    // --------------------------------------------------------------
-
-    const CAMERA_ANIMATION_TIME_MS = 2000;
-    const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     // (3) Set up Camera via player type
+    const CAMERA_ANIMATION_TIME_MS = 3000;
+    const CAMERA_TILT_ANGLE = 45;
+    const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     if (matchData.playerLocation === gameType.PlayerLocation.LEFT) {
-      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
       camera.spinTo('alpha', -Math.PI, 60, TOTAL_FRAME);
-      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     } else {
       // RIGHT
-      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
       camera.spinTo('alpha', 0.01, 60, TOTAL_FRAME);
-      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     }
+
 
     // (4) Apply color, texture, etc...
 
@@ -259,11 +226,13 @@ function attachGameEventToCanvas(
       case 'ArrowLeft': // Move Left
         inputData = { gameId: gameId, key: movePaddleLeft };
         gameSocket.emit('keyInput', inputData);
+        console.log("[Dev] : Move Left");
         isDown = true;
         break;
       case 'ArrowRight': // Move Right
         inputData = { gameId: gameId, key: movePaddleRight };
         gameSocket.emit('keyInput', inputData);
+        console.log("[Dev] : Move Right");
         isDown = true;
         break;
       case 'Control': // Skill
