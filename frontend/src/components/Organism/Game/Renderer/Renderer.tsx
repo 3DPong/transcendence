@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 import * as BABYLON from '@babylonjs/core';
-import { ArcRotateCamera, MeshBuilder, Mesh, Scene, Vector3, Color3 } from '@babylonjs/core';
+import { ArcRotateCamera, Mesh, Scene, Vector3 } from '@babylonjs/core';
 import SceneComponent from './SceneComponent'; // uses above component in same directory
 import { Assert } from '@/utils/Assert';
 import React, { useEffect, useRef } from 'react';
@@ -19,11 +19,10 @@ import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConv
 import * as gameType from '@/types/game';
 import { useSocket } from '@/context/SocketContext';
 import { Socket } from 'socket.io-client';
-import { convertVec2ArrayToVec3 } from './ObjectConverter';
 import { useError } from '@/context/ErrorContext';
 
 // camera class for extension function
-class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
+class CustomArchRotateCamera extends ArcRotateCamera {
   constructor(
     name: string,
     alpha: number,
@@ -124,55 +123,22 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
     light.specular = new BABYLON.Color3(0, 1, 0);
     light.groundColor = new BABYLON.Color3(0, 1, 0);
 
-    // (TEST : delete later)
-    // --------------------------------------------------------------
-    MeshBuilder.CreateSphere(
-      'LeftBall',
-      {
-        diameter: 5,
-      },
-      scene3D
-    ).position = new Vector3(-20, 0, 0);
 
-    MeshBuilder.CreateSphere(
-      'RightBall',
-      {
-        diameter: 5,
-      },
-      scene3D
-    ).position = new Vector3(20, 0, 0);
-
-    const verticiesArray2D = [
-      { x: 25, y: 10 },
-      { x: -25, y: 10 },
-      { x: -25, y: -10 },
-      { x: 25, y: -10 },
-    ];
-    const verticiesArray3D = convertVec2ArrayToVec3(verticiesArray2D, 2);
-    verticiesArray3D.push(verticiesArray3D[0]); // end cap
-    const lines = MeshBuilder.CreateLines(
-      'lines',
-      {
-        points: verticiesArray3D,
-      },
-      scene3D
-    );
-    lines.color = new Color3(1, 0, 0);
-    // --------------------------------------------------------------
-
-    const CAMERA_ANIMATION_TIME_MS = 2000;
-    const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     // (3) Set up Camera via player type
+    const CAMERA_ANIMATION_TIME_MS = 3000;
+    const CAMERA_TILT_ANGLE = 45;
+    const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     if (matchData.playerLocation === gameType.PlayerLocation.LEFT) {
-      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
       camera.spinTo('alpha', -Math.PI, 60, TOTAL_FRAME);
-      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     } else {
       // RIGHT
-      camera.spinTo('radius', 50, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
       camera.spinTo('alpha', 0.01, 60, TOTAL_FRAME);
-      camera.spinTo('beta', Math.PI / 2 - 0.2, 60, TOTAL_FRAME);
+      camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     }
+
 
     // (4) Apply color, texture, etc...
 
@@ -203,10 +169,11 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       }
 
       // (6) Start Game after 120 frame.
+      console.log("[DEV] : Game Starting in", CAMERA_ANIMATION_TIME_MS + 1000, "Seconds...");
       setTimeout(() => {
         gameSocket.emit('start');
         console.log('[DEV] : GAME START!');
-      }, CAMERA_ANIMATION_TIME_MS * 1.3);
+      }, CAMERA_ANIMATION_TIME_MS + 1000);
     }
   }; // onSceneReady
 
@@ -256,11 +223,13 @@ function attachGameEventToCanvas(
 
     switch (event.key) {
       case 'ArrowLeft': // Move Left
+        console.log("[Dev] : Move Left");
         inputData = { gameId: gameId, key: movePaddleLeft };
         gameSocket.emit('keyInput', inputData);
         isDown = true;
         break;
       case 'ArrowRight': // Move Right
+        console.log("[Dev] : Move Right");
         inputData = { gameId: gameId, key: movePaddleRight };
         gameSocket.emit('keyInput', inputData);
         isDown = true;
@@ -274,7 +243,7 @@ function attachGameEventToCanvas(
         return;
     }
   }
-  function onKeyUp(event: KeyboardEvent) {
+  function onKeyUp() {
     isDown = false;
   }
   canvas.addEventListener('keydown', onKeyDown, false);
