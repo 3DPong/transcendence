@@ -1,13 +1,13 @@
 import { PlayerLocation } from "../../enum/GameEnum";
-import { MatchResultData, MatchStartData, ObjectData, RenderData } from "../../gameData";
+import { MatchResultData, ObjectData, OnSceneData, RenderData } from "../../gameData";
 import { GameManager } from "../../simul/GameManager";
 import * as Box2D from "../../Box2D";
 export class GameDataMaker {
-  public makeMatchStartData(
+  public makeOnSceneData(
     gameManager : GameManager,
     sid : string
-  ) : MatchStartData {
-    const matchStartData : MatchStartData = new MatchStartData();
+  ) : OnSceneData {
+    const matchStartData : OnSceneData = new OnSceneData();
 
     matchStartData.gameId = gameManager.gameId;
     matchStartData.playerLocation = gameManager.player1.sid == sid ? PlayerLocation.LEFT : PlayerLocation.RIGHT;

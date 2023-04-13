@@ -8,18 +8,20 @@ import { GameService } from "../socket/services";
 import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
 import { MatchJoinData, RenderData, ScoreData } from "../gameData";
-
+import { Logger } from "@nestjs/common";
 
 export class GameManager {
   public readonly gameId : string;
   public readonly gameRoomType : RoomType;
   public readonly gameType : GameType;
+  public started : Boolean;
   public playerCount : number;
   public player1 : GamePlayer;
   public player2 : GamePlayer;
   public simulator : GameSimulator;
   public renderDatas : RenderData[];
   public scoreData : ScoreData;
+  private logger : Logger;
 
   constructor(matchJoinData : MatchJoinData)
   {
@@ -27,6 +29,8 @@ export class GameManager {
     this.gameType = matchJoinData.gameType;
     this.gameId = uuidv4();
     this.playerCount = 0;
+    this.started = false;
+    this.logger = new Logger('GameManager');
   }
 
   public createPlayer(sid : string, dbId : number) {
@@ -48,25 +52,40 @@ export class GameManager {
   ){
     const timeStep = setInterval(step, 1/60, server, this.gameId, this.simulator, 1/60 ,this.renderDatas, this.scoreData);
     const timeEndCheck = setInterval(
-    (
-      simulator : GameSimulator,
-      gameRooms : Map<string,GameManager>,
-      gameManager : GameManager,
-      gameService : GameService,
-      server : Server
-    ) => {
-    if (
-      simulator.ball.GetUserData().player1_score === MATCH_SCORE || 
-      simulator.ball.GetUserData().player2_score === MATCH_SCORE ||
-      simulator.matchInterrupt.isInterrupt
-    ) {
-      clearInterval(timeEndCheck);
-      clearInterval(timeStep);
-      simulator.user1.socore = Min(simulator.ball.GetUserData().player1_score, simulator.user1.socore);
-      simulator.user2.socore = Min(simulator.ball.GetUserData().player2_score, simulator.user2.socore);
-      console.log('allClear interval');
-      gameService.gameEnd(gameRooms, gameManager, server);
-    }},1000, this.simulator, gameRooms, this, gameService, server)
+      async (
+        simulator : GameSimulator,
+        gameRooms : Map<string,GameManager>,
+        gameManager : GameManager,
+        gameService : GameService,
+        server : Server
+      ) => {
+      if (
+        simulator.ball.GetUserData().player1_score === MATCH_SCORE || 
+        simulator.ball.GetUserData().player2_score === MATCH_SCORE ||
+        simulator.matchInterrupt.isInterrupt
+      ) {
+        clearInterval(timeStep);
+        if (!simulator.matchInterrupt.isInterrupt){
+          gameManager.player1.socore = simulator.ball.GetUserData().player1_score;
+          gameManager.player2.socore = simulator.ball.GetUserData().player2_score;
+        }
+        gameService.gameEndToClient(gameManager, server);
+        clearInterval(timeEndCheck);
+        await gameService.createMatch(gameManager).then(()=>{
+          gameRooms.delete(gameManager.gameId);
+        }).catch(()=>{
+          gameRooms.delete(gameManager.gameId);
+          this.logger.error(
+            `database save match failed : ${gameManager.gameId} ` +
+            `gameType: ${gameManager.gameType} ` +
+            `gameRoomType: ${gameManager.gameRoomType} ` +
+            `player1 score: ${gameManager.player1.socore} ` +
+            `player2 score: ${gameManager.player2.socore} ` +
+            `player1 dbId: ${gameManager.player1.dbId} ` +
+            `player2 dbId: ${gameManager.player2.dbId}`
+          );
+        });
+      }},1000, this.simulator, gameRooms, this, gameService, server);
   }
 
   public Keyboard(key : InputEnum, sid : string) {
@@ -94,7 +113,7 @@ export class GameManager {
           player.directionButton = PaddleState.STOP;
         }
       break;
-      case InputEnum.SKILL:
+      case this.gameType == GameType.SPECIAL && InputEnum.SKILL:
         player.skill.ReverseEnemyPaddleDirection(enemy);
       break;
     }

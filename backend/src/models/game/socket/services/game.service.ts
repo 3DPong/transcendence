@@ -6,7 +6,7 @@ import { MATCH_SCORE } from '../../enum/GameEnv';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Match } from '../../entities';
 import { Repository } from 'typeorm';
-import { MatchJoinData, MatchResultData, MatchStartData, RenderData, ScoreData } from '../../gameData';
+import { MatchJoinData, MatchResultData, OnSceneData, RenderData, ScoreData } from '../../gameData';
 import { Server} from 'socket.io'
 import { GameDataMaker } from './game.data.maker';
 import { GameSimulator } from '../../simul/GameSimulator';
@@ -44,16 +44,12 @@ export class GameService {
     return undefined;
   }
 
-  public async gameEnd(
-    gameRooms : Map<string, GameManager>,
+  public async gameEndToClient(
     gameManager: GameManager,
     server : Server
   ){
-    //todo : 클라이언트 한테 알려주기
-    await this.createMatch(gameManager);
     const matchResultData : MatchResultData = this.gameDataMaker.makeMatchResultData(gameManager);
     server.to(gameManager.gameId).emit('matchEnd', matchResultData);
-    gameRooms.delete(gameManager.gameId);
   }
 
   public matchGiveUp(gameManager : GameManager, sid : string){
@@ -63,18 +59,18 @@ export class GameService {
     loser.socore = 0;
   }
 
-  public gameStart(gameManager : GameManager, server : Server){
-    gameManager.simulator = new GameSimulator(gameManager.player1, gameManager.player2);
+  public gamePreheat(gameManager : GameManager, server : Server){
+    gameManager.simulator = new GameSimulator(gameManager.player1, gameManager.player2, gameManager.gameType);
     gameManager.renderDatas = this.initRenderDatas(gameManager);
     gameManager.scoreData = new ScoreData();
 
     const player1sid : string = gameManager.player1.sid;
     const player2sid : string = gameManager.player2.sid;
-    const matchStartData1 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player1sid);
-    const matchStartData2 : MatchStartData = this.gameDataMaker.makeMatchStartData(gameManager, player2sid);
+    const onSceneData1 : OnSceneData = this.gameDataMaker.makeOnSceneData(gameManager, player1sid);
+    const onSceneData2 : OnSceneData = this.gameDataMaker.makeOnSceneData(gameManager, player2sid);
 
-    server.to(player1sid).emit('onSceneReady', matchStartData1);
-    server.to(player2sid).emit('onSceneReady', matchStartData2);
+    server.to(player1sid).emit('onSceneReady', onSceneData1);
+    server.to(player2sid).emit('onSceneReady', onSceneData2);
   }
 
   public initRenderDatas(gameManager : GameManager) : RenderData[] {
@@ -82,15 +78,15 @@ export class GameService {
   }
   
   async createMatch(gameManager : GameManager){
-    const newMatch = new Match();
-    newMatch.game_type = gameManager.gameType;
-    newMatch.match_type = gameManager.gameRoomType;
-    newMatch.left_score = gameManager.player1.socore;
-    newMatch.right_score = gameManager.player2.socore;
-    newMatch.left_player = gameManager.player1.dbId;
-    newMatch.right_player = gameManager.player2.dbId;
     try {
-      this.matchRepository.save(newMatch);
+      const newMatch = new Match();
+      newMatch.game_type = gameManager.gameType;
+      newMatch.match_type = gameManager.gameRoomType;
+      newMatch.left_score = gameManager.player1.socore;
+      newMatch.right_score = gameManager.player2.socore;
+      newMatch.left_player = gameManager.player1.dbId;
+      newMatch.right_player = gameManager.player2.dbId;
+      await this.matchRepository.save(newMatch);
     } catch (error) {
       throw new InternalServerErrorException('DataBase save Error');
     }
