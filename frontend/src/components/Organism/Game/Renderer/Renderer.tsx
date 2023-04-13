@@ -105,8 +105,8 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       Vector3.Zero(),
       scene3D
     );
-    // camera.attachControl(true);
-    camera.upVector = new BABYLON.Vector3(0, 0, 1);
+    // camera.attachControl(true); // TODO: Delete later
+    camera.upVector = new BABYLON.Vector3(0, 0, -1);
     const canvas = scene3D.getEngine().getRenderingCanvas();
     Assert.NonNullish(canvas, 'canvas is null');
 
@@ -115,7 +115,7 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    attachGameEventToCanvas(_Canvas, gameSocket, matchData.gameId, matchData.playerLocation);
+    attachGameEventToCanvas(_Canvas, gameSocket, matchData.gameId, matchData.playerLocation, camera);
 
     // (2) create Light, ambient light
     scene3D.ambientColor = new BABYLON.Color3(1, 1, 1);
@@ -127,16 +127,16 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
 
     // (3) Set up Camera via player type
     const CAMERA_ANIMATION_TIME_MS = 3000;
-    const CAMERA_TILT_ANGLE = 45;
+    const CAMERA_TILT_ANGLE = 60;
     const TOTAL_FRAME = (CAMERA_ANIMATION_TIME_MS * 60) / 1000;
     if (matchData.playerLocation === gameType.PlayerLocation.LEFT) {
-      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 120, 60, TOTAL_FRAME);
       camera.spinTo('alpha', -Math.PI, 60, TOTAL_FRAME);
       camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     } else {
       // RIGHT
-      camera.spinTo('radius', 100, 60, TOTAL_FRAME);
-      camera.spinTo('alpha', 0.01, 60, TOTAL_FRAME);
+      camera.spinTo('radius', 120, 60, TOTAL_FRAME);
+      camera.spinTo('alpha', 0.001, 60, TOTAL_FRAME);
       camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     }
 
@@ -173,8 +173,9 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
       setTimeout(() => {
         gameSocket.emit('start');
+        // TODO: 바빌론 GUI로 게임이 시작됬다는 메시지를 띄우기.
         console.log('[DEV] : GAME START!');
-      }, CAMERA_ANIMATION_TIME_MS + 1000);
+      }, CAMERA_ANIMATION_TIME_MS + 2000);
     }
   }; // onSceneReady
 
@@ -203,9 +204,15 @@ function attachGameEventToCanvas(
   canvas: HTMLCanvasElement,
   gameSocket: Socket,
   gameId: string,
-  playerLocation: gameType.PlayerLocation
+  playerLocation: gameType.PlayerLocation,
+  camera? : CustomArchRotateCamera
 ) {
   let isDown = false;
+
+  if (playerLocation === gameType.PlayerLocation.LEFT) {
+    console.log("[DEV] player is left.");
+  }
+
   function onKeyDown(event: KeyboardEvent) {
     let inputData: gameType.inputData;
     if (isDown) return;
@@ -238,6 +245,7 @@ function attachGameEventToCanvas(
       case 'Control': // Skill
         inputData = { gameId: gameId, key: gameType.inputEnum.SKILL };
         gameSocket.emit('keyInput', inputData);
+        console.log("[Dev] : Skill");
         isDown = true;
         break;
       default: // no handling
