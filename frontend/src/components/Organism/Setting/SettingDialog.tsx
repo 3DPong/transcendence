@@ -10,10 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useContext, useEffect, useState, useRef, useMemo, useLayoutEffect, useInsertionEffect } from 'react';
+import { useContext, useEffect, useState, useMemo } from 'react';
 
 import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContentText from '@mui/material/DialogContentText';
@@ -30,13 +29,10 @@ import LogoutIcon from '@mui/icons-material/Logout';
 
 import ImageUpload from '@/components/Molecule/ImageUpload';
 import * as Utils from '@/utils/Validator';
-import { Assert } from '@/utils/Assert';
 import * as API from '@/api/API';
 import GlobalContext from '@/context/GlobalContext';
-import { RepeatOneSharp } from '@mui/icons-material';
 import { Container, Stack } from '@mui/material';
 import { Typography } from '@mui/material';
-import { useNavigate } from 'react-router';
 import { useError } from '@/context/ErrorContext';
 import { useSocket } from '@/context/SocketContext';
 
@@ -111,9 +107,9 @@ interface settingDialogProps {
 }
 
 export default function SettingDialog({ open, setOpen }: settingDialogProps) {
-  const { gameSocket, gameConnect } = useSocket();
+  const { gameConnect } = useSocket();
+  const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
-  const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageFile, setImageFile] = useState<string>('');
@@ -124,28 +120,35 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
 
   // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
   useEffect(() => {
-    if (!gameSocket) return;
     (async () => {
       setIsLoading(true);
       console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
-      // test
+      // TODO: 아래 코드는 테스트 코드이며, SessionStorage 부분은 지워야 한다.
       const loadedSettings = await API.getMySettings(handleError);
       if (loadedSettings) {
-        console.log(loadedSettings);
+        const SAVED_USER_ID = sessionStorage.getItem("user_id");
+        if (SAVED_USER_ID) { // if exists
+          console.log("setting user_id from sessionStorage...", SAVED_USER_ID);
+          setLoggedUserId(parseInt(SAVED_USER_ID));
+        } else { // no sessionStorage
+          console.log("setting user_id from API", SAVED_USER_ID);
+          setLoggedUserId(loadedSettings.user_id);
+        }
         setImageFile(loadedSettings.profile_url);
         setNickname(loadedSettings.nickname);
         setTwoFactorAuth(loadedSettings.two_factor);
-        // 세션 검증이 성공한 이후임으로 게임소켓 연결 시작.
       }
       setIsLoading(false);
-    })(/* IIFE */);
+    })(/* IIFE */)
   }, []);
-  // ---------------------------------------------------------------------
 
   useEffect(() => {
-    if (gameSocket) return;
+    if (!loggedUserId) return;
+    sessionStorage.setItem("user_id", `${loggedUserId}`);
+    console.log("LoggedUserId:",loggedUserId);
     gameConnect();
-  }, []);
+  }, [loggedUserId])
+
 
   // Nickname Change handle
   // ---------------------------------------------------------------------

@@ -118,28 +118,11 @@ function App() {
   // Friend List
   const [friends, setFriends] = useArray<friendData_t>();
   // logged userId
-  // const [loggedUserId, setLoggedUserId] = useState<number | null>();
   const [loggedUserId, setLoggedUserId] = useState<number | null>();
-  console.log("userId : ", loggedUserId);
-  // ---------------------------------------------------------------------------
-
-  // Sockets
-  // ---------------------------------------------------------------------------
-
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    // just for re-render check
-    console.log("App re-render");
-    // 페이지 re-fresh일 경우 sessionStorage에 loggedUserId가 존재하는지 체크, 있다면 불러오기.
-    // 이 데이터는 API (api/error/error.ts)에서 검증, 만약 api 요청의 response status가 401
-    const SAVED_USER_ID = sessionStorage.getItem("user_id");
-    if (SAVED_USER_ID) {
-      setLoggedUserId(parseInt(SAVED_USER_ID));
-    }
-    else {
-      sessionStorage.setItem("user_id", "1");
-    }
+    console.log("[DEV] App re-render");
   }, []);
 
 
