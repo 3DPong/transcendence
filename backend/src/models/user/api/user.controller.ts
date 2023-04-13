@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
-import { GetUserResDto, CreateUserReqDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
 import { UserService } from './services';
 import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
 import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
@@ -18,7 +18,10 @@ export class UserController {
 
   @UseGuards(JwtGuard)
   @Get('/:userid')
-  async getUser(@Param('userid') userid: number): Promise<GetUserResDto> {
+  async getUser(
+    @Param('userid', new ParseIntPipe({}))
+    userid: number
+  ): Promise<GetUserResDto> {
     return this.userService.getUser(userid);
   }
 
