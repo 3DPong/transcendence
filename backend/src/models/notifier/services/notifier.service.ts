@@ -13,9 +13,9 @@ export class NotifierService {
   }
 
   async notifyToUser(server: Server, userId: number, event: string, data: any) {
-    const userSockets: string = await this.redisClient.get(`${userId}`);
+    const userSockets = await this.redisClient.hgetall(`${userId}`);
     if (!userSockets) return;
-    const { socketId } = JSON.parse(userSockets);
+    const socketId = userSockets.notify;
     if (!socketId) return;
     const notifyNamespace: Namespace = await server.of('/notify');
 
