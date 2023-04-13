@@ -520,12 +520,14 @@ export class ChatService {
     // if (!(await this.checkAdminUser(user_id, channel_id))) {
     //   throw new ForbiddenException('No permission!');
     // }
-
+    
+    const now = new Date();
     return await this.muteRepository
       .createQueryBuilder('mute')
       .innerJoin('mute.user', 'us')
       .select(['us.user_id', 'us.nickname', 'us.profile_url', 'mute.end_at'])
       .where('mute.channel_id = :channel_id', { channel_id })
+      .andWhere('mute.end_at > :now', {now})
       .getMany();
   }
 
@@ -533,12 +535,13 @@ export class ChatService {
     if (!(await this.checkAdminUser(user_id, channel_id))) {
       throw new ForbiddenException('No permission!');
     }
-
+    const now = new Date();
     return await this.banRepository
       .createQueryBuilder('ban')
       .innerJoin('ban.user', 'us')
       .select(['us.user_id', 'us.nickname', 'us.profile_url', 'ban.end_at'])
       .where('ban.channel_id = :channel_id', { channel_id })
+      .andWhere('ban.end_at > :now', {now})
       .getMany();
   }
 
