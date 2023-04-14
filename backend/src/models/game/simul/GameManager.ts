@@ -99,20 +99,18 @@ export class GameManager {
       enemy = this.player1;
     }
     switch (key) {
-      case InputEnum.UP:
-        if (player.directionButton === PaddleState.STOP){
+      case InputEnum.UP_START:
           player.directionButton = PaddleState.UP;
-        } else {
-          player.directionButton = PaddleState.STOP;
-        }
       break;
-      case InputEnum.DOWN:
-        if (player.directionButton === PaddleState.STOP){
+      case InputEnum.DOWN_START:
           player.directionButton = PaddleState.DOWN;
-        } else {
-          player.directionButton = PaddleState.STOP;
-        }
       break;
+      case InputEnum.UP_END:
+        player.directionButton = PaddleState.STOP;
+        break;
+      case InputEnum.DOWN_END:
+        player.directionButton = PaddleState.STOP;
+        break;
       case this.gameType == GameType.SPECIAL && InputEnum.SKILL:
         player.skill.ReverseEnemyPaddleDirection(enemy);
       break;
