@@ -16,8 +16,8 @@ export class FtConfigService {
     return this.configService.get<string>('ft.secret');
   }
   get callback(): string {
-    return `http://${this.configService.get<string>('app.host')}:${this.configService.get<number>(
-      'app.port'
+    return `http://${this.configService.get<string>('EXTERNAL_HOST')}:${this.configService.get<number>(
+      'EXTERNAL_PORT'
     )}${this.configService.get<string>('ft.callback')}`;
   }
 }

@@ -4,7 +4,7 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { Redis } from 'ioredis';
 
 const envChecker = () => {
-  if (!process.env.REDIS_PORT || !process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
+  if (!process.env.REDIS_PORT_NUMBER || !process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
     throw new Error('REDIS_PORT, REDIS_HOST, REDIS_PASSWORD must be set in .env file');
   }
 };
@@ -19,7 +19,7 @@ export class RedisIoAdapter extends IoAdapter {
   async connectToRedis(): Promise<void> {
     envChecker();
     const pubClient = new Redis({
-      port: +process.env.REDIS_PORT,
+      port: +process.env.REDIS_PORT_NUMBER,
       host: process.env.REDIS_HOST,
       password: process.env.REDIS_PASSWORD,
       db: 2,

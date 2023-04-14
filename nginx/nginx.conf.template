@@ -12,7 +12,7 @@ http {
 
 	# 백엔드 upstream 설정
     upstream api-server {
-        server api-server:5000;
+        server ${APP_HOST}:${APP_PORT};
     }
 
 	# 프론트엔드 upstream 설정
@@ -21,7 +21,7 @@ http {
     }
 
     server {
-        listen 3000;
+        listen ${NGINX_PORT};
 
 		# /api 경로로 오는 요청을 백엔드 upstream 의 /api 경로로 포워딩
         location /api {
