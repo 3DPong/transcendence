@@ -97,7 +97,7 @@ export class ChatSocketService {
       if (channel.type === ChannelType.DM) await this.updateDmUser(dmUser);
       
       server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
-      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('chat', newMessage);
+      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('alarm', {type: 'chat', newMessage});
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -148,7 +148,7 @@ export class ChatSocketService {
       throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     const banned = await this.checkBanUser(channel_id, user_id);
-    const nickname = await this.getChannelUserName(channel_id, user_id);
+    //const nickname = await this.getChannelUserName(channel_id, user_id);
 
     if (banned === BanStatus.Ban) {
       throw new SocketException('Forbidden', `이미 밴 상태입니다!`);
