@@ -1,4 +1,4 @@
-import { SKILL_COLL } from "../enum/GameEnv.js";
+import { SKILL_DURATION_TIME } from "../enum/GameEnv.js";
 import { GamePlayer } from "./GamePlayer.js";
 
 export class GameSkill {
@@ -13,7 +13,7 @@ export class GameSkill {
     --this.paddleDirectionSkillCount;
     this.paddleDirectionSkillTimeOut = setTimeout(
       () => enemyUser.directionReverse = false,
-      SKILL_COLL
+      SKILL_DURATION_TIME
     );
   }
 }
