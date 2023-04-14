@@ -1,4 +1,4 @@
-import React, { FC, useContext, useEffect, useState } from 'react';
+import React, { FC, useContext, useEffect, useRef, useState } from 'react';
 import SearchTextField from '@/components/Molecule/SearchTextField';
 import MediaCard from '@/components/Molecule/MediaCard';
 import AddCommentIcon from '@mui/icons-material/AddComment';
@@ -26,7 +26,13 @@ const LocalChatList: FC<ChatListProps> = () => {
   // 나중에 컨트롤바로 넘겨야되고, 세션쿠키를 이용해서 연결할 예정
   const { chatSocket, chatConnect } = useSocket();
 
+  const channelsRef = useRef<Channel[]>(channels);
+
   const { channelId } = useParams();
+
+  useEffect(() => {
+    channelsRef.current = channels;
+  }, [channels]);
 
   useEffect(() => {
     if (chatSocket) {
@@ -35,11 +41,6 @@ const LocalChatList: FC<ChatListProps> = () => {
       //   // join 으로 변경 필요?
       //   chatSocket.emit('enter-chat', { channel_id: channel.id });
       // }
-      chatSocket.emit('join');
-      chatSocket.on('chat', (message) => {
-        console.log('in list. current channel is ' + channelId + ' msg.channel is ' + message.channel_id);
-        // 여기서 채널아이디가 내 채널과 안맞으면 channels에서 unread count를 하나 증가시킴
-      });
       chatSocket.on('alarm', (message) => {
         switch (message.type) {
           case 'invite':
@@ -56,6 +57,27 @@ const LocalChatList: FC<ChatListProps> = () => {
               },
             };
             setChannels([ch, ...channels]);
+            // 이건 로그인이후. handleError => handleAlarm 같은걸로 변경해야함. 
+            break;
+          case 'chat':
+            console.log(message.message);
+            break;
+          case 'ban':
+            // 채널리스트에 들어와있을때
+            console.log("current");
+            console.log(channelsRef.current);
+            setChannels(channelsRef.current.filter((channel)=>(channel.id != message.channel_id)));
+            // 이건 로그인이후.
+            handleError('Ban ' + message.channel_id, message.message);
+            break;
+          case 'kick':
+            // 채널리스트에 들어와있을때
+            console.log("current");
+            console.log(channelsRef.current);
+            setChannels(channelsRef.current.filter((channel)=>(channel.id != message.channel_id)));
+            // 이건 로그인이후.
+            handleError('Kick ' + message.channel_id, message.message);
+            console.log(message.message);
             break;
           default:
             break;
@@ -90,7 +112,12 @@ const LocalChatList: FC<ChatListProps> = () => {
       setIsLoading(false);
 
       // 소켓연결 Connect 호출
-      if (loggedUserId) chatConnect({ userId: loggedUserId });
+
+      console.log("======chatConnectBef======");
+      if (loggedUserId) {
+        chatConnect({ userId: loggedUserId });
+        console.log("======chatConnectAft======");
+      }
       // ======
     }
     if (loggedUserId) fetchChannels();

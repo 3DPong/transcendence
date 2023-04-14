@@ -139,10 +139,46 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   }
   function handleGrantClick(id: number) {
     console.log(id + ' is Grant');
+    async function fetchGrant() {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: id,
+          role: 'admin',
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        handleError('Grant Admin', error.message);
+        return;
+      }
+    }
+    fetchGrant();
     handleClose();
   }
   function handleRevokeClick(id: number) {
     console.log(id + ' is Revoke');
+    async function fetchRevoke() {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: id,
+          role: 'user',
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        handleError('Revoke Admin', error.message);
+        return;
+      }
+    }
+    fetchRevoke();
     handleClose();
   }
 

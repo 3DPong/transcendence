@@ -54,7 +54,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const chatConnect = ({ userId }: ChatConnectProps) => {
     if (!chatSocket) {
-      const newSocket = io(SOCKET_URL, {
+      const newSocket = io(SOCKET_URL + '/chat', {
         //path: '/chat_socket',
         query: {
           user_id: userId,

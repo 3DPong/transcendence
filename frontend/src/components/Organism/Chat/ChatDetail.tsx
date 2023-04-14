@@ -181,18 +181,22 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   useEffect(() => {
     console.log('socket useEffect in');
+    console.log('==========');
+    if (chatSocket) {
+      console.log("========2========")
+      chatSocket.emit('enter-chat', { channel_id: channelId } );
+    }
+
     if (chatSocket) {
       // 이게 의미가 있나? 현재 채팅방의 이벤트인지 확인 후 처리
       chatSocket.on('chat', (message) => {
-        if (message.channel_id) {
-          const msg: Message = {
-            id: message.message_id,
-            senderId: message.user_id,
-            content: message.content,
-            created_at: new Date(Date.parse(message.created_at)).toISOString().replace('T', ' ').slice(0, -5),
-          };
-          setMessages([...messagesRef.current, msg]);
-        }
+        const msg: Message = {
+          id: message.message_id,
+          senderId: message.user_id,
+          content: message.content,
+          created_at: new Date(Date.parse(message.created_at)).toISOString().replace('T', ' ').slice(0, -5),
+        };
+        setMessages([...messagesRef.current, msg]);
       });
 
       chatSocket.on('error', (message) => {
@@ -206,38 +210,56 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       });
 
       chatSocket.on('ban', (message) => {
-        if (message.channel_id) {
-          const targetId = message.user_id;
-          if (targetId in banListRef.current) {
-            // UnBan
-            unsetTimerHandler(targetId, banListRef, setBanList);
-          }
-          else {
-            // Ban
-            setDeletedAtFromUsers(targetId);
-            const timerId = setTimerHandler(targetId, banListRef, setBanList,
-              new Date(message.end_at).getTime() - (Date.now()));
-            setBanList(prevState => ({...prevState, [targetId]: timerId}));
-          }
+        const targetId = message.user_id;
+        if (targetId in banListRef.current) {
+          // UnBan
+          unsetTimerHandler(targetId, banListRef, setBanList);
+        }
+        else {
+          // Ban
+          setDeletedAtFromUsers(targetId);
+          const timerId = setTimerHandler(targetId, banListRef, setBanList,
+            new Date(message.end_at).getTime() - (Date.now()));
+          setBanList(prevState => ({...prevState, [targetId]: timerId}));
         }
       });
 
       chatSocket.on('mute', (message) => {
-        console.log(channelId);
-        if (message.channel_id === channelId) {
-          const targetId = message.user_id;
-          if (targetId in muteListRef.current) {
-            // UnMute
-            console.log("unmute");
-            unsetTimerHandler(targetId, muteListRef, setMuteList);
-          } else {
-            // Mute
-            console.log("mute");
+        const targetId = message.user_id;
+        if (targetId in muteListRef.current) {
+          // UnMute
+          unsetTimerHandler(targetId, muteListRef, setMuteList);
+        } else {
+          // Mute
+          const timerId = setTimerHandler(targetId, muteListRef, setMuteList,
+            new Date(message.end_at).getTime() - (Date.now()));
+          setMuteList(prevState => ({...prevState, [targetId]: timerId}));
+        }
+      });
 
-            const timerId = setTimerHandler(targetId, muteListRef, setMuteList,
-              new Date(message.end_at).getTime() - (Date.now()));
-            setMuteList(prevState => ({...prevState, [targetId]: timerId}));
-          }
+      chatSocket.on('role', (message) => {
+        setUsers(
+          usersRef.current.map((user) => {
+            if (user.id === message.user_id)
+              user.role = message.type;
+            return user;
+          })
+        );
+      });
+
+      chatSocket.on('user', (message) => {
+        if (message.type === 'join') {
+          const joinUsers : ChatUser[] = message.user.map((item : any) => ({
+            id: item.user.user_id,
+            nickname: item.user.nickname,
+            profile: item.user.profile_url,
+            role: 'user',
+            deleted_at: null,
+          }));
+          setUsers([...usersRef.current, ...joinUsers]);
+        }
+        else {
+          setUsers(usersRef.current.filter((user) => (user.id !== message.user_id)));
         }
       });
     }
@@ -250,6 +272,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         chatSocket.off('kick');
         chatSocket.off('ban');
         chatSocket.off('mute');
+        chatSocket.emit('leave-chat', { channel_id: channelId } );
       }
     };
     // channelId가 변할땐 메시지들을 그대로 둠
