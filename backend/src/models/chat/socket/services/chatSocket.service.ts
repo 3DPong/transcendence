@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import {
   BanStatus,
   ChannelBanList,
@@ -70,29 +70,6 @@ export class ChatSocketService {
     }
   }
 
-  // async enterChatRoom(socket: Socket, channel_id: number, user_id: number) {
-  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
-  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
-
-  //   try {
-  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 들어왔습니다.` });
-  //   } catch (error) {
-  //     throw new SocketException('InternalServerError', `${error.message}`);
-  //   }
-  // }
-
-  // async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
-  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
-  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
-
-  //   try {
-  //     socket.leave(`chat_${channel_id}`);
-  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 나갔습니다.` });
-  //   } catch (error) {
-  //     throw new SocketException('InternalServerError', `${error.message}`);
-  //   }
-  // }
-
   async sendChatMessage(server: Server, user_id: number, md: MessageDto, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
     if (md.message === '' || isWhitespace(md.message)) throw new SocketException('BadRequest', `내용을 입력해주세요!`);
@@ -100,34 +77,31 @@ export class ChatSocketService {
     let dmUser;
     const channel = await this.getChannelType(md.channel_id);
     if (!channel) {
-      throw new SocketException('BadRequest', `채널을 찾을 수 없습니다!`);
+      throw new SocketException('NotFound', `채널을 찾을 수 없습니다!`);
     } else if (channel.type === ChannelType.DM && !(dmUser = await this.getDmUser(md.channel_id, user_id))) {
-      throw new SocketException('BadRequest', `디엠 유저를 찾을 수 없습니다!`);
+      throw new SocketException('NotFound', `디엠 유저를 찾을 수 없습니다!`);
     } else if (channel.type === ChannelType.DM && await this.checkBlocked(dmUser, user_id)) {
       throw new SocketException('Forbidden', `차단 상태 입니다!`);
     } else if (channel.type !== ChannelType.DM && !(await this.checkChannelUser(md.channel_id, user_id))) {
-      throw new SocketException('BadRequest', `채팅 유저를 찾을 수 없습니다!`);
+      throw new SocketException('NotFound', `채팅 유저를 찾을 수 없습니다!`);
     }
 
     if (await this.checkMuteUser(md.channel_id, user_id) === MuteStatus.Mute) {
       throw new SocketException('Forbidden', `뮤트 상태입니다!`);
     }
 
-    const newMessage = await this.createMessageLog(user_id, md);
-    if (!newMessage) throw new SocketException('InternalServerError', `메세지가 전송 실패!`);
-    delete newMessage.channel;
     try {
-      if (channel.type === ChannelType.DM) {
-        await this.updateDmUser(dmUser);
-      }
+      const newMessage = await this.createMessageLog(user_id, md);
+      delete newMessage.channel;
+
+      if (channel.type === ChannelType.DM) await this.updateDmUser(dmUser);
+      
       server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
       server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('chat', newMessage);
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
   }
-
-
 
   async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto) {
     const { user_id, channel_id } = muteDto;
@@ -163,7 +137,7 @@ export class ChatSocketService {
     }
   }
 
-  async banUser(server: Server, adminId: number, banDto: toggleTimeDto, userSocket: string) {
+  async banUser(server: Server, adminId: number, banDto: toggleTimeDto, banUserSocket: string) {
     const { user_id, channel_id } = banDto;
 
     if (
@@ -177,7 +151,7 @@ export class ChatSocketService {
     const nickname = await this.getChannelUserName(channel_id, user_id);
 
     if (banned === BanStatus.Ban) {
-      throw new SocketException('Conflict', `이 유저는 이미 밴 상태입니다!`);
+      throw new SocketException('Forbidden', `이미 밴 상태입니다!`);
     } else {
       if (banDto.end_at === null) throw new SocketException('BadRequest', `밴 해제 시간을 추가하세요!`);
       
@@ -187,17 +161,13 @@ export class ChatSocketService {
 
         await this.deleteChannelUser(channel_id, user_id);
 
-        if (userSocket) {
-          server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
-          //active 리스트에서 삭제
-          //server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
+        if (banUserSocket) {
+          server.in(banUserSocket).socketsLeave(`chat_alarm_${channel_id}`);
+          const title = await this.getChannelName(channel_id);
+          server.in(banUserSocket)
+            .emit('alarm', { type: 'ban', channel_id: channel_id, message: `${title} 에서 밴 되었습니다.` }); //당사자
         }
-        const title = await this.getChannelName(channel_id);
-        server
-          .in(userSocket)
-          .emit('alarm', { type: 'ban', channel_id: channel_id, message: `${title} 에서 밴 되었습니다.` }); //당사자
-        server
-          .to(`chat_active_${channel_id}`)
+        server.to(`chat_active_${channel_id}`).except(banUserSocket)
           .emit('ban', { user_id: user_id, channel_id: channel_id, end_at: `${banDto.end_at}`}); //일반 유저들
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
@@ -212,14 +182,13 @@ export class ChatSocketService {
       throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     const banned = await this.checkBanUser(channel_id, user_id);
-    const nickname = await this.getChannelUserName(channel_id, user_id);
     if (banned === BanStatus.Ban) {
       await this.releaseBanUser(channel_id, user_id);
-      server
-        .to(`chat_active_${channel_id}`)
-        .emit('ban', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 해제 되었습니다.` });
+      const nickname = await this.getChannelUserName(channel_id, user_id);
+      server.to(`chat_active_${channel_id}`)
+        .emit('ban', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 해제 되었습니다.` }); //일반 유저들
     } else {
-      throw new SocketException('Conflict', `밴 유저가 아닙니다!`);
+      throw new SocketException('BadRequest', `밴 유저가 아닙니다!`);
     }
 
   }
@@ -234,21 +203,21 @@ export class ChatSocketService {
     )
       throw new SocketException('Forbidden', `권한이 없습니다!`);
 
-      const nickname = await this.getChannelUserName(channel_id, user_id);
     try {
       await this.deleteChannelUser(channel_id, user_id);
 
-      if (userSocket) server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-
-      if (nickname) {
+      if (userSocket) {
+        server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
         const title = await this.getChannelName(channel_id);
         server
           .in(userSocket)
           .emit('alarm', { type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장  되었습니다.` }); //당사자
-        server
-          .to(`chat_active_${channel_id}`)
-          .emit(`kick`, { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 강제 퇴장 되었습니다.` }); //일반유저
       }
+      const nickname = await this.getChannelUserName(channel_id, user_id);
+      server
+        .to(`chat_active_${channel_id}`)
+        .emit(`kick`, { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 강제 퇴장 되었습니다.` }); //일반유저
+    
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -260,12 +229,8 @@ export class ChatSocketService {
       user_id,
       content: md.message,
     });
-    try {
-      await this.messageLogRepository.save(newLog);
-      return newLog;
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    await this.messageLogRepository.save(newLog);
+    return newLog;
   }
 
   async updateDmUser(dmUser: DmChannel) {
@@ -324,12 +289,12 @@ export class ChatSocketService {
 
   async unmuteUser(channel_id: number, user_id: number) {
     const result = await this.muteRepository.delete({ channel_id, user_id });
-    if (result.affected === 0) throw new NotFoundException(`Can't find mute id ${user_id} in ${channel_id}`);
+    if (result.affected === 0) throw new SocketException('NotFound', `유저를 찾을 수 없습니다!`);
   }
 
   async releaseBanUser(channel_id: number, user_id: number) {
     const result = await this.banRepository.delete({ channel_id, user_id });
-    if (result.affected === 0) throw new NotFoundException(`Can't find ban id ${user_id} in ${channel_id}`);
+    if (result.affected === 0) throw new SocketException('NotFound', `유저를 찾을 수 없습니다!`);
   }
 
   async checkMuteUser(channel_id: number, user_id: number): Promise<MuteStatus> {
@@ -442,6 +407,29 @@ export class ChatSocketService {
     if (!channel) return null;
     return channel.name;
   }
+
+  // async enterChatRoom(socket: Socket, channel_id: number, user_id: number) {
+  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
+  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
+
+  //   try {
+  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 들어왔습니다.` });
+  //   } catch (error) {
+  //     throw new SocketException('InternalServerError', `${error.message}`);
+  //   }
+  // }
+
+  // async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
+  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
+  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
+
+  //   try {
+  //     socket.leave(`chat_${channel_id}`);
+  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 나갔습니다.` });
+  //   } catch (error) {
+  //     throw new SocketException('InternalServerError', `${error.message}`);
+  //   }
+  // }
 }
 
 function isWhitespace(value: string): boolean {
