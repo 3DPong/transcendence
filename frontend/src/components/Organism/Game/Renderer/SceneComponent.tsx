@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import * as BABYLON from '@babylonjs/core';
+import * as BABYLON from 'babylonjs';
 import { Assert } from '@/utils/Assert';
 
 /*************************************************************

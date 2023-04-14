@@ -75,6 +75,7 @@ export default function GameStartButton({
 
   const handleProgressFinish = () => {
     Assert.NonNullish(__matchDataCache, '__matchDataCache is null');
+    console.log("[DEV] handleProgressFinish")
     setMatchData(__matchDataCache);
   };
 
@@ -271,7 +272,7 @@ export default function GameStartButton({
         {/* 매칭이 되지 않았을 때 취소하기 버튼 보여주기 */}
         <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', m: 4 }}>
           {isMatched ? (
-            <LoadingProgressBar onFinish={handleProgressFinish} />
+            <Counter onFinish={handleProgressFinish} />
           ) : (
             <Button color="error" variant="contained" endIcon={<ClearIcon />} onClick={handleMatchingCancel}>
               매칭 취소하기
@@ -283,38 +284,42 @@ export default function GameStartButton({
   );
 }
 
-interface LoadingProgressBarProps {
+interface CounterProps {
   onFinish: () => void;
 }
-function LoadingProgressBar({ onFinish }: LoadingProgressBarProps) {
-  // 로딩 버튼
-  const [progress, setProgress] = useState<number>(0);
-  const TOTAL_WAIT_TIME_MS = 1000;
-  const Diff = 2;
+function Counter({ onFinish }: CounterProps) {
+  const [count, setCount] = useState<number>(3);
+  // const [isDone, setIsDone] = useState<boolean>(false);
+  const [loopId, setLoopId] = useState<number>()
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((oldProgress) => {
-        if (oldProgress === 100) {
-          // if 100 Done
-          onFinish();
-          return 0;
+      setCount((prevCount) => {
+        if (prevCount <= 1) {
+          setLoopId(timer);
+          return 3;
         }
-        // const diff = Math.random() * 10;
-        return Math.min(oldProgress + Diff, 100);
-      });
-      // 1000초 안에 100이 되어야 하는데, 2씩 증가한다면 주기는 1000 / (100/2) = 20. = 1000 * (2 / 100)
-    }, TOTAL_WAIT_TIME_MS * (Diff / 100));
+        return (prevCount - 1);
+      })
+    }, 1000);
 
-    return () => {
-      clearInterval(timer);
-    };
+    // return () => {
+      // clearInterval(timer);
+    // };
   }, []);
+
+  useEffect(() => {
+    if (!loopId) return;
+    clearInterval(loopId);
+    onFinish();
+  }, [loopId]);
 
   return (
     <Box sx={{ width: '100%', height: '5' }}>
       {'잠시 후 게임이 시작됩니다!'}
-      <LinearProgress variant="determinate" value={progress} />
+      <Typography display="block" variant="h5" color="text.primary">
+        {count}
+      </Typography>
     </Box>
   );
 }

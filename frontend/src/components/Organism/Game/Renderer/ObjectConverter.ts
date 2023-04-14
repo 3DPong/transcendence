@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { Vector3, MeshBuilder, Scene, PolygonMeshBuilder, Mesh, Color3, Color4 } from '@babylonjs/core';
+import { Vector3, MeshBuilder, Scene, PolygonMeshBuilder, Mesh, Color3, Color4 } from 'babylonjs';
 import * as gameTypes from '@/types/game';
 import { Assert } from '@/utils/Assert';
 

@@ -82,3 +82,15 @@ export interface matchResult {
   leftScore: number;
   winner: number; //id
 }
+
+export interface PlayerData {
+  myImage: string;
+  myNickName: string;
+  enemyImage: string;
+  enemyNickName: string;
+}
+
+export interface scoreData{
+  rightScore : number;
+  leftScore : number;
+}

@@ -24,8 +24,8 @@
       "@/*": ["src/*"]
     },
     "types": [
-      // "babylonjs"
-      // ...
+      "babylonjs",
+      "babylonjs-gui"
     ]
   },
   "include": [

@@ -10,8 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as BABYLON from '@babylonjs/core';
-import { ArcRotateCamera, MeshBuilder, Mesh, Scene, Vector3, Color3 } from '@babylonjs/core';
+import * as BABYLON from 'babylonjs';
+import { ArcRotateCamera, MeshBuilder, Mesh, Scene, Vector3, Color3 } from 'babylonjs';
+import * as GUI from 'babylonjs-gui';
 import SceneComponent from './SceneComponent'; // uses above component in same directory
 import { Assert } from '@/utils/Assert';
 import React, { useEffect, useRef } from 'react';
@@ -54,14 +55,26 @@ class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
 }
 
 export interface RenderSceneProps {
+  playerData: gameType.PlayerData;
   matchData: gameType.matchStartData;
   width: number;
   height: number;
 }
 
-export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
+/*
+interface GameScore {
+  myScore: number;
+  enemyScore: number;
+}
+ */
+
+export function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) {
   const sceneRef = useRef<Scene | null>(null);
-  const m_MeshMap: Map<gameType.objectId, Mesh> = new Map();
+  const m_MeshMap: Map<gameType.objectId, BABYLON.Mesh> = new Map();
+
+  const myScoreText = new GUI.TextBlock();
+  const enemyScoreText = new GUI.TextBlock();
+
   const { gameSocket } = useSocket();
   const { handleError } = useError();
 
@@ -69,10 +82,10 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
   // https://socket.io/how-to/use-with-react
   useEffect(() => {
     if (!gameSocket) {
+      console.log("[DEV] error! gameSocket is null");
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    // 변경된 친구들.
     function onFrameSentFromSever(renderDataArray: readonly gameType.renderData[]) {
       // 배열을 순회하면서 오브젝트 업데이트
       for (const objData of renderDataArray) {
@@ -82,12 +95,26 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
         mesh.rotation = new Vector3(0, 0, objData.angle); // only z-axis rotation
       }
     }
-
     gameSocket.on('render', onFrameSentFromSever);
+
+    function onScoreSentFromServer(scoreData: gameType.scoreData) {
+      // 스코어보드 업데이트.
+      console.log(`[DEV] gameScore --> LEFT:${scoreData.leftScore} RIGHT:${scoreData.rightScore}`);
+      if (matchData.playerLocation === gameType.PlayerLocation.LEFT) {
+        myScoreText.text = `${scoreData.leftScore}`;
+        enemyScoreText.text = `${scoreData.rightScore}`;
+      } else {
+        myScoreText.text = `${scoreData.rightScore}`;
+        enemyScoreText.text = `${scoreData.leftScore}`;
+      }
+    }
+    gameSocket.on('score', onScoreSentFromServer);
 
     return () => {
       console.log('gameSocket: [render] off');
       gameSocket.off('render', onFrameSentFromSever);
+      console.log('gameSocket: [score] off');
+      gameSocket.off('score', onScoreSentFromServer);
     };
   }, []);
 
@@ -141,11 +168,50 @@ export function Renderer3D({ matchData, width, height }: RenderSceneProps) {
       camera.spinTo('alpha', 0.001, 60, TOTAL_FRAME);
       camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     }
-
-
     // (4) Apply color, texture, etc...
 
-    // (5) create Objects using simulator's data
+
+    // (5-1) GUI ScoreBoard
+    const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene3D);
+    const grid = new GUI.Grid();
+    // grid.background = "white";
+    advancedTexture.addControl(grid);
+    grid.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+    grid.width = "200px";
+    grid.height = "100px";
+    grid.addRowDefinition(0.25); // top margin
+    grid.addRowDefinition(1); // 1행(프로필)
+    grid.addRowDefinition(0.5); // 2행(점수)
+    grid.addRowDefinition(0.25); // bottom margin
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(2); // middle
+    grid.addColumnDefinition(1);
+
+    const myImage = new GUI.Image(playerData.myImage);
+    grid.addControl(myImage, 1, 0);
+    const myScoreBG = new GUI.Rectangle();
+    myScoreBG.background = "white";
+    myScoreBG.thickness = 0;
+    grid.addControl(myScoreBG, 2, 0);
+    myScoreText.text = `${0}`;
+    myScoreText.fontSize = 20;
+    grid.addControl(myScoreText, 2, 0);
+
+    const enemyImage = new GUI.Image(playerData.enemyImage);
+    grid.addControl(enemyImage, 1, 2);
+    const enemyScoreBG = new GUI.Rectangle();
+    enemyScoreBG.background = "white";
+    enemyScoreBG.thickness = 0;
+    grid.addControl(myScoreBG, 2, 2);
+    enemyScoreText.text = `${0}`;
+    enemyScoreText.fontSize = 20;
+    grid.addControl(enemyScoreText, 2, 2);
+
+    // (5-2) KEYBOARD Board
+    // ....
+
+    // (6) create Objects using simulator's data
     if (!matchData.sceneData) return;
     for (const obj2D of matchData.sceneData) {
       let mesh;

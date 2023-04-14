@@ -44,8 +44,8 @@ import GlobalContext from "@/context/GlobalContext";
 
 export default function Game() {
   const { gameSocket } = useSocket();
-  const [matchData, setMatchData] = useState<gameType.matchStartData>();
-  const [matchResult, setMatchResult] = useState<gameType.matchResult>();
+  const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
+  const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const {loggedUserId} = useContext(GlobalContext);
 
   const [myProfile, setMyProfile] = useState<string>("");
@@ -54,7 +54,8 @@ export default function Game() {
   const [enemyNickname, setEnemyNickname] = useState<string>("");
 
   const handleMatchResultDialogClose = () => {
-    // setOpen(false);
+    setMatchData(null);
+    setMatchResult(null);
   };
 
 
@@ -96,13 +97,19 @@ export default function Game() {
     }
   }, [gameSocket]);
 
+  const playerData: gameType.PlayerData = {
+    myNickName: myNickname,
+    myImage: myProfile,
+    enemyNickName: enemyNickname,
+    enemyImage: enemyProfile,
+  }
 
   if (matchData) {
     return (
         <div>
           {/* 게임 렌더링 */}
           <div className=" absolute -z-50 w-0 h-0">
-            <Renderer3D matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+            <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
           </div>
 
           {/* 게임 결과 */}
@@ -173,7 +180,6 @@ export default function Game() {
                 </DialogActions>
               </Dialog>
           }
-
         </div>
 
     );
