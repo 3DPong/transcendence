@@ -238,6 +238,8 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       });
 
       chatSocket.on('role', (message) => {
+        if (message.user_id === loggedUserId)
+          setMyRole(message.type);
         setUsers(
           usersRef.current.map((user) => {
             if (user.id === message.user_id)
@@ -249,17 +251,33 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
       chatSocket.on('user', (message) => {
         if (message.type === 'join') {
-          const joinUsers : ChatUser[] = message.user.map((item : any) => ({
-            id: item.user.user_id,
-            nickname: item.user.nickname,
-            profile: item.user.profile_url,
-            role: 'user',
-            deleted_at: null,
-          }));
-          setUsers([...usersRef.current, ...joinUsers]);
+          console.log("=== users === ");
+          console.log(users);
+
+
+          console.log("=== message.users === ");
+          console.log(message.user);
+
+          const filteredUsers = usersRef.current.filter((aUser) => (
+            -1 === message.user.findIndex((iUser: any) => iUser.user.user_id === aUser.id)
+          ));
+          const joinUsers : ChatUser[] = message.user.map((item: any) => ({
+              id: item.user.user_id,
+              nickname: item.user.nickname,
+              profile: item.user.profile_url,
+              role: 'user',
+              deleted_at: null,
+              status: 'none',
+            })
+          );
+          console.log("=== filtered.users === ");
+          console.log(filteredUsers);
+          console.log("=== join.users === ");
+          console.log(joinUsers);
+          setUsers([...filteredUsers, ...joinUsers]);
         }
         else {
-          setUsers(usersRef.current.filter((user) => (user.id !== message.user_id)));
+          setDeletedAtFromUsers(message.user_id);
         }
       });
     }

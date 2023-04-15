@@ -29,10 +29,15 @@ const LocalChatList: FC<ChatListProps> = () => {
   const channelsRef = useRef<Channel[]>(channels);
 
   const { channelId } = useParams();
+  const channelIdRef = useRef(channelId);
 
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
+
+  useEffect(() => {
+    channelIdRef.current = channelId;
+  }, [channelId]);
 
   useEffect(() => {
     if (chatSocket) {
@@ -67,6 +72,10 @@ const LocalChatList: FC<ChatListProps> = () => {
             console.log("current");
             console.log(channelsRef.current);
             setChannels(channelsRef.current.filter((channel)=>(channel.id != message.channel_id)));
+            // 해당 채널에 들어와있는경우
+            console.log(channelIdRef.current);
+            if (channelIdRef.current === message.channel_id)
+              navigate(`/channels`);
             // 이건 로그인이후.
             handleError('Ban ' + message.channel_id, message.message);
             break;
@@ -75,6 +84,9 @@ const LocalChatList: FC<ChatListProps> = () => {
             console.log("current");
             console.log(channelsRef.current);
             setChannels(channelsRef.current.filter((channel)=>(channel.id != message.channel_id)));
+            // 해당 채널에 들어와있는경우
+            if (channelIdRef.current === message.channel_id)
+              navigate(`/channels`);
             // 이건 로그인이후.
             handleError('Kick ' + message.channel_id, message.message);
             console.log(message.message);
