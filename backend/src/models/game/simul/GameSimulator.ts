@@ -7,6 +7,7 @@ import { ContactListenerInit } from "./ContactListenerInit";
 import { Server } from 'socket.io'
 import { BALL_SPEED, MAP_WIDTH, PADDLE_OFFSET } from "../enum/GameEnv";
 import { RenderData, ScoreData } from "../gameData";
+import { GameType } from "../enum/GameEnum";
 export class MatchInterrupt {
   isInterrupt : boolean = false;
   sid : string = undefined;
@@ -19,9 +20,11 @@ export class GameSimulator{
   public ball : Box2D.Body;
   public user1: GamePlayer;
   public user2: GamePlayer;
+  public gameType : GameType;
 
-  constructor(user1 : GamePlayer, user2 : GamePlayer){
+  constructor(user1 : GamePlayer, user2 : GamePlayer, gameType : GameType){
       //ball create & add to world
+      this.gameType = gameType;
       this.world.SetGravity(new Box2D.Vec2(0,0));//무중력
       this.ball = this.objectFactory.createBall(this.world);
       this.objectFactory.createGround(this.world);
@@ -29,10 +32,11 @@ export class GameSimulator{
       this.user2 = user2;
       user1.paddle = this.objectFactory.createPaddle(this.world, -(MAP_WIDTH-PADDLE_OFFSET),0,"player1");
       user2.paddle = this.objectFactory.createPaddle(this.world, MAP_WIDTH-PADDLE_OFFSET,0,"player2");
-      this.objectFactory.createObstacle(this.world);
+      if (gameType == GameType.SPECIAL){
+        this.objectFactory.createObstacle(this.world);
+      }
       BallSpeedCorrection(this.ball, BALL_SPEED);
       ContactListenerInit(this.world);
-      //start : ball velocity init
       this.ball.SetLinearVelocity(RandomVec2());
     }
 }

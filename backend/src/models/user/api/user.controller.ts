@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
-import { GetUserResDto, CreateUserReqDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
 import { UserService } from './services';
 import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
 import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
@@ -10,6 +10,7 @@ import { TokenDto } from '../../../auth/otp/token.dto';
 import { GetUserSettingResDto } from './dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
 import { VerifyNicknameResponseDto } from './dtos/verifyNickname.dto';
+import { SearchUserResDto } from './dtos/searchUserRes.dto';
 
 @Controller('user')
 export class UserController {
@@ -17,7 +18,10 @@ export class UserController {
 
   @UseGuards(JwtGuard)
   @Get('/:userid')
-  async getUser(@Param('userid') userid: number): Promise<GetUserResDto> {
+  async getUser(
+    @Param('userid', new ParseIntPipe({}))
+    userid: number
+  ): Promise<GetUserResDto> {
     return this.userService.getUser(userid);
   }
 
@@ -72,5 +76,14 @@ export class UserController {
   @Delete('/me/2fa')
   async deactivateTwoFactor(@GetGuardData() data: JwtPayloadInterface, @Body() tokenDto: TokenDto): Promise<void> {
     return this.twoFactorService.deactivateUserTwoFactor(data.user_id, tokenDto.token);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/search/:searchString')
+  async searchUser(
+    @GetGuardData() data: JwtPayloadInterface,
+    @Param('searchString') searchString: string
+  ): Promise<SearchUserResDto> {
+    return this.userService.searchUser(data.user_id, searchString);
   }
 }

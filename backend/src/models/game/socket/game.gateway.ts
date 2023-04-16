@@ -60,9 +60,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
-      
-      this.gameService.gameStart(gameManager, this.server);
-      gameManager.gameStart(this.server, this.gameService, this.gameRooms);
+      this.gameService.gamePreheat(gameManager, this.server);
     }
   }
 
@@ -81,6 +79,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gameRooms.delete(gameManager.gameId);
   }
 
+  @SubscribeMessage('observeExit')
+  observerExit(
+    @ConnectedSocket() client : Socket,
+  ) {
+    this.gameService.socketLeaveRoom(client, client.data.gameId);
+  }
+  //observeExit구현해야함
   @SubscribeMessage('observeJoin')
   observerJoin(
     @MessageBody() observeData : ObserveData,
@@ -95,6 +100,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
-    gameManager.Keyboard(inputData.key, client.id);
+    if (gameManager.started){
+      gameManager.Keyboard(inputData.key, client.id);
+    }
+  }
+
+  @SubscribeMessage('start')
+  matchStart(
+    @ConnectedSocket() client : Socket
+  ) {
+    const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
+    if (gameManager && gameManager.playerCount == 2 && gameManager.started == false){
+      gameManager.started = true;
+      gameManager.gameStart(this.server, this.gameService, this.gameRooms);
+    }
   }
 }
