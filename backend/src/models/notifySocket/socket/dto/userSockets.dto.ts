@@ -1,3 +1,5 @@
 export class UserSocketsDto {
-  socketId: string;
+  notify: string;
+  chat: string;
+  game: string;
 }
