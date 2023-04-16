@@ -7,3 +7,6 @@
 .vscode/
 */.env
 .env
+dockerlight_test
+frontend
+TestBed

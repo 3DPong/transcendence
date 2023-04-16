@@ -4,10 +4,11 @@ import { GameManager } from '../simul/GameManager';
 import { GameService } from './services';
 import { RoomType, GameType } from '../enum/GameEnum';
 import { InputData, MatchJoinData, ObserveData } from '../gameData';
+import { Logger, UseGuards } from '@nestjs/common';
+import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
 
-@WebSocketGateway({
-  namespace : 'game',
-})
+@WebSocketGateway({namespace : 'game'})
+//@UseGuards(JwtGuard) 마지막에 활성화
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
@@ -16,6 +17,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly gameService : GameService,
+    private readonly logger : Logger,
   ){}
 
   async handleConnection() {
@@ -23,18 +25,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('socket connet');
   }
   //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
+  //client가 게임 참가자인지 옵저버인지 구분해야함
   async handleDisconnect(@ConnectedSocket() client : Socket) {
     //게임매칭을찾는중,게임을진행중
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager === undefined){
-      //todo:
-      console.log('manager undefined check');
-    } else if (gameManager.playerCount === 1) {
-      console.log('player disconnect and delete gameRoom')
+    if (gameManager?.playerCount === 1) {
       this.gameRooms.delete(client.data.gameId);
+      this.logger.log(`${client.id} is disconnect game socket and delete ${gameManager.gameId}`);
     } else if (
-      gameManager.playerCount === 2 && 
-      gameManager.simulator.matchInterrupt.isInterrupt === false
+      gameManager?.playerCount === 2 && 
+      gameManager.simulator.matchInterrupt.isInterrupt === false &&
+      this.gameService.isGamePalyer(gameManager, client.id)
     ) {
       gameManager.simulator.matchInterrupt.isInterrupt = true;
       gameManager.simulator.matchInterrupt.sid = client.id;
@@ -85,7 +86,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     this.gameService.socketLeaveRoom(client, client.data.gameId);
   }
-  //observeExit구현해야함
+  //observe
+  //init data 보내는 부분 추가
   @SubscribeMessage('observeJoin')
   observerJoin(
     @MessageBody() observeData : ObserveData,
@@ -100,7 +102,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
-    if (gameManager.started){
+    if (gameManager?.started && this.gameService.isGamePalyer(gameManager, client.id) ){
       gameManager.Keyboard(inputData.key, client.id);
     }
   }
@@ -110,7 +112,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager && gameManager.playerCount == 2 && gameManager.started == false){
+    if (gameManager?.playerCount == 2 && gameManager.started == false){
       gameManager.started = true;
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
     }
