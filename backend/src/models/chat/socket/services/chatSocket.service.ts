@@ -116,11 +116,10 @@ export class ChatSocketService {
     const nickname = await this.getChannelUserName(channel_id, user_id);
     const muted = await this.checkMuteUser(channel_id, user_id);
     if (muted === MuteStatus.Mute) {
-
       await this.unmuteUser(channel_id, user_id);
       server
-        .to(`chat_active${channel_id}`)
-        .emit('mute', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 뮤트 해제 되었습니다.` });
+        .to(`chat_active_${channel_id}`)
+        .emit('mute', { type: 'unmute', user_id: user_id, channel_id: channel_id });
 
     } else {
       if (muteDto.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
@@ -130,7 +129,7 @@ export class ChatSocketService {
       
         server
           .to(`chat_active_${channel_id}`)
-          .emit('mute', { user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}`,message:`${nickname} 가 뮤트 되었습니다.` })
+          .emit('mute', { type: 'mute', user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}`})
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
       }
@@ -168,7 +167,7 @@ export class ChatSocketService {
             .emit('alarm', { type: 'ban', channel_id: channel_id, message: `${title} 에서 밴 되었습니다.` }); //당사자
         }
         server.to(`chat_active_${channel_id}`).except(banUserSocket)
-          .emit('ban', { user_id: user_id, channel_id: channel_id, end_at: `${banDto.end_at}`}); //일반 유저들
+          .emit('ban', { type: 'ban', user_id: user_id, channel_id: channel_id, end_at: `${banDto.end_at}`}); //일반 유저들
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
       }
@@ -184,9 +183,8 @@ export class ChatSocketService {
     const banned = await this.checkBanUser(channel_id, user_id);
     if (banned === BanStatus.Ban) {
       await this.releaseBanUser(channel_id, user_id);
-      const nickname = await this.getChannelUserName(channel_id, user_id);
       server.to(`chat_active_${channel_id}`)
-        .emit('ban', { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 밴 해제 되었습니다.` }); //일반 유저들
+        .emit('ban', { type: 'unban', user_id: user_id, channel_id: channel_id }); //일반 유저들
     } else {
       throw new SocketException('BadRequest', `밴 유저가 아닙니다!`);
     }
@@ -213,10 +211,10 @@ export class ChatSocketService {
           .in(userSocket)
           .emit('alarm', { type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장  되었습니다.` }); //당사자
       }
-      const nickname = await this.getChannelUserName(channel_id, user_id);
+
       server
         .to(`chat_active_${channel_id}`)
-        .emit(`kick`, { user_id: user_id, channel_id: channel_id, message: `${nickname} 가 강제 퇴장 되었습니다.` }); //일반유저
+        .emit(`kick`, { user_id: user_id, channel_id: channel_id}); //일반유저
     
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
