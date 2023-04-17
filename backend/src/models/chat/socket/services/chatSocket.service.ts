@@ -332,7 +332,6 @@ export class ChatSocketService {
         status: RelationStatus.BLOCK
       } 
     });
-
     return !!relation;
   }
 
@@ -347,7 +346,6 @@ export class ChatSocketService {
         user_id: true
       } 
     });
-    console.log(chatUser)
     return !!chatUser;
   }
 
@@ -406,28 +404,6 @@ export class ChatSocketService {
     return channel.name;
   }
 
-  // async enterChatRoom(socket: Socket, channel_id: number, user_id: number) {
-  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
-  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
-
-  //   try {
-  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 들어왔습니다.` });
-  //   } catch (error) {
-  //     throw new SocketException('InternalServerError', `${error.message}`);
-  //   }
-  // }
-
-  // async leaveChatRoom(socket: Socket, channel_id: number, user_id: number) {
-  //   const userNickname = await this.getChannelUserName(channel_id, user_id);
-  //   if (!user_id || !userNickname) throw new SocketException('Forbidden', `권한이 없습니다!`);
-
-  //   try {
-  //     socket.leave(`chat_${channel_id}`);
-  //     socket.broadcast.to(`chat_${channel_id}`).emit('message', { message: `${userNickname} 가 나갔습니다.` });
-  //   } catch (error) {
-  //     throw new SocketException('InternalServerError', `${error.message}`);
-  //   }
-  // }
 }
 
 function isWhitespace(value: string): boolean {
