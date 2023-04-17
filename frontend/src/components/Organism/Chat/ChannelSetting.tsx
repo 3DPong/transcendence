@@ -74,7 +74,6 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
             newUserList.push(newUser);
           }
         }
-        console.log('=========999999999=========');
         setUserList(newUserList);
       }
       setUsersWithoutExist();

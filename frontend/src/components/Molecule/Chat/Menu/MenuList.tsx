@@ -1,8 +1,9 @@
 import { ChatUser } from '@/types/chat';
-import { FC, useState } from 'react';
+import { FC, useState, useContext } from 'react';
 import { ExpandLess, ExpandMore } from '@mui/icons-material/';
 import { Box, Collapse, List, ListItemButton, ListItemText, ListSubheader } from '@mui/material';
 import UserCard from './UserCard';
+import ChatContext from '@/context/ChatContext';
 
 interface MenuListProps {
   title: string;
@@ -13,6 +14,7 @@ interface MenuListProps {
 
 const MenuList: FC<MenuListProps> = ({ title, titleColor, users, scrollY }) => {
   const [open, setOpen] = useState(true);
+
   users.sort((a, b) => {
     switch (a.role) {
       case 'owner':
