@@ -9,7 +9,7 @@ export interface POST_uploadImageResponseFormat {
 export async function uploadImageToServer(handleError: handleErrorFunction, clientSideImageUrl: string) {
   const formData = new FormData();
   formData.append('file', clientSideImageUrl);
-  const requestUrl = `${API_URL}/api/image`;
+  const requestUrl = `${API_URL}/image`;
   const uploadResponse = await fetch(requestUrl, {
     method: 'POST',
     body: formData, // image file (form-data)

@@ -2,7 +2,7 @@ import { API_URL } from '../../../config/backend';
 import { handleErrorFunction } from '@/context/ErrorContext';
 
 export async function requestLogOut(handleError: handleErrorFunction) {
-  const requestUrl = `${API_URL}/api/auth/logout`;
+  const requestUrl = `${API_URL}/auth/logout`;
   const signUpResponse = await fetch(requestUrl, { method: 'GET' });
 
   // on error

@@ -37,7 +37,7 @@ export interface GET_UserDataResponseFormat {
 // 친구가 추가되면
 
 export async function getUserDataById(handleError: handleErrorFunction, userId: number) {
-  const requestUrl = `${API_URL}/api/user/${userId}`;
+  const requestUrl = `${API_URL}/user/${userId}`;
   /*
   const userDataResponse = await fetch(requestUrl, { method: "GET" });
 
@@ -106,7 +106,7 @@ export async function updateUserData(handleError: handleErrorFunction, nickname?
   }
 
   // 3. 서버에 Request 전송
-  const requestUrl = `${API_URL}/api/user/`;
+  const requestUrl = `${API_URL}/user/`;
   const updateResponse = await fetch(requestUrl, {
     method: 'PUT',
     headers: {

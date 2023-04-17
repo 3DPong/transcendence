@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router';
  * ---------------------------------------*/
 export async function getQrCodeToActivate2FactorAuth(handleError: handleErrorFunction) {
   // 서버 qr 요청
-  const requestUrl = `${API_URL}/api/user/2fa/qr`;
+  const requestUrl = `${API_URL}/user/2fa/qr`;
   const qrCodeResponse = await fetch(requestUrl, {
     method: 'GET',
   });
@@ -29,7 +29,7 @@ export async function getQrCodeToActivate2FactorAuth(handleError: handleErrorFun
  * ---------------------------------------*/
 export async function submitOtpTokenToServer(handleError: handleErrorFunction, token: string) {
   // 서버에 OTP 제출
-  const requestUrl = `${API_URL}/api/user/2fa`;
+  const requestUrl = `${API_URL}/user/2fa`;
   const submitResponse = await fetch(requestUrl, {
     method: 'POST',
     headers: {
@@ -51,7 +51,7 @@ export async function submitOtpTokenToServer(handleError: handleErrorFunction, t
  * ---------------------------------------*/
 export async function deactivate2FactorAuth(handleError: handleErrorFunction, token: string) {
   // 서버 qr 요청
-  const deactivateUrl = `${API_URL}/api/user/2fa`;
+  const deactivateUrl = `${API_URL}/user/2fa`;
   const submitResponse = await fetch(deactivateUrl, {
     method: 'DELETE',
     headers: {

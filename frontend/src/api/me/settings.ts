@@ -19,7 +19,7 @@ interface GET_responseFormat {
 // export async function getMySettings(handleError: handleErrorFunction) {
 export function getMySettings(handleError: handleErrorFunction) {
   /*
-  const requestUri = `${API_URL}/api/user/me/settings`;
+  const requestUri = `${API_URL}/user/me/settings`;
 
   const settingResponse = await fetch(requestUri, { method: "GET" });
   console.log("GET", requestUri);

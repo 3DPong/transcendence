@@ -25,7 +25,7 @@ export async function requestSignUp(
   if (!serverSideImageUrl) return; // 여기서 에러나면 걍 끝내ㅓ기
 
   // 2. 서버의 이미지 src를 받은 후 그걸로 회원가입 처리 진행.
-  const requestUrl = `${API_URL}/api/user`;
+  const requestUrl = `${API_URL}/user`;
   const requestPayload: POST_SignUpRequestFormat = {
     nickname: _nickname,
     profile_url: serverSideImageUrl,
