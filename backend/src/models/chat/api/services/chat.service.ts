@@ -270,24 +270,37 @@ export class ChatService {
 
     try {
       if (inviteList !== null) {
-        const users = await this.channelUserRepository
-          .find({ where: {channel_id},select : {user_id: true}});
 
-        inviteList = inviteList.filter(userId => !users.some(user => user.user_id === userId));
+        const users = await this.channelUserRepository.find({
+          withDeleted: true,
+          where: {channel_id},
+          select : {user_id: true, deleted_at: true}
+        });
+
+        let deleList = [];
+        inviteList = inviteList.filter(userId => {
+          if (users.some(u => u.user_id === userId && u.deleted_at === null))
+            return false;
+          if (users.some(u => u.user_id === userId && u.deleted_at !== null))
+            deleList.push(userId);  
+          return true;
+        });
+
+        await Promise.all(deleList.map(async userId => {
+          await queryRunner.manager.delete(ChannelUser, { channel_id, user_id: userId });
+        }));
+
         for (const userId of inviteList) {
-          if (userId !== user.user_id) {
-            const cu = this.channelUserRepository.create({
-              channel_id: channel.channel_id,
-              user_id: userId,
-              role: ChannelUserRoles.USER,
-            });
-            await queryRunner.manager.save(cu); 
-          }
+          const cu = this.channelUserRepository.create({
+            channel_id: channel.channel_id,
+            user_id: userId,
+            role: ChannelUserRoles.USER,
+          });
+          await queryRunner.manager.save(cu); 
         }
       }
       await queryRunner.manager.update(ChatChannel, {channel_id}, { name, type, password: hashedPassword, thumbnail_url });
       await queryRunner.commitTransaction();
-
 
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -388,6 +401,7 @@ export class ChatService {
     const existingUser = await this.channelUserRepository.findOne({
       withDeleted: true,
       where: { channel_id, user_id },
+      select : { user_id: true, channel_id: true, deleted_at: true }
     });
     if (existingUser) {
       if (existingUser.deleted_at === null) {
@@ -504,9 +518,6 @@ export class ChatService {
   }
 
   async getMuteList(channel_id: number): Promise<ChannelMuteList[]> {
-    // if (!(await this.checkAdminUser(user_id, channel_id))) {
-    //   throw new ForbiddenException('권한이 없습니다!');
-    // }
     
     const now = new Date();
     return await this.muteRepository
