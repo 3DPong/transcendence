@@ -107,7 +107,6 @@ interface settingDialogProps {
 }
 
 export default function SettingDialog({ open, setOpen }: settingDialogProps) {
-  const { gameConnect } = useSocket();
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
 
@@ -146,7 +145,6 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
     if (!loggedUserId) return;
     sessionStorage.setItem("user_id", `${loggedUserId}`);
     console.log("LoggedUserId:",loggedUserId);
-    gameConnect();
   }, [loggedUserId])
 
 

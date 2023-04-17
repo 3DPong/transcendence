@@ -47,6 +47,7 @@ export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const {loggedUserId} = useContext(GlobalContext);
+  const {gameConnect} = useSocket();
 
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
@@ -57,6 +58,12 @@ export default function Game() {
     setMatchData(null);
     setMatchResult(null);
   };
+
+  useEffect(() => {
+    if (!loggedUserId) return;
+    console.log("[DEV] Connecting Game Socket...");
+    gameConnect();
+  }, [loggedUserId])
 
 
   useEffect(() => {
@@ -92,7 +99,6 @@ export default function Game() {
       gameSocket.off("connect");
       gameSocket.off("my_connect");
       gameSocket.off("disconnect");
-
       gameSocket.off("matchEnd", handleGameEnd);
     }
   }, [gameSocket]);
@@ -108,9 +114,11 @@ export default function Game() {
     return (
         <div>
           {/* 게임 렌더링 */}
-          <div className=" absolute -z-50 w-0 h-0">
-            <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
-          </div>
+          { !matchResult &&
+            <div className=" absolute -z-50 w-0 h-0">
+              <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+            </div>
+          }
 
           {/* 게임 결과 */}
           { matchResult &&

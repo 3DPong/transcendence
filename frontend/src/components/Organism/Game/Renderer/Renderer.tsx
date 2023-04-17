@@ -172,13 +172,13 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
 
 
     // (5-1) GUI ScoreBoard
-    const advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene3D);
+    const ScoreTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("SCORE_GUI", true, scene3D);
     const grid = new GUI.Grid();
     // grid.background = "white";
-    advancedTexture.addControl(grid);
+    ScoreTexture.addControl(grid);
     grid.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-    grid.width = "200px";
+    grid.width = "300px";
     grid.height = "100px";
     grid.addRowDefinition(0.25); // top margin
     grid.addRowDefinition(1); // 1행(프로필)
@@ -188,24 +188,25 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
     grid.addColumnDefinition(2); // middle
     grid.addColumnDefinition(1);
 
-    const myImage = new GUI.Image(playerData.myImage);
-    grid.addControl(myImage, 1, 0);
-    const myScoreBG = new GUI.Rectangle();
-    myScoreBG.background = "white";
-    myScoreBG.thickness = 0;
-    grid.addControl(myScoreBG, 2, 0);
+    const myNickname = new GUI.TextBlock();
+    myNickname.text = `${playerData.myNickName}`;
+    myNickname.fontSize = 30;
+    myNickname.color = "white";
+    grid.addControl(myNickname, 1, 0);
     myScoreText.text = `${0}`;
     myScoreText.fontSize = 20;
+    myScoreText.color = "white";
     grid.addControl(myScoreText, 2, 0);
 
-    const enemyImage = new GUI.Image(playerData.enemyImage);
-    grid.addControl(enemyImage, 1, 2);
-    const enemyScoreBG = new GUI.Rectangle();
-    enemyScoreBG.background = "white";
-    enemyScoreBG.thickness = 0;
-    grid.addControl(myScoreBG, 2, 2);
+
+    const enemyNickname = new GUI.TextBlock();
+    enemyNickname.text = `${playerData.enemyNickName}`;
+    enemyNickname.fontSize = 30;
+    enemyNickname.color = "white";
+    grid.addControl(enemyNickname, 1, 2);
     enemyScoreText.text = `${0}`;
     enemyScoreText.fontSize = 20;
+    enemyScoreText.color = "white";
     grid.addControl(enemyScoreText, 2, 2);
 
     // (5-2) KEYBOARD Board
@@ -239,9 +240,27 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
 
       // (6) Start Game after 120 frame.
       console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
+
+      const readyTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("COUNT_GUI", true, scene3D);
+      const readyText = new GUI.TextBlock();
+      readyText.text = "";
+      readyText.fontSize = 50;
+      readyText.color = "white";
+      readyTexture.addControl(readyText);
+
+      let MS = CAMERA_ANIMATION_TIME_MS + 2000;
+      const ID = setInterval(() => {
+        if (MS === 2000) readyText.text = "Ready"
+        else if (MS === 1000) readyText.text = "Go!"
+        else if (MS <= 500) {
+          readyText.dispose();
+          clearInterval(ID);
+        }
+        MS -= 500;
+      }, 500);
+
       setTimeout(() => {
         gameSocket.emit('start');
-        // TODO: 바빌론 GUI로 게임이 시작됬다는 메시지를 띄우기.
         console.log('[DEV] : GAME START!');
       }, CAMERA_ANIMATION_TIME_MS + 2000);
     }
