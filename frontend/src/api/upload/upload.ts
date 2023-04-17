@@ -19,9 +19,15 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
 
   // on error
   if (!uploadResponse.ok) {
-    const errorData = await uploadResponse.json();
-    handleError('Image Upload', errorData.message);
-    return '';
+    if (uploadResponse.status === 401) {
+      const errorData = await uploadResponse.json();
+      handleError('Image Upload', errorData.message, 'signin');
+      return ; // null on error
+    } else {
+      const errorData = await uploadResponse.json();
+      handleError('Image Upload', errorData.message);
+      return ; // null on error
+    }
   }
 
   // on success

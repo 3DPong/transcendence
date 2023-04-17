@@ -3,6 +3,7 @@
  * */
 
 import { handleErrorFunction } from '@/context/ErrorContext';
+import {API_URL} from "../../../config/backend";
 
 interface GET_responseFormat {
   user_id: number;
@@ -11,14 +12,7 @@ interface GET_responseFormat {
   two_factor: boolean;
 }
 
-// 최님에게 environment 받아와서 그 상태로 백엔드 폴더 들어가서 docker-compose-up -d 하면 바로 됨.
-// backend-development 꺼 끌고 오면 된다!
-// 지금 작업 하고 있는 브랜치에서 하겠습니다.
-// 일단
-
-// export async function getMySettings(handleError: handleErrorFunction) {
-export function getMySettings(handleError: handleErrorFunction) {
-  /*
+export async function getMySettings(handleError: handleErrorFunction, navigateFunction: (url:string)=>void ) {
   const requestUri = `${API_URL}/user/me/settings`;
 
   const settingResponse = await fetch(requestUri, { method: "GET" });
@@ -28,18 +22,23 @@ export function getMySettings(handleError: handleErrorFunction) {
   if (!settingResponse.ok) {
     console.log("Response", settingResponse.status);
     const errorData = await settingResponse.json();
-    handleError(
-        "Get User Settings",
-        errorData.message,
-        settingResponse.status === 401 ? "/signin" : null,
-    ); // redirect to /login page
+    if (settingResponse.status === 401) {
+      console.log("[DEV] redirect to signIn...");
+      navigateFunction("/signin"); // 401일 경우 세션에러임으로 로그인 페이지로 이동.
+      return ;
+    } else {
+      handleError(
+          "Get User Settings", // 그게 아니라면 그냥 API 에러알림 띄워주기
+          errorData.message,
+      );
+    }
     return ;
   }
   // on success
   const loadedSettings: GET_responseFormat = await settingResponse.json();
   return (loadedSettings);
-   */
 
+  /*
   const mock: GET_responseFormat = {
     user_id: 999999,
     nickname: 'Jane',
@@ -48,4 +47,5 @@ export function getMySettings(handleError: handleErrorFunction) {
     two_factor: false,
   };
   return mock;
+  */
 }

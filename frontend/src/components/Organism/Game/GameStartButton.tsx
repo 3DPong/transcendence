@@ -17,6 +17,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import LinearProgress from '@mui/material/LinearProgress';
 import { green } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
+import {useNavigate} from "react-router";
+
 // https://mui.com/material-ui/customization/color/
 
 interface GameStartButtonProps {
@@ -54,6 +56,7 @@ export default function GameStartButton({
   const [__matchDataCache, __setMatchDataCache] = useState<gameType.matchStartData>();
   // 로딩중 내 정보와 상대방 정보 보여주기 버튼.
   const { handleError } = useError();
+  const navigate = useNavigate();
 
   const handleModeSelectDialogOpen = () => {
     setModeSelectDialogOpen(true);
@@ -85,7 +88,7 @@ export default function GameStartButton({
     // (1) 사용자 데이터 로드
     (async () => {
       console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
-      const loadedSettings = await API.getMySettings(handleError);
+      const loadedSettings = await API.getMySettings(handleError, navigate);
       if (loadedSettings) {
         console.log(loadedSettings);
         setMyProfile(loadedSettings.profile_url);

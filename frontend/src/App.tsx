@@ -24,6 +24,7 @@ import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
+import { Auth2FaInput } from "./components/Organism/Login/2FA";
 import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
@@ -45,6 +46,12 @@ const router = createBrowserRouter([
     // 회원 가입 (프로필 설정)
     path: "/signup",
     element: <SignUp />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    // 회원 가입 (프로필 설정)
+    path: "/2fa",
+    element: <Auth2FaInput />,
     errorElement: <ErrorPage />,
   },
   // ----------------------------------------------------

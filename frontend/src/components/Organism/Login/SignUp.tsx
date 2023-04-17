@@ -31,7 +31,7 @@ export interface TextFieldWrapperProps {
   disabledHelperText?: string; // 오류시 표기할 내용.
 }
 
-function TextFieldWrapper(props: TextFieldWrapperProps) {
+export function TextFieldWrapper(props: TextFieldWrapperProps) {
   {
     /* https://mui.com/material-ui/react-text-field/ */
   }
@@ -60,11 +60,10 @@ export function SignUp() {
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { handleError } = useError();
-
   const navigate = useNavigate();
 
   const WIDTH = 250;
-  const HEIGHT = WIDTH;
+  const HEIGHT = 250;
 
   // check if user is already logged-in on first render
   // useLayoutEffect는 DOM paint가 이뤄지기 전에 호출됨으로 깜빡임을 해결 가능.

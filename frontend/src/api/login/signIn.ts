@@ -1,18 +1,12 @@
-import { API_URL } from '../../../config/backend';
+import {API_URL} from '../../../config/backend';
 
-export interface GET_SignInResponseFormat {
-  status: 'SUCCESS' /*로그인성공 */ | 'SIGNUP_MODE' /*회원가입*/ | '2FA' /*2차인증(QR코드 받기)*/;
-  user_id?: number; // SUCCESS일 경우에만 날라옴.
-}
+/*
+  By oauth protocol, you should open this page in new tab, where authorization window will be present
+  (or if you already authorized see next), then upon authorization you will be redirected to
+  callback url, which is https://dev.example.com/recent-comments that is set as &from= parameter.
+  // Let me not to describe oauth protocol here. You may check how remark handle oauth here for example
+*/
 
 export async function requestSignIn() {
-  // 이 부분은 성준님 코드를 기반으로 작성할 예정.
-  // location.href = `${API_URL}/auth/signin/42`;
-
-  // 이제 서버에서 보내준 상태 처리
-  const mock: GET_SignInResponseFormat = {
-    status: 'SUCCESS',
-    user_id: 42,
-  };
-  return mock;
+  location.href = `${API_URL}/auth/signin/42`;
 }

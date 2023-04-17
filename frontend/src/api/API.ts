@@ -15,14 +15,21 @@ export {
 // SignIn
 export { requestSignIn } from '@/api/login/signIn';
 
+
+// SignIn 2FA Auth
+export { submit2FaTokenToServer } from '@/api/auth/auth';
+
+
 // SignUp
 export { requestSignUp } from '@/api/login/signUp';
 
 // Upload Data
 export { uploadImageToServer } from '@/api/upload/upload';
 
-// 2FA Auth
-export { getQrCodeToActivate2FactorAuth, submitOtpTokenToServer, deactivate2FactorAuth } from './auth/auth';
+
+
+// 2FA Auth Setting (Me)
+export { activate2FA_SubmitOtpTokenToServer, deactivate2FA_SubmitOtpTokenToServer, getQrCodeBefore2FaActivation } from '@/api/me/auth';
 
 // Me
 export { getMySettings } from '@/api/me/settings';

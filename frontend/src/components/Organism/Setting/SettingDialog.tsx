@@ -35,6 +35,7 @@ import { Container, Stack } from '@mui/material';
 import { Typography } from '@mui/material';
 import { useError } from '@/context/ErrorContext';
 import { useSocket } from '@/context/SocketContext';
+import {useNavigate} from "react-router";
 
 /**
  * 1. [ How to Re-fresh ]
@@ -109,6 +110,7 @@ interface settingDialogProps {
 export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   const { loggedUserId, setLoggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
+  const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageFile, setImageFile] = useState<string>('');
@@ -123,7 +125,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
       setIsLoading(true);
       console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
       // TODO: 아래 코드는 테스트 코드이며, SessionStorage 부분은 지워야 한다.
-      const loadedSettings = await API.getMySettings(handleError);
+      const loadedSettings = await API.getMySettings(handleError, navigate);
       if (loadedSettings) {
         const SAVED_USER_ID = sessionStorage.getItem("user_id");
         if (SAVED_USER_ID) { // if exists
