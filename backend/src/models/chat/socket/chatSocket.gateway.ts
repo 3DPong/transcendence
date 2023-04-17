@@ -144,8 +144,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
             this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
         }
       }
-      // this.server.to(`chat_alarm_${channel_id}`).except(this.getSocketIdByUserId(owner_id))
-      //   .emit('alarm', { type: 'invite', message: channel });
     }
   }
 
@@ -154,12 +152,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (userSocket) {
       this.server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
       this.server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
-
-      // if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-      //   this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-      // }
     }
-
     this.server.to(`chat_active_${channel_id}`).emit('user', {
       type: 'leave',
       user_id
@@ -167,20 +160,12 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   handleAdminRoleUpdate(user_id: number, channel_id: number, changedRole: ChannelUserRoles) {
-    const userSocket = this.getSocketIdByUserId(user_id);
     this.server
       .to(`chat_active_${channel_id}`)
       .emit('role', { type: changedRole, user_id: user_id });
-    
-    //   if (changedRole === ChannelUserRoles.OWNER) {
-    //  //getChannelUserName(user_id)
-    //     this.server
-    //     .to(`chat_alarm_${channel_id}`)
-    //     .emit('alarm', { type: ChannelUserRoles.OWNER, channel_id: channel_id, user_id: user_id });
-    // }
   }
 
-   /*
+  /*
       Func for private instance
   */
   getSocketIdByUserId(userId: number) {

@@ -5,8 +5,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
-  UnauthorizedException,
+  NotFoundException
 } from '@nestjs/common';
 import {
   ChannelBanList,
@@ -616,7 +615,4 @@ export class ChatService {
     return result;
   }
 
-  channelUserResult(result: ChannelUser) : ChannelUser {
-    return result;
-  }
 }
