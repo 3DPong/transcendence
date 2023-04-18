@@ -1,28 +1,39 @@
-import { ChatUser } from '@/types/chat';
+import { UserRole } from '@/types/chat';
+import React from 'react';
 import { createContext } from 'react';
 
 interface ChatContextProps {
-  isAdmin: boolean;
-  setIsAdmin: (tf: boolean) => void;
+  // isAdmin: boolean;
+  // setIsAdmin: (tf: boolean) => void;
+
+  myRole: UserRole | null;
+  setMyRole: (role: UserRole | null) => void;
   
   // userList: ChatUser[];
   // setUserList: (users: ChatUser[]) => void;
 
-  muteList: number[];
-  setMuteList: (mutes: number[]) => void;
+  muteList: Record<number, number>;
+  // muteListRef: React.MutableRefObject<Record<number, number> | null>;
+  setMuteList: (mutes: Record<number, number>) => void;
 
-  banList: number[];
-  setBanList: (bans: number[]) => void;
+  banList: Record<number, number>;
+  // banListRef: React.MutableRefObject<Record<number, number> | null>;
+  setBanList: (bans: Record<number, number>) => void;
 };
 
 const ChatContext = createContext<ChatContextProps>({
-  isAdmin: false,
-  setIsAdmin: () => {},
-  // userList: [],
-  // setUserList: () => {},
-  muteList: [],
+  // isAdmin: false,
+  // setIsAdmin: () => {},
+
+  myRole: null,
+  setMyRole: () => {},
+
+  muteList: {},
+  // muteListRef: { current: null },
   setMuteList: () => {},
-  banList: [],
+
+  banList: {},
+  // banListRef: { current: null },
   setBanList: () => {},
 });
 
