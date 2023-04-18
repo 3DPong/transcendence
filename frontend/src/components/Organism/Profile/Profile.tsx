@@ -35,13 +35,14 @@ export default function Profile() {
       const convertResult = parseInt(subUrl);
       console.log(`URL parse result: url param (userId) is ${convertResult}`);
       if (isNaN(convertResult)) {
-        // user_id = loggedUserId;
+        Assert.NonNullish(loggedUserId, "loggedUserId is null");
+        user_id = loggedUserId;
       } else {
         user_id = convertResult;
       }
       // (2) load data
-      Assert.NonNullish(loggedUserId);
-      const myData = await API.getUserDataById(handleError, loggedUserId);
+      Assert.NonNullish(user_id);
+      const myData = await API.getUserDataById(handleError, user_id);
       if (myData) {
         setProfileState(myData);
       }
