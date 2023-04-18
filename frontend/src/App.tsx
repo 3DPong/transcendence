@@ -39,19 +39,31 @@ const router = createBrowserRouter([
   {
     // home. 버튼은 login 42 button 하나만 넣어주면 됨.
     path: "/signin",
-    element: <SignIn />,
+    element:
+        <div>
+          <SignIn />
+          <AlertSnackbar />
+        </div>,
     errorElement: <ErrorPage />,
   },
   {
     // 회원 가입 (프로필 설정)
     path: "/signup",
-    element: <SignUp />,
+    element:
+        <div>
+          <SignUp />
+          <AlertSnackbar />
+        </div>,
     errorElement: <ErrorPage />,
   },
   {
     // 회원 가입 (프로필 설정)
     path: "/2fa",
-    element: <Auth2FaInput />,
+    element:
+        <div>
+          <Auth2FaInput />
+          <AlertSnackbar />
+        </div>,
     errorElement: <ErrorPage />,
   },
   // ----------------------------------------------------
@@ -65,7 +77,6 @@ const router = createBrowserRouter([
         <Game />
         <L0Template organism={<Controller />} />
         <AlertSnackbar />
-       
       </div>
     ),
     errorElement: <ErrorPage />,
