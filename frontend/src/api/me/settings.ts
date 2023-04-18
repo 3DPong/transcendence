@@ -14,10 +14,7 @@ interface GET_responseFormat {
 
 export async function getMySettings(handleError: handleErrorFunction, navigateFunction: (url:string)=>void ) {
   const requestUri = `${API_URL}/user/me/settings`;
-
   const settingResponse = await fetch(requestUri, { method: "GET" });
-  console.log("GET", requestUri);
-  console.dir(settingResponse);
 
   if (!settingResponse.ok) {
     console.log("Response", settingResponse.status);

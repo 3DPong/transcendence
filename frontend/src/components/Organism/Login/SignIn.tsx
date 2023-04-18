@@ -20,6 +20,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import LOGO_42 from '@/assets/42_logo.svg';
 import { requestSignIn } from '@/api/login/signIn';
 import {useError} from "@/context/ErrorContext";
+import {useSocket} from "@/context/SocketContext";
 
 function Icon42() {
   return (
@@ -33,6 +34,11 @@ interface signInProps {}
 
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const {disconnectAll} = useSocket();
+
+  useEffect(() => {
+    disconnectAll(); // disconnect every socket.
+  }, []);
 
   const handleClick = () => {
     (async () => {

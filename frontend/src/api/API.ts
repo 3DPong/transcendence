@@ -24,7 +24,7 @@ export { submit2FaTokenToServer } from '@/api/auth/auth';
 export { requestSignUp } from '@/api/login/signUp';
 
 // Upload Data
-export { uploadImageToServer } from '@/api/upload/upload';
+export { uploadImageToServer, verifyNickname } from '@/api/upload/upload';
 
 
 

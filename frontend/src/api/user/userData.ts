@@ -10,10 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { uploadImageToServer } from '@/api/upload/upload';
-import { handleErrorFunction, useError } from '@/context/ErrorContext';
-import { API_URL } from '../../../config/backend';
-import { useNavigate } from 'react-router';
+import {uploadImageToServer, verifyNickname} from '@/api/upload/upload';
+import { handleErrorFunction } from '@/context/ErrorContext';
+import {API_URL, ORIGIN_URL} from '../../../config/backend';
 
 // 모든 사용자에 대해 데이터를 요청할 수 있는 API 입니다.
 
@@ -38,7 +37,6 @@ export interface GET_UserDataResponseFormat {
 
 export async function getUserDataById(handleError: handleErrorFunction, userId: number) {
   const requestUrl = `${API_URL}/user/${userId}`;
-  /*
   const userDataResponse = await fetch(requestUrl, { method: "GET" });
 
   // on error
@@ -53,18 +51,6 @@ export async function getUserDataById(handleError: handleErrorFunction, userId: 
   }
   // on success
   const userData: GET_UserDataResponseFormat = await userDataResponse.json();
-  */
-
-  const userData: GET_UserDataResponseFormat = {
-    user_id: 24,
-    nickname: 'Paul',
-    profile_url: 'https://www.mecgale.com/wp-content/uploads/2017/08/dummy-profile.png',
-    wins: 2,
-    losses: 4,
-    total: 6,
-    level: 3,
-  };
-
   return userData;
 }
 
@@ -89,11 +75,22 @@ export interface PUT_UserDataResponseFormat {
 
 // POST, 내 정보 수정하기
 export async function updateUserData(handleError: handleErrorFunction, nickname?: string, clientSideImageUrl?: string) {
+
+
+  // 0. 닉네임 중복 검사.
+  if (nickname) {
+    const isNicknameOk = await verifyNickname(handleError, nickname);
+    if (!isNicknameOk) return; // 여기서 에러나면 걍 끝
+    console.log("[DEV] verifyNickname Success");
+  }
+
+  // 1. 서버에 프로필 이미지부터 전송.
   // 1. 서버에 프로필 이미지부터 전송.
   let serverSideImageUrl: string | undefined;
   if (clientSideImageUrl) {
     serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
     if (!serverSideImageUrl) return;
+    console.log("[DEV] uploadImage Success");
   }
 
   // 2. 정보 수정 Request 생성.
@@ -102,11 +99,12 @@ export async function updateUserData(handleError: handleErrorFunction, nickname?
     request.nickname = nickname;
   }
   if (serverSideImageUrl) {
-    request.profile_url = serverSideImageUrl;
+    request.profile_url = `${ORIGIN_URL}${serverSideImageUrl}`;
   }
 
   // 3. 서버에 Request 전송
-  const requestUrl = `${API_URL}/user/`;
+  const requestUrl = `${API_URL}/user/me`;
+  console.log("request", requestUrl);
   const updateResponse = await fetch(requestUrl, {
     method: 'PUT',
     headers: {

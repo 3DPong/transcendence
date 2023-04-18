@@ -1,4 +1,4 @@
-import { API_URL } from '../../../config/backend';
+import {API_URL, ORIGIN_URL} from '../../../config/backend';
 import { handleErrorFunction, useError } from '@/context/ErrorContext';
 import { useNavigate } from 'react-router';
 
@@ -18,9 +18,9 @@ export async function getQrCodeBefore2FaActivation(handleError: handleErrorFunct
     handleError('2FA', errorData.message);
     return;
   }
-
   // on success
-  return (await qrCodeResponse.text());
+  const imageBlob = await qrCodeResponse.blob();
+  return (URL.createObjectURL(imageBlob));
 }
 
 /** --------------------------------------
