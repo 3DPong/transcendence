@@ -11,13 +11,17 @@ interface SocketContextProps {
   gameConnect: () => void;
   chatSocket: Socket | null;
   chatConnect: (props: ChatConnectProps) => void;
+  disconnectAll: () => void;
 }
 
 const SocketContext = createContext<SocketContextProps>({
   gameSocket: null,
   gameConnect: () => {},
+
   chatSocket: null,
   chatConnect: () => {},
+
+  disconnectAll: () => {},
 });
 
 interface SocketProviderProps {
@@ -42,9 +46,22 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     console.log('gameConnect()');
   };
 
+  const disconnectAll = () => {
+    console.log("[DEV] Closing currently active sockets...")
+    if (gameSocket) {
+      console.log("[DEV] game socket disconnecting...");
+      gameSocket.disconnect();
+    }
+    if (chatSocket) {
+      console.log("[DEV] chat socket disconnecting...");
+      chatSocket.disconnect();
+    }
+  }
+
   useEffect(() => {
     return () => {
       if (gameSocket) {
+        console.log("[DEV] game socket disconnecting...");
         gameSocket.disconnect();
       }
     };
@@ -73,7 +90,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, [chatSocket]);
 
   return (
-    <SocketContext.Provider value={{ gameSocket, gameConnect, chatSocket, chatConnect }}>
+    <SocketContext.Provider value={{ gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll }}>
       {children}
     </SocketContext.Provider>
   );
@@ -81,7 +98,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 // Custom Hook
 export function useSocket() {
-  const { gameSocket, gameConnect, chatSocket, chatConnect } = React.useContext(SocketContext);
+  const { gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll } = React.useContext(SocketContext);
 
-  return { gameSocket, gameConnect, chatSocket, chatConnect };
+  return { gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll };
 }
