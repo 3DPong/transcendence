@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { TokenStatusEnum } from '../../enums/tokenStatusEnum';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -25,7 +25,7 @@ export class UserCreationStrategy extends PassportStrategy(Strategy, 'JwtCreatio
       if (payload.status === TokenStatusEnum.SIGNUP) {
         return payload;
       } else {
-        throw new UnauthorizedException('invalid user (token status is invalid)');
+        return false;
       }
     }
   }

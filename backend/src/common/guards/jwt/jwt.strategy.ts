@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtConfigService } from '../../../config/jwt/config.service';
@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (payload.status === TokenStatusEnum.SUCCESS) {
       return payload;
     } else {
-      throw new UnauthorizedException('invalid token (token is not login token)');
+      return false;
     }
   }
 }
