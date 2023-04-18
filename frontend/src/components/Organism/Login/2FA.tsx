@@ -10,9 +10,10 @@ import { MuiOtpInput } from 'mui-one-time-password-input'
 
 export function Auth2FaInput() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [token, setToken] = useState<string>('');
   const { handleError } = useError();
   const navigate = useNavigate();
+
+  const [token, setToken] = useState<string>('');
 
   const handleSubmit = () => {
     (async () => {
