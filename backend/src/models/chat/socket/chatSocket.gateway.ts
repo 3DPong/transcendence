@@ -11,20 +11,19 @@ import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelUserRoles, ChatChannel } from '../entities';
-import { SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
+import { ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
+import { SocketException, SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
+
 
 @UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+  namespace : 'chat',
 })
 export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
   private users: { userId: number; socketId: string }[] = [];
-  // private activeRooms: { userId: number; channelId: number }[] = [];
+  private activeRooms: { userId: number; channelId: number }[] = [];
   private logger = new Logger('ChatGateway');
 
   constructor(private chatSocketService: ChatSocketService) {}
@@ -42,7 +41,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
       }
       this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
-      //this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
+      this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
     } catch (error) {
       socket.disconnect();
     }
@@ -50,10 +49,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
     const { user_id } = socket.data.user;
+
     const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
-    if (userIndex >= 0) {
-      this.users.splice(userIndex, 1);
-    }
+    if (userIndex >= 0) this.users.splice(userIndex, 1);
+
+    const activeIndex = this.activeRooms.findIndex((u) => u.userId.toString() === user_id);
+    if (activeIndex >= 0) this.activeRooms.splice(activeIndex, 1);
+
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
 
@@ -62,33 +64,36 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userId = this.getUserIdBySocketId(socket.id);
     return this.chatSocketService.joinAllChatRooms(socket, userId);
   }
-
+  
   @SubscribeMessage('enter-chat')
   async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    // const userIndex = this.activeRooms.findIndex((u) => u.userId=== userId);
-    // if (userIndex >= 0) {
-    //     //error or 바꾸기
-    //     // this.server.in(this.activeRooms[userIndex].socketId).disconnectSockets();
-    //     //this.handleLeaveRoom(socket, dto);
-    //     this.activeRooms[userIndex].channelId =  dto.channel_id;
-    // } else {
-    //   this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
-    // }
+    if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
+ 
+    const userIndex = this.activeRooms.findIndex((u) => u.userId === userId);
+    if (userIndex >= 0) this.activeRooms[userIndex].channelId =  dto.channel_id;
+    else this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
+    socket.join(`chat_active_${dto.channel_id}`);
 
-    return this.chatSocketService.enterChatRoom(socket, dto.channel_id, userId);
   }
 
   @SubscribeMessage('leave-chat')
   async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.leaveChatRoom(socket, dto.channel_id, userId);
-  }
+    if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
 
+    const userIndex = this.activeRooms.findIndex((u) => u.userId === userId && u.channelId === dto.channel_id);
+    if (userIndex >= 0) {
+      this.activeRooms.splice(userIndex, 1);
+      socket.leave(`chat_active_${dto.channel_id}`);
+    }
+  }
+ 
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
     const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.sendChatMessage(this.server, userId, md);
+    const socketIds = this.getActiveChannelUsersSocketIds(md.channel_id);
+    return this.chatSocketService.sendChatMessage(this.server, userId, md, socketIds);
   }
 
   @SubscribeMessage('mute-chat')
@@ -117,47 +122,52 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     return this.chatSocketService.kickUser(this.server, adminId, kickDto, userSocket);
   }
 
+
   /*
       Func From Api Reqeust
   */
+  handleEmitRoom(channel_id: number, user: ChannelUser[]) {
+    this.server.to(`chat_active_${channel_id}`).emit('user', {
+      type: 'join',
+      user 
+    });
+  }
 
-  handleJoinUsers(userIds: number[], channel_id: number, channel: ChatChannel) {
+  handleJoinUsers(userIds: number[], owner_id: number, channel_id: number, channel: ChatChannel) {
+ 
     if (userIds !== null) {
       for (const userId of userIds) {
         const userSocket = this.getSocketIdByUserId(userId);
         if (userSocket) {
-          if (!this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-            this.server.in(userSocket).socketsJoin(`chat_${channel_id}`);
+          this.server.in(userSocket).socketsJoin(`chat_alarm_${channel_id}`);
+          if (userId !== owner_id)
             this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
-          }
         }
       }
     }
   }
 
-  handleLeaveUser(user_id: number, channel_id: number, userNickname: string) {
+  handleLeaveUser(channel_id: number, user_id: number) {
     const userSocket = this.getSocketIdByUserId(user_id);
     if (userSocket) {
-      if (this.server.sockets.adapter.socketRooms(userSocket).has(`chat_${channel_id}`)) {
-        this.server.in(userSocket).socketsLeave(`chat_${channel_id}`);
-      }
+      this.server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
+      this.server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
     }
-    this.server.to(`chat_${channel_id}`).emit('leave', {
-      user_id: user_id,
-      nickname: userNickname,
-      channel_id: channel_id,
-      message: `${userNickname} 가 나갔습니다.`,
+    this.server.to(`chat_active_${channel_id}`).emit('user', {
+      type: 'leave',
+      user_id
     });
   }
 
   handleAdminRoleUpdate(user_id: number, channel_id: number, changedRole: ChannelUserRoles) {
-    const userSocket = this.getSocketIdByUserId(user_id);
     this.server
-      .to(`chat_${channel_id}`)
-      .except(userSocket)
-      .emit('alarm', { type: 'update', user_id: user_id, channel_id: channel_id, message: changedRole });
+      .to(`chat_active_${channel_id}`)
+      .emit('role', { type: changedRole, user_id: user_id });
   }
 
+  /*
+      Func for private instance
+  */
   getSocketIdByUserId(userId: number) {
     return this.users.find((u) => u.userId === userId)?.socketId;
   }
@@ -165,4 +175,16 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   getUserIdBySocketId(socketId: string) {
     return this.users.find((u) => u.socketId === socketId)?.userId;
   }
+
+  getActiveChannelUsersSocketIds(channel_id: number): string[]{
+    const userIds = this.activeRooms
+      .filter(room => room.channelId === channel_id).map(room => room.userId);
+      
+    const socketIds = this.users
+      .filter(user => userIds.includes(user.userId))
+      .map(user => user.socketId.toString());
+
+    return socketIds;
+  }
+
 }

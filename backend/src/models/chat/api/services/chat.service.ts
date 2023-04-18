@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
-  UnauthorizedException,
+  NotFoundException
 } from '@nestjs/common';
 import {
   ChannelBanList,
@@ -23,6 +24,8 @@ import { ChannelDto, JoinDto, UserIdDto } from '../../dto/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
+import { UserRelation } from 'src/models/user/entities';
+import { RelationStatus } from 'src/common/enums/relationStatus.enum';
 
 @Injectable()
 export class ChatService {
@@ -41,6 +44,8 @@ export class ChatService {
     private muteRepository: Repository<ChannelMuteList>,
     @Inject(forwardRef(() => ChatUserService))
     private readonly userService: ChatUserService,
+    @InjectRepository(UserRelation)
+    private relationRepository: Repository<UserRelation>,
     private dataSource: DataSource,
     private chatGateway: ChatSocketGateway
   ) {}
@@ -56,16 +61,13 @@ export class ChatService {
   async getChatUsers(channel_id: number): Promise<ChannelUser[]> {
     return await this.channelUserRepository
       .createQueryBuilder('channel')
-      .innerJoin('channel.user', 'us') //innerjoin 으로 수정
+      .innerJoin('channel.user', 'us')
       .select(['us.user_id', 'us.nickname', 'us.profile_url', 'channel.role', 'channel.deleted_at'])
       .where('channel.channel_id = :channel_id', { channel_id })
       .withDeleted()
       .getMany();
   }
 
-  /**
-   * 테스트 해야함 (ORM 문법 바꿈)
-   * */
   async getMyChannels(user_id: number): Promise<ChatChannel[]> {
     const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
       where: { user_id: user_id },
@@ -77,16 +79,22 @@ export class ChatService {
 
     const dmChannels: DmChannel[] = await this.dmRepository.find({
       where: [{ first_user_id: user_id }, { second_user_id: user_id }],
-      order: { updated_at: 'DESC' },
-      take: 5,
-      select: {
-        channel_id: true,
-      },
+      order: { updated_at: 'DESC' }
     });
 
-    dmChannels.forEach((dm) => {
-      channelIds.push(dm.channel_id);
-    });
+    const users: UserRelation[] = await this.getBlockedUsers(user_id);
+    
+    let count = 0;
+    for (const dm of dmChannels) {
+      if (users.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
+        channelIds.push(dm.channel_id);
+        count++;
+      }
+      if (count >= 5) {
+        break;
+      }
+    }
+
     return await this.channelRepository
       .createQueryBuilder('channel')
       .innerJoin('channel.owner', 'owner')
@@ -135,6 +143,24 @@ export class ChatService {
       .getMany();
   }
 
+  async getChatJoinUser(channel_id: number, user_id: number) {
+  
+    return await this.channelUserRepository
+    .createQueryBuilder('channel')
+    .innerJoin('channel.user', 'us')
+    .select(['us.user_id', 'us.nickname', 'us.profile_url', 'channel.role', 'channel.deleted_at'])
+    .where('channel.channel_id = :channel_id', { channel_id })
+    .andWhere('channel.user_id = :user_id', { user_id })
+    .getOne();
+  }
+
+  async getChatJoinUsers(channel_id: number, users: number[]): Promise<ChannelUser[]> {
+    const promises = users.map(user_id => this.getChatJoinUser(channel_id, user_id));
+    return await Promise.all(promises);
+  }
+
+
+
   /*
     id : number;               // MessageId
     sender : number;       // Sender UserId 
@@ -143,11 +169,11 @@ export class ChatService {
     type : ChatType; 
 
   */
-  async getMessageLogs(take = 10, skip = 0, channel_id: number, user_id: number) {
+  async getMessageLogs(take = 10, skip = 0, channel_id: number, user_id: number): Promise<MessageLog[]> {
     const channel = await this.channelRepository.findOne({ where: { channel_id } });
-    if (!channel) throw new NotFoundException(`Can't find chat channel ${channel_id}`);
+    if (!channel) throw new NotFoundException(`채널을 찾을 수 없습니다.`);
 
-    if (await this.checkBanUser(channel_id, user_id)) throw new UnauthorizedException('Banned User!');
+    if (await this.checkBanUser(channel_id, user_id)) throw new ForbiddenException('밴 상태 입니다!');
 
     return await this.messageLogRepository
       .createQueryBuilder('log')
@@ -170,7 +196,7 @@ export class ChatService {
 
     if (type == ChannelType.PROTECTED) {
       if (password == undefined) {
-        throw new NotFoundException(`비밀번호 없음`);
+        throw new BadRequestException(`비밀번호 없음`);
       }
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
@@ -207,10 +233,9 @@ export class ChatService {
       await queryRunner.commitTransaction();
 
       // owner 와 invited users 모두 새로 생성된 채널에 socket join
-      const userIds = inviteList;
-      userIds.push(user.user_id);
       channel = this.channelResult(channel);
-      this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
+      inviteList.push(user.user_id);
+      this.chatGateway.handleJoinUsers(inviteList, user.user_id, channel.channel_id, channel);
 
       return channel;
     } catch (error) {
@@ -222,55 +247,74 @@ export class ChatService {
   }
 
   async updateChatRoom(channel_id: number, channelDto: ChannelDto, user: User): Promise<void> {
-    const { name, password, type, thumbnail_url, inviteList } = channelDto;
+    let { name, password, type, thumbnail_url, inviteList } = channelDto;
     const channel = await this.channelRepository.findOne({ where: { channel_id } });
-    if (!channel) throw new NotFoundException(`can't find chat Channel ${channel_id}`);
+    if (!channel) throw new NotFoundException(`채널을 찾을 수 없습니다.`);
 
-    if (channel.owner_id != user.user_id && !(await this.checkAdminUser(user.user_id, channel_id)))
-      throw new NotFoundException(`Channel [ ${channel_id} ]'s User :${user.user_id} has no Permission`);
+    if (!(await this.checkAdminUser(user.user_id, channel_id)))
+      throw new ForbiddenException(`채팅방 수정 권한이 없습니다.`);
 
     let hashedPassword = channel.password;
     if (channel.type != ChannelType.PROTECTED && type == ChannelType.PROTECTED) {
       if (password == undefined) {
-        throw new NotFoundException(`Can't find password`);
+        throw new BadRequestException(`비밀번호 없음`);
       }
       const salt = await bcrypt.genSalt();
       hashedPassword = await bcrypt.hash(password, salt);
     }
-
+    
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       if (inviteList !== null) {
+
+        const users = await this.channelUserRepository.find({
+          withDeleted: true,
+          where: {channel_id},
+          select : {user_id: true, deleted_at: true}
+        });
+
+        let deleList = [];
+        inviteList = inviteList.filter(userId => {
+          if (users.some(u => u.user_id === userId && u.deleted_at === null))
+            return false;
+          if (users.some(u => u.user_id === userId && u.deleted_at !== null))
+            deleList.push(userId);  
+          return true;
+        });
+
+        await Promise.all(deleList.map(async userId => {
+          await queryRunner.manager.delete(ChannelUser, { channel_id, user_id: userId });
+        }));
+
         for (const userId of inviteList) {
-          if (userId !== user.user_id) {
-            const cu = this.channelUserRepository.create({
-              channel_id: channel.channel_id,
-              user_id: userId,
-              role: ChannelUserRoles.USER,
-            });
-            await queryRunner.manager.save(cu);
-          }
+          const cu = this.channelUserRepository.create({
+            channel_id: channel.channel_id,
+            user_id: userId,
+            role: ChannelUserRoles.USER,
+          });
+          await queryRunner.manager.save(cu); 
         }
       }
-      await this.channelRepository.update(channel_id, { name, type, password: hashedPassword, thumbnail_url });
+      await queryRunner.manager.update(ChatChannel, {channel_id}, { name, type, password: hashedPassword, thumbnail_url });
       await queryRunner.commitTransaction();
 
-      const userIds = inviteList;
-      userIds.push(user.user_id);
-      const inviteChannel = await this.getChannel(channel_id);
-      this.chatGateway.handleJoinUsers(userIds, channel_id, inviteChannel);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
     } finally {
       await queryRunner.release();
+      if (inviteList !== null) {
+        this.chatGateway.handleJoinUsers(inviteList, user.user_id, channel_id, await this.getChannel(channel_id));
+        this.chatGateway.handleEmitRoom(channel_id, await this.getChatJoinUsers(channel_id, inviteList));  
+      }
     }
   }
 
   async createDmRoom(second_user: User, first_user: User): Promise<ChatChannel> {
+
     let dmChannel = await this.dmRepository.findOne({
       where: { first_user_id: first_user.user_id, second_user_id: second_user.user_id },
     });
@@ -287,7 +331,7 @@ export class ChatService {
         },
         { updated_at: new Date() }
       );
-      return this.channelResult(dmChannel.channel);
+      return await this.getChannel(dmChannel.channel_id);
     }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -313,7 +357,7 @@ export class ChatService {
       await queryRunner.commitTransaction();
 
       const userIds: number[] = [first_user.user_id, second_user.user_id];
-      this.chatGateway.handleJoinUsers(userIds, channel.channel_id, channel);
+      this.chatGateway.handleJoinUsers(userIds, first_user.user_id, channel.channel_id, channel);
 
       return this.channelResult(channel);
     } catch (error) {
@@ -335,35 +379,43 @@ export class ChatService {
   async joinChannelUser(joinDto: JoinDto, user_id: number): Promise<ChannelUser> {
     const { channel_id, password } = joinDto;
     const channel = await this.channelRepository.findOne({ where: { channel_id } });
-    if (!channel) throw new NotFoundException(`can't find chat Channel ${channel_id}`);
+    if (!channel) throw new NotFoundException(`채널을 찾을 수 없습니다.`);
 
     const banned = await this.banRepository.findOne({ where: { channel_id, user_id } });
     if (banned) {
       const time = new Date();
-      if (banned.end_at > time) throw new UnauthorizedException('banned User!');
+      if (banned.end_at > time) throw new ForbiddenException('밴 상태 입니다!');
     }
 
     switch (channel.type) {
       case ChannelType.PRIVATE:
-        throw new UnauthorizedException('No permission!');
+        throw new ForbiddenException('권한이 없습니다!');
       case ChannelType.DM:
-        throw new UnauthorizedException('No permission!');
+        throw new ForbiddenException('권한이 없습니다!');
       case ChannelType.PROTECTED:
         if (!(await bcrypt.compare(password, channel.password))) {
-          throw new UnauthorizedException('Wrong password!');
+          throw new BadRequestException('비밀번호가 맞지 않습니다!');
         }
     }
     const existingUser = await this.channelUserRepository.findOne({
       withDeleted: true,
       where: { channel_id, user_id },
+      select : { user_id: true, channel_id: true, deleted_at: true }
     });
     if (existingUser) {
       if (existingUser.deleted_at === null) {
-        throw new UnauthorizedException('Already joined!');
+        throw new ForbiddenException('이미 조인 된 채널입니다!');
       }
       await this.channelUserRepository.delete({ channel_id, user_id });
     }
-    return await this.createChannelUser(user_id, channel_id, ChannelUserRoles.USER);
+    try {
+      const cu = await this.createChannelUser(user_id, channel_id, ChannelUserRoles.USER);
+      const users = [user_id];
+      this.chatGateway.handleEmitRoom(channel_id, await this.getChatJoinUsers(channel_id, users));
+      return cu;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   /*
@@ -379,19 +431,25 @@ export class ChatService {
   
   */
   async leaveChannel(user_id: number, channel_id: number) {
+
+    const delUser = await this.channelUserRepository.findOne({
+      where: { channel_id, user_id },
+      relations: { channel: true},
+    });
+    if (!delUser) throw new NotFoundException(`해당 채널에 속한 유저가 아닙니다!`);
+    if (delUser.channel.type === ChannelType.DM) throw new ForbiddenException('Dm은 나갈 수 없습니다!');
     try {
-      const channel = await this.channelRepository.findOne({ where: { channel_id } });
-      if (!channel) throw new NotFoundException(`can't find chat Channel ${channel_id}`);
+      if (delUser.role === ChannelUserRoles.OWNER) {
+        const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
+          where: { channel_id },
+          order: {created_at: 'ASC'},
+          select: {
+            user_id: true,
+            role: true
+          }
+        });
 
-      if (channel.owner_id === user_id) {
-        const channelUsers: ChannelUser[] = await this.channelUserRepository
-          .createQueryBuilder('cu')
-          .select(['cu.user_id', 'cu.role'])
-          .where('cu.channel_id = :channel_id', { channel_id })
-          .orderBy('cu.created_at', 'ASC')
-          .getMany();
-
-        if (channelUsers.length === 1 && channelUsers[0].user_id === channel.owner_id) {
+        if (channelUsers.length === 1 && channelUsers[0].user_id === delUser.user_id) {
           await this.channelRepository.softDelete(channel_id);
         } else {
           let admin = channelUsers.find((users) => users.role === ChannelUserRoles.ADMIN);
@@ -407,15 +465,12 @@ export class ChatService {
             { role: ChannelUserRoles.OWNER }
           );
           await this.channelRepository.update(channel_id, { owner_id: admin.user_id });
+          this.chatGateway.handleAdminRoleUpdate(admin.user_id, channel_id, ChannelUserRoles.OWNER);
         }
-      } else {
-        const delUser = await this.channelUserRepository.findOne({ where: { channel_id, user_id } });
-        if (!delUser) throw new NotFoundException(`can't find ${channel_id}'s user ${user_id}`);
       }
       await this.channelUserRepository.softDelete({ channel_id, user_id });
 
-      const nickname = await this.userService.getUserNickname(user_id);
-      this.chatGateway.handleLeaveUser(user_id, channel_id, nickname);
+      this.chatGateway.handleLeaveUser(channel_id, delUser.user_id);
     } catch (error) {
       throw new InternalServerErrorException();
     }
@@ -441,17 +496,17 @@ export class ChatService {
 
   async changeRole(channel_id: number, admin_id: number, userIdDto: UserIdDto) {
     if (!(await this.checkAdminUser(admin_id, channel_id))) {
-      throw new UnauthorizedException('No permission!');
+      throw new ForbiddenException('권한이 없습니다!');
     }
 
     const role = await this.getUserRole(channel_id, userIdDto.user_id);
 
     if (!role) {
-      throw new NotFoundException(`can't find ${channel_id}'s user`);
+      throw new NotFoundException(`유저를 찾을 수 없습니다.`);
     } else if (role === 'owner') {
-      throw new UnauthorizedException('No permission!');
+      throw new ForbiddenException('권한이 없습니다!');
     } else if (role === userIdDto.role) {
-      throw new UnauthorizedException(`Already ${role}!`);
+      throw new ForbiddenException(`이미 ${role} 입니다!`);
     }
     try {
       await this.channelUserRepository.update({ channel_id, user_id: userIdDto.user_id }, { role: userIdDto.role });
@@ -461,45 +516,45 @@ export class ChatService {
     }
   }
 
-  async getMuteList(channel_id: number, user_id: number): Promise<ChannelMuteList[]> {
-    if (!(await this.checkAdminUser(user_id, channel_id))) {
-      throw new UnauthorizedException('No permission!');
-    }
-
+  async getMuteList(channel_id: number): Promise<ChannelMuteList[]> {
+    
+    const now = new Date();
     return await this.muteRepository
       .createQueryBuilder('mute')
-      .innerJoin('mute.user', 'us') //innerjoin 으로 수정
+      .innerJoin('mute.user', 'us')
       .select(['us.user_id', 'us.nickname', 'us.profile_url', 'mute.end_at'])
       .where('mute.channel_id = :channel_id', { channel_id })
+      .andWhere('mute.end_at > :now', {now})
       .getMany();
   }
 
   async getBanList(channel_id: number, user_id: number): Promise<ChannelBanList[]> {
     if (!(await this.checkAdminUser(user_id, channel_id))) {
-      throw new UnauthorizedException('No permission!');
+      throw new ForbiddenException('권한이 없습니다!');
     }
-
+    const now = new Date();
     return await this.banRepository
       .createQueryBuilder('ban')
-      .leftJoin('ban.user', 'us') //innerjoin 으로 수정
+      .innerJoin('ban.user', 'us')
       .select(['us.user_id', 'us.nickname', 'us.profile_url', 'ban.end_at'])
       .where('ban.channel_id = :channel_id', { channel_id })
+      .andWhere('ban.end_at > :now', {now})
       .getMany();
   }
 
   async deleteChatRoom(channel_id: number): Promise<void> {
     const result = await this.channelRepository.delete({ channel_id });
-    if (result.affected === 0) throw new NotFoundException(`Can't find id ${channel_id}`);
+    if (result.affected === 0) throw new NotFoundException(`삭제 실패 : ${channel_id}`);
   }
 
-  async createChannelUser(user_id: number, channel_id: number, role: ChannelUserRoles) {
+  async createChannelUser(user_id: number, channel_id: number, role: ChannelUserRoles): Promise<ChannelUser>{
     const cu = this.channelUserRepository.create({
       channel_id: channel_id,
       user_id: user_id,
       role: role,
     });
-    await this.channelUserRepository.save(cu);
-    return cu;
+    
+    return await this.channelUserRepository.save(cu);
   }
 
   async getUserRole(channel_id: number, user_id: number) {
@@ -513,6 +568,18 @@ export class ChatService {
       case ChannelUserRoles.OWNER:
         return ChannelUserRoles.OWNER;
     }
+  }
+
+  async getBlockedUsers( user_id: number): Promise<UserRelation[]> {
+    return await this.relationRepository.find({
+      where: {
+        user_id,
+        status: RelationStatus.BLOCK
+      },
+      select : {
+        target_id: true
+      }
+    });
   }
 
   async checkAdminUser(user_id: number, channel_id: number): Promise<boolean> {
@@ -543,7 +610,9 @@ export class ChatService {
     delete result.owner.level;
     delete result.owner.total;
     delete result.owner.two_factor;
+    delete result.owner.two_factor_secret;
 
     return result;
   }
+
 }

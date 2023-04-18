@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ChannelBanList, ChannelMuteList, ChannelUser, ChatChannel } from '../entities';
+import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
+import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
+import { GetGuardData } from '../../../common/decorators';
 import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services';
 import { ChannelDto, JoinDto, UserIdDto } from '../dto/channel.dto';
 import { DmDto } from '../dto/dm.dto';
-import { GetGuardData } from '../../../common/decorators';
-import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
-import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
+
 
 @UseGuards(JwtGuard)
 @Controller('/chat')
@@ -49,7 +50,7 @@ export class ChatController {
     @GetGuardData() data: JwtPayloadInterface,
     @Param('channelId', ParseIntPipe) channelId: number
   ): Promise<ChannelMuteList[]> {
-    return this.chatService.getMuteList(channelId, data.user_id);
+    return this.chatService.getMuteList(channelId);
   }
 
   @Get('/:channelId/banlist')
@@ -107,6 +108,7 @@ export class ChatController {
   async createDmRoom(@GetGuardData() data: JwtPayloadInterface, @Body() dmDto: DmDto): Promise<ChatChannel> {
     const first_user = await this.userService.getUser(data.user_id);
     const second_user_id = await this.userService.getUser(dmDto.user_id);
+    if (!second_user_id) throw new NotFoundException("Dm을 신청 할 수 없습니다!")
     return this.chatService.createDmRoom(second_user_id, first_user);
   }
 }
