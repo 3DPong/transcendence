@@ -73,6 +73,11 @@ export class GameService {
     server.to(player2sid).emit('onSceneReady', onSceneData2);
   }
   
+  public initObserver(gameManager : GameManager, server : Server, sid : string){
+    const onSceneData : OnSceneData = this.gameDataMaker.makeObserverData(gameManager);
+    server.to(sid).emit('onSceneReady', onSceneData);
+  }
+
   async createMatch(gameManager : GameManager){
     try {
       const newMatch = new Match();

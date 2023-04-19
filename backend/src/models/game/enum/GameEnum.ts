@@ -17,6 +17,7 @@ export enum RoomType {
 export enum PlayerLocation {
 	RIGHT,
 	LEFT,
+  OBSERVER,
 }
 
 export enum InputEnum{
