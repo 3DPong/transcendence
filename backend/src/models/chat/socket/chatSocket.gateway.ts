@@ -85,7 +85,10 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
  
     const userIndex = this.activeRooms.findIndex((u) => u.userId === userId);
-    if (userIndex >= 0) this.activeRooms[userIndex].channelId =  dto.channel_id;
+    if (userIndex >= 0) {
+      socket.leave(`chat_active_${this.activeRooms[userIndex].channelId}`);
+      this.activeRooms[userIndex].channelId =  dto.channel_id;
+    }
     else this.activeRooms.push({ userId: userId, channelId: dto.channel_id });
     socket.join(`chat_active_${dto.channel_id}`);
 
