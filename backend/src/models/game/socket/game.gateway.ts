@@ -27,9 +27,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const cookie = client.handshake.headers.cookie;
       const token = cookie.split(';').find((c : string) => c.trim().startsWith('Authentication=')).split('=')[1].trim();
       const decoded : JwtPayloadInterface = this.jwtService.verify(token);
-      if (!decoded || decoded.status != TokenStatusEnum.SUCCESS){
+      if (!decoded || !decoded.user_id || decoded.status != TokenStatusEnum.SUCCESS){
         client.disconnect();
         this.logger.log(`${client.id} is disconnect jwt failed`);
+      } else {
+        client.data.userId = decoded.user_id;
       }
     } catch (error) {
       client.disconnect();
@@ -66,12 +68,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, matchJoinData);
     if (gameManager === undefined){
       gameManager = new GameManager(matchJoinData);
-      gameManager.createPlayer(client.id, matchJoinData.userId);
+      gameManager.createPlayer(client.id, client.data.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
       this.logger.log(`gameCreate ${gameManager.gameId}`);
     } else {
-      gameManager.createPlayer(client.id, matchJoinData.userId);
+      gameManager.createPlayer(client.id, client.data.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameService.gamePreheat(gameManager, this.server);
     }
