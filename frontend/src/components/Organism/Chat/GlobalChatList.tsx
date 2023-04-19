@@ -13,6 +13,8 @@ import { useError } from '@/context/ErrorContext';
 interface ChatListProps {}
 
 const GlobalChatList: FC<ChatListProps> = () => {
+  const searchMin = 1;
+
   const [globalChats, setGlobalChats] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>('');
@@ -26,7 +28,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
   const { handleError } = useError();
 
   useEffect(() => {
-    if (searchString.length < 3) {
+    if (searchString.length < searchMin) {
       setSubmitDisabled(true);
     } else {
       setSubmitDisabled(false);
@@ -34,6 +36,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
   }, [searchString]);
 
   function searchButtonClick() {
+    if (submitDisabled) return;
     setIsLoading(true);
     async function fetchChannels() {
       const response = await fetch(API_URL + '/chat/search/' + searchString);
@@ -117,7 +120,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
           onKeyUp={searchButtonKeyup}
           placeholder={'공개 채팅방 검색'}
           disabled={submitDisabled}
-          disabledHelperText={'3글자 이상 입력하세요'}
+          disabledHelperText={searchMin + '글자 이상 입력하세요'}
         />
       </div>
 
