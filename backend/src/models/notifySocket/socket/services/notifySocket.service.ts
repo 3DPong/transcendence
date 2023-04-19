@@ -8,9 +8,9 @@ import { Notifier } from '../../../notifier/services/notifier.class';
 import { TopicEnum } from '../../../notifier/enums/topic.enum';
 import { ChannelEnum } from '../../../notifier/enums/channel.enum';
 import { SocketMapService } from '../../../../providers/redis/socketMap.service';
-import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
+import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
 
 @Injectable()
 export class NotifySocketService {
