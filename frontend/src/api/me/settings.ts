@@ -12,18 +12,18 @@ interface GET_responseFormat {
   two_factor: boolean;
 }
 
-export async function getMySettings(handleError: handleErrorFunction, navigateFunction: (url:string)=>void ) {
+export async function getMySettings(handleError?: handleErrorFunction, navigateFunction?: (url:string)=>void ) {
   const requestUri = `${API_URL}/user/me/settings`;
   const settingResponse = await fetch(requestUri, { method: "GET" });
 
   if (!settingResponse.ok) {
     console.log("Response", settingResponse.status);
     const errorData = await settingResponse.json();
-    if (settingResponse.status === 401) {
+    if ((settingResponse.status === 401) && navigateFunction) {
       console.log("[DEV] redirect to signIn...");
       navigateFunction("/signin"); // 401일 경우 세션에러임으로 로그인 페이지로 이동.
       return ;
-    } else {
+    } else if (handleError) { // handleError가 존재할 경우에만 세팅.
       handleError(
           "Get User Settings", // 그게 아니라면 그냥 API 에러알림 띄워주기
           errorData.message,

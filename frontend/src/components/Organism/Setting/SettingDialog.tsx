@@ -224,10 +224,10 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
       // 1. 서버에 토큰 전송
       let response: Response | undefined;
       if (twoFactorAuth) { // if off --> on
-        console.log('[DEV] Trying 2FA Auth On...');
+        console.log(`[DEV] Trying 2FA Auth On... | token:[${token}]`);
         response = await API.activate2FA_SubmitOtpTokenToServer(handleError, token);
       } else { // if on --> off
-        console.log('[DEV] Trying 2FA Auth Off...');
+        console.log(`[DEV] Trying 2FA Auth Off... | token:[${token}]`);
         response = await API.deactivate2FA_SubmitOtpTokenToServer(handleError, token);
       }
       if (response) {
@@ -236,6 +236,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
         navigate('/signin'); // 로그아웃되었으니 로그인페이지로 이동.
       } else {  // error
         handleAuthDialogClose(); // close Dialog
+        setToken(""); // 초기화.
         setTwoFactorAuth((prevState) => !prevState);
       }
     })(/* IIFE */);
@@ -244,15 +245,6 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   const handleTokenChange = (newVal: string) => {
     setToken(newVal);
   }
-
-
-  // off 에서 on이 된 경우 "로그아웃 됩니다. 정말 활성화 하시겠습니끼? 경고모달 띄우고 no하면 false로 하기"
-  // useEffect(() => {
-  //   if (!twoFactorAuth) return;
-  //   console.log('2차 인증이 off 에서 on으로 변경됨.');
-  // }, [twoFactorAuth]);
-  // ---------------------------------------------------------------------
-
 
   // Log-out
   // ---------------------------------------------------------------------
@@ -378,7 +370,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
             </DialogContentText>
             {/* 만약 off -> on 일 경우, QR 이미지를 보여주기 */}
             <Card sx={{ display: 'flex', padding: 2 }}>
-              { authDialogOpen &&
+              { authDialogOpen && twoFactorAuth && // if off --> on
                   <CardMedia
                       component="img"
                       sx={{ width: 150, height: 150, textAlign: 'center', mr: 1 }}
@@ -387,7 +379,10 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
                   />
               }
               {/* OTP 입력창 */}
-              <MuiOtpInput length={6} value={token} onChange={handleTokenChange} onComplete={handleTokenSubmit} />
+              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <MuiOtpInput length={6} value={token} onChange={handleTokenChange} />
+                <Button variant="outlined" size="medium" onClick={handleTokenSubmit}>Submit</Button>
+              </Box>
             </Card>
           </DialogContent>
         </Dialog>

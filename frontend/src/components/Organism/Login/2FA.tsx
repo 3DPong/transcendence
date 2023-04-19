@@ -7,6 +7,9 @@ import * as API from "@/api/API";
 import {useError} from "@/context/ErrorContext";
 import {useNavigate} from "react-router";
 import { MuiOtpInput } from 'mui-one-time-password-input'
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import { Card, Typography } from '@mui/material';
 
 export function Auth2FaInput() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -39,37 +42,15 @@ export function Auth2FaInput() {
                       max-w-sm bg-white rounded-lg shadow-lg
                       flex flex-col"
         >
-          <h1>Enter OTP Token</h1>
-          <MuiOtpInput length={6} value={token} onChange={handleChange} onComplete={handleSubmit} />
+          {/* OTP 입력창 */}
+          <Card sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Typography variant="subtitle1" color="text.secondary" component="div">
+              OTP Authentication
+            </Typography>
+            <MuiOtpInput length={6} value={token} onChange={handleChange} />
+            <Button variant="outlined" size="medium" onClick={handleSubmit}>Submit</Button>
+          </Card>
         </div>
       </div>
   );
-
-  /*
-  return (
-      <div className=" w-screen h-screen flex justify-center items-center">
-        <div
-            className=" border border-green-400
-                      p-5
-                      max-w-sm bg-white rounded-lg shadow-lg
-                      flex flex-col"
-        >
-          <TextFieldWrapper
-              value={token}
-              onChange={setToken}
-              type={'password'}
-              label={'OTP Token'}
-          />
-          <LoadingButton
-              loading={isLoading}
-              sx={{ marginTop: 2 }}
-              variant="outlined"
-              onClick={handleSubmit}
-          >
-            Submit
-          </LoadingButton>
-        </div>
-      </div>
-  );
-*/
 }

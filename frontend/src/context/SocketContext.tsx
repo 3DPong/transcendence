@@ -11,16 +11,18 @@ interface SocketContextProps {
   gameConnect: () => void;
   chatSocket: Socket | null;
   chatConnect: (props: ChatConnectProps) => void;
+  notifySocket: Socket | null;
+  notifyConnect: () => void;
   disconnectAll: () => void;
 }
 
 const SocketContext = createContext<SocketContextProps>({
   gameSocket: null,
   gameConnect: () => {},
-
   chatSocket: null,
   chatConnect: () => {},
-
+  notifySocket: null,
+  notifyConnect: () => {},
   disconnectAll: () => {},
 });
 
@@ -45,18 +47,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
     console.log('gameConnect()');
   };
-
-  const disconnectAll = () => {
-    console.log("[DEV] Closing currently active sockets...")
-    if (gameSocket) {
-      console.log("[DEV] game socket disconnecting...");
-      gameSocket.disconnect();
-    }
-    if (chatSocket) {
-      console.log("[DEV] chat socket disconnecting...");
-      chatSocket.disconnect();
-    }
-  }
 
   useEffect(() => {
     return () => {
@@ -89,8 +79,46 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     };
   }, [chatSocket]);
 
+
+  const [notifySocket, setNotifySocket] = useState<Socket | null>(null);
+  const notifyConnect = () => {
+    if (!notifySocket) {
+      const newSocket = io(`${SOCKET_URL}/notify`, {
+        path: '/api/socket.io',
+        transports: ['websocket'],
+      });
+      setNotifySocket(newSocket);
+    }
+    console.log('notifyConnect()');
+  };
+
+  useEffect(() => {
+    return () => {
+      if (notifySocket) {
+        console.log("[DEV] notify socket disconnecting...");
+        notifySocket.disconnect();
+      }
+    };
+  }, [notifySocket]);
+
+  const disconnectAll = () => {
+    console.log("[DEV] Closing currently active sockets...")
+    if (gameSocket) {
+      console.log("[DEV] game socket disconnecting...");
+      gameSocket.disconnect();
+    }
+    if (chatSocket) {
+      console.log("[DEV] chat socket disconnecting...");
+      chatSocket.disconnect();
+    }
+    if (notifySocket) {
+      console.log("[DEV] notify socket disconnecting...");
+      notifySocket.disconnect();
+    }
+  }
+
   return (
-    <SocketContext.Provider value={{ gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll }}>
+    <SocketContext.Provider value={{ gameSocket, gameConnect, chatSocket, chatConnect, notifySocket, notifyConnect, disconnectAll }}>
       {children}
     </SocketContext.Provider>
   );
@@ -98,7 +126,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 // Custom Hook
 export function useSocket() {
-  const { gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll } = React.useContext(SocketContext);
-
-  return { gameSocket, gameConnect, chatSocket, chatConnect, disconnectAll };
+  const { gameSocket, gameConnect, chatSocket, chatConnect, notifySocket, notifyConnect, disconnectAll } = React.useContext(SocketContext);
+  return { gameSocket, gameConnect, chatSocket, chatConnect, notifySocket, notifyConnect, disconnectAll };
 }

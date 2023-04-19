@@ -131,7 +131,7 @@ export default function GameStartButton({
   useEffect(() => {
     if (!__matchDataCache) return;
     (async () => {
-      console.log('[DEV] 게임 대결 상대의 프로필을 불러오는 중입니다.');
+      console.log('[DEV] 게임 대결 상대의 프로필을 불러오는 중입니다.', __matchDataCache.enemyUserId);
       const loadedSettings = await API.getUserDataById(handleError, __matchDataCache.enemyUserId);
       if (loadedSettings) {
         setEnemyProfile(loadedSettings.profile_url);

@@ -98,18 +98,12 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
   const { handleError } = useError();
   const { loggedUserId } = useContext(GlobalContext);
   const handleNormalModeClick = () => {
-    if (!loggedUserId) {
-      handleError('logged user_id', 'logged user_id is currently null', '/login');
-      return;
-    } else if (!gameSocket) {
-      console.log('Here');
+    if (!gameSocket) {
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
     console.log('NormalMode selected');
-    console.log(loggedUserId);
     const matchJoinData: MatchJoinData = {
-      userId: loggedUserId,
       roomType: roomType.random,
       gameType: gameType.normal,
     };
@@ -117,11 +111,7 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
     setIsModeSelected(true);
   };
   const handleSpecialModeClick = () => {
-    if (!loggedUserId) {
-      handleError('logged user_id', 'logged user_id is currently null', '/login');
-      return;
-    } else if (!gameSocket) {
-      console.log('Here');
+    if (!gameSocket) {
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
@@ -129,7 +119,6 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
     console.log('SpecialMode selected');
     console.log(loggedUserId);
     const matchJoinData: MatchJoinData = {
-      userId: loggedUserId,
       roomType: roomType.random,
       gameType: gameType.special,
     };

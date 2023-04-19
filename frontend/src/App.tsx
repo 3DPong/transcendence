@@ -29,6 +29,7 @@ import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
+import { GameTest } from "@/components/Test/GameTest";
 
 
 
@@ -36,6 +37,11 @@ const router = createBrowserRouter([
   // ----------------------------------------------------
   // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
   // ----------------------------------------------------
+  {
+    path: "/develop",
+    element: <GameTest />,
+    errorElement: <ErrorPage />,
+  },
   {
     // home. 버튼은 login 42 button 하나만 넣어주면 됨.
     path: "/signin",

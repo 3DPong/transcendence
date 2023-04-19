@@ -10,22 +10,21 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import GlobalContext from '@/context/GlobalContext';
-import { useContext, useEffect, useInsertionEffect, useLayoutEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Icon } from '@mui/material';
-
+import { useEffect } from 'react';
+import { Icon } from '@mui/material';
 import { useState } from 'react';
 import LoadingButton from '@mui/lab/LoadingButton';
 import LOGO_42 from '@/assets/42_logo.svg';
 import { requestSignIn } from '@/api/login/signIn';
-import {useError} from "@/context/ErrorContext";
 import {useSocket} from "@/context/SocketContext";
+import * as API from "@/api/API";
+import {useError} from "@/context/ErrorContext";
+import {useNavigate} from "react-router";
 
 function Icon42() {
   return (
     <Icon>
-      <img src={LOGO_42} className=" align-middle text-center h-full"></img>
+      <img alt={"42LOGO"} src={LOGO_42} className=" align-middle text-center h-full"></img>
     </Icon>
   );
 }
@@ -35,9 +34,19 @@ interface signInProps {}
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const {disconnectAll} = useSocket();
+  const {handleError} = useError();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    disconnectAll(); // disconnect every socket.
+    (async () => {
+      const res = await API.getMySettings();
+      if (res) { // login session is alive. go back to '/' home.
+        alert("User is already logged in. Going back to home page...");
+        navigate('/');
+      } else { // no login session. close every socket.
+        disconnectAll(); // disconnect every socket.
+      }
+    })(/* IIFE */);
   }, []);
 
   const handleClick = () => {

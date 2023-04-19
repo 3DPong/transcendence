@@ -76,30 +76,35 @@ export interface PUT_UserDataResponseFormat {
 // POST, 내 정보 수정하기
 export async function updateUserData(handleError: handleErrorFunction, nickname?: string, clientSideImageUrl?: string) {
 
-
   // 0. 닉네임 중복 검사.
+  let nicknameToSubmit = "";
+
   if (nickname) {
     const isNicknameOk = await verifyNickname(handleError, nickname);
-    if (!isNicknameOk) return; // 여기서 에러나면 걍 끝
-    console.log("[DEV] verifyNickname Success");
+    if (isNicknameOk) {
+      console.log("[DEV] verifyNickname Success");
+      nicknameToSubmit = nickname;
+    }
   }
 
   // 1. 서버에 프로필 이미지부터 전송.
   // 1. 서버에 프로필 이미지부터 전송.
-  let serverSideImageUrl: string | undefined;
+  let imageToSubmit: string | undefined;
   if (clientSideImageUrl) {
-    serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
-    if (!serverSideImageUrl) return;
-    console.log("[DEV] uploadImage Success");
+    const serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
+    if (serverSideImageUrl) {
+      console.log("[DEV] uploadImage Success");
+      imageToSubmit = serverSideImageUrl;
+    }
   }
 
   // 2. 정보 수정 Request 생성.
   const request: PUT_UserDataRequestFormat = {};
-  if (nickname) {
-    request.nickname = nickname;
+  if (nicknameToSubmit) {
+    request.nickname = nicknameToSubmit;
   }
-  if (serverSideImageUrl) {
-    request.profile_url = `${ORIGIN_URL}${serverSideImageUrl}`;
+  if (imageToSubmit) {
+    request.profile_url = `${ORIGIN_URL}${imageToSubmit}`;
   }
 
   // 3. 서버에 Request 전송
