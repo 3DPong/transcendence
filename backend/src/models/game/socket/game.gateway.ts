@@ -8,11 +8,11 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
 
 @WebSocketGateway({namespace : 'game'})
-//@UseGuards(JwtGuard) 마지막에 활성화
+@UseGuards(JwtGuard)
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
-  server: Server;
+  private server: Server;
   private gameRooms : Map<string, GameManager> = new Map();
 
   constructor(
@@ -21,7 +21,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ){}
 
   async handleConnection(@ConnectedSocket() client : Socket) {
-    //socket vaild check
     this.logger.log(`${client.id} is connect game socket`);
   }
   //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
@@ -93,7 +92,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() observeData : ObserveData,
     @ConnectedSocket() client : Socket,
   ) {
-    this.gameService.socketJoinRoom(client, observeData.gameId);
+    const gameManager : GameManager = this.gameRooms.get(observeData.gameId);
+    if (gameManager?.started){
+      this.gameService.initObserver(gameManager,this.server, client.id);
+      this.gameService.socketJoinRoom(client, observeData.gameId);
+    }
   }
 
   @SubscribeMessage('keyInput')
