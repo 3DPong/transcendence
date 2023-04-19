@@ -13,9 +13,11 @@ import { TwoFactorService } from './services/twoFactor.service';
 import { OtpModule } from '../../../auth/otp/otp.module';
 import { JwtStrategy } from '../../../common/guards/jwt/jwt.strategy';
 import { JwtConfigModule } from '../../../config/jwt/config.module';
+import { NotifierModule } from '../../notifier/notifier.module';
+import { Match } from '../../game/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserRelation]), OtpModule, JwtConfigModule],
+  imports: [TypeOrmModule.forFeature([User, UserRelation, Match]), OtpModule, JwtConfigModule, NotifierModule],
   controllers: [UserController, UserRelationController],
   providers: [
     UserService,
