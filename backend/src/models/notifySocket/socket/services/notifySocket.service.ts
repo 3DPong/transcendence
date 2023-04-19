@@ -51,7 +51,6 @@ export class NotifySocketService {
       },
     });
     await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.ALL, 0);
-    await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.USER, 1);
     this.logger.log(`user ${user_id} connect with socket id: ${socket.id}`);
   }
 
