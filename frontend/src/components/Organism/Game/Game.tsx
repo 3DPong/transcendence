@@ -75,7 +75,6 @@ export default function Game() {
       setMatchResult(matchResult);
     }
     gameSocket.on("matchEnd", handleGameEnd);
-
     return () => {
       gameSocket.off("connect_error");
       gameSocket.off("connect");
@@ -104,14 +103,11 @@ export default function Game() {
     notifySocket.on('disconnect', () => {
       console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
     });
-    // if game finished
-    // function handleGameEnd(matchResult: gameType.matchResult) {
-    //   setMatchResult(matchResult);
-    // }
-    // notifySocket.on("matchEnd", handleGameEnd);
-
     return () => {
-      // gameSocket.off("matchEnd", handleGameEnd);
+      notifySocket.off("connect_error");
+      notifySocket.off("connect");
+      notifySocket.off("my_connect");
+      notifySocket.off("disconnect");
     }
   }, [notifySocket]);
 

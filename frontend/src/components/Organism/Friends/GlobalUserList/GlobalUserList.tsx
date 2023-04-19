@@ -17,23 +17,23 @@ import MediaCard from '@/components/Molecule/MediaCard';
 import { friendData_t, globalUserData_t } from '@/types/user';
 import useArray from '@/utils/CustomHooks/useArray';
 import * as API from '@/api/API';
+import {useError} from "@/context/ErrorContext";
 
 export default function GlobalUserList() {
   const [globalUsers, setGlobalUsers] = useArray<globalUserData_t>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>(''); // 검색할 문자열.
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
+  const {handleError} = useError();
 
   // API GET global user list
   // 굳이 돋보기 버튼이 필요한가 라는 의문에 일단 아래처럼 입력할때 요청되도록 했음.
   // TODO: 나중에 onClick 꼭 지울 것!
   const onClick = () => {
     if (submitDisabled) return;
-    console.log('API GET global list');
-
     (async () => {
       setIsLoading(true);
-      const userList = await API.getUserListBySearchString(searchString);
+      const userList = await API.getUserListBySearchString(handleError, searchString);
       if (userList) {
         setGlobalUsers(userList);
       }
