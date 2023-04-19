@@ -13,6 +13,6 @@ export class UpdateUserReqDto {
   })
   nickname?: string;
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false }, { message: 'Profile url is not valid' })
   profile_url?: string;
 }
