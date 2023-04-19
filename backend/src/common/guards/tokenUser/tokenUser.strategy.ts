@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { TokenStatusEnum } from '../../enums/tokenStatusEnum';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtConfigService } from '../../../config/jwt/config.service';
 import { JwtPayloadInterface } from '../../interfaces/JwtUser.interface';
-import { TokenStatusEnum } from '../../enums/tokenStatusEnum';
 import { Request } from 'express';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  // passport-jwt strategy 를 통해서 jwt token 을 검증 & payload 를 추출
+export class TokenUserStrategy extends PassportStrategy(Strategy, 'TokenUser') {
   constructor(private jwtConfigService: JwtConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -21,11 +20,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayloadInterface) {
-    if (payload.status === TokenStatusEnum.SUCCESS) {
-      return payload;
-    } else {
-      return false;
+  validate(payload: JwtPayloadInterface) {
+    if (payload) {
+      if (payload.status === TokenStatusEnum.SIGNUP || payload.status === TokenStatusEnum.SUCCESS) {
+        return payload;
+      } else {
+        return false;
+      }
     }
   }
 }

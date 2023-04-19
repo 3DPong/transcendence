@@ -6,13 +6,14 @@ import { CreateFileValidationPipe } from '../../common/pipes';
 import { diskStorage } from 'multer';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { Response } from 'express';
+import { TokenUserGuard } from '../../common/guards/tokenUser/tokenUser.guard';
 
 @Controller('image')
 export class ImageController {
   constructor(private imageServeService: ImageServeService, private imageUploadService: ImageUploadService) {}
 
   @Post('/')
-  @UseGuards(JwtGuard)
+  @UseGuards(TokenUserGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
