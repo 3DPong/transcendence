@@ -65,7 +65,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleDMClick(id: number) {
     console.log(id + ' is DM');
     async function fetchDM() {
-      const response = await fetch(API_URL + '/chat/dm' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/dm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +140,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleGrantClick(id: number) {
     console.log(id + ' is Grant');
     async function fetchGrant() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +162,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleRevokeClick(id: number) {
     console.log(id + ' is Revoke');
     async function fetchRevoke() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -66,7 +66,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
 
   function joinChannel(id: number, password: string | null = null) {
     async function fetchJoinChannel() {
-      const response = await fetch(API_URL + '/chat/join' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/join', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

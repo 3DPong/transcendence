@@ -34,7 +34,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
 
   function handleSave() {
     async function updateChannel() {
-      const response = await fetch(API_URL + '/chat/' + channel.id + '/update' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/' + channel.id + '/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

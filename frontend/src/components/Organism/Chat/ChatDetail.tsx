@@ -74,7 +74,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchUsersByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/users' + '?id=' + loggedUserId, {
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/users', {
       cache: 'no-cache',
     });
     if (!response.ok) {
@@ -94,7 +94,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchBanListByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/banlist' + '?id=' + loggedUserId);
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/banlist');
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Unknown error occurred');
@@ -112,7 +112,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchMuteListByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/mutelist' + '?id=' + loggedUserId);
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/mutelist');
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Unknown error occurred');

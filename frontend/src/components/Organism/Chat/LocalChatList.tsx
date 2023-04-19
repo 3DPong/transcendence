@@ -101,7 +101,7 @@ const LocalChatList: FC<ChatListProps> = () => {
   useEffect(() => {
     setIsLoading(true);
     async function fetchChannels() {
-      const response = await fetch(API_URL + '/chat' + '?id=' + loggedUserId);
+      const response = await fetch(API_URL + '/chat');
       const fetchChannels = await response.json();
       setChannels(
         fetchChannels.map((ch: any) => ({
@@ -127,7 +127,7 @@ const LocalChatList: FC<ChatListProps> = () => {
 
       console.log("======chatConnectBef======");
       if (loggedUserId) {
-        chatConnect({ userId: loggedUserId });
+        chatConnect();
         console.log("======chatConnectAft======");
       }
       // ======

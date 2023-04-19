@@ -33,7 +33,7 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
   // console.log("Drawer b=> ", banList);
 
   async function leaveChannel() {
-    const response = await fetch(API_URL + '/chat/' + channel.id + '/out' + '?id=' + loggedUserId, {
+    const response = await fetch(API_URL + '/chat/' + channel.id + '/out', {
       method: 'PUT',
     });
     if (!response.ok) {
