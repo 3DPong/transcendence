@@ -25,7 +25,8 @@
     },
     "types": [
       "babylonjs",
-      "babylonjs-gui"
+      "babylonjs-gui",
+      "babylonjs-loaders",
     ]
   },
   "include": [
