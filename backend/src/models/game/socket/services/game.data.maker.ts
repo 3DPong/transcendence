@@ -11,7 +11,7 @@ export class GameDataMaker {
 
     matchStartData.gameId = gameManager.gameId;
     matchStartData.playerLocation = gameManager.player1.sid == sid ? PlayerLocation.LEFT : PlayerLocation.RIGHT;
-    matchStartData.enemyUserId = gameManager.player1.sid == sid ? gameManager.player1.dbId : gameManager.player2.dbId;
+    matchStartData.enemyUserId = gameManager.player1.sid != sid ? gameManager.player1.dbId : gameManager.player2.dbId;
     matchStartData.sceneData = this.makeObjectDatas(gameManager);
     return matchStartData;
   }
