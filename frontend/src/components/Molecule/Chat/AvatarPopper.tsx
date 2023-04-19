@@ -3,7 +3,7 @@ import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/mater
 import ChatContext from '@/context/ChatContext';
 import { ChatUser } from '@/types/chat';
 import { useSocket } from '@/context/SocketContext';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import { useError } from '@/context/ErrorContext';
@@ -33,6 +33,8 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
 
   const { handleError } = useError();
 
+  const navigate = useNavigate();
+
   const menuItemStyles = {
     fontSize: 'small',
     padding: '4px',
@@ -59,6 +61,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   // 여기선 보내기만하고 상태 변경은 최상단에서
   function handleProfileClick(id: number) {
     console.log(id + ' is profile');
+    navigate('./profile/' + id); // 이렇게 해도 되고
     handleClose();
   }
 
