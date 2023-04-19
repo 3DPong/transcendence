@@ -32,6 +32,7 @@ export function ErrorProvider({ children }: ErrorProviderProps): JSX.Element {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   function handleError(title: string | null, message: string | null, redirectUrl?: string | null) {
+    console.log(`[DEV] HandleError: Title=${title} message=${message} redir=${redirectUrl}`);
     setErrorTitle(title);
     setErrorMessage(message);
     redirectUrl && setRedirectUrl(redirectUrl); // if param exists, set callback state.

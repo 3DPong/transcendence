@@ -1,5 +1,6 @@
 const { merge } = require("webpack-merge");
 const common = require("./webpack.common");
+// const path = require("path");
 // const isLocal = process.env.NODE_ENV === 'local';
 
 module.exports = merge(common, {
@@ -20,21 +21,28 @@ module.exports = merge(common, {
       overlay: true,
       webSocketURL: "ws://0.0.0.0:80/ws",
     },
+    // static: ['assets'],
   },
 
   output: {
-    // https://evan-moon.github.io/2019/08/08/fix-webpack-dev-memory-leak/
-    // filename: isLocal ? 'client-bundle.[name].js' : 'client-bundle.[chunkhash].js',
-    // filename: "[name].[contenthash].js",
     filename: "client-bundle.[name].js",
     publicPath: "/",
   },
+
   module: {
     rules: [
       {
         test: /\.(sa|sc|c)ss$/i,
         use: ["style-loader", "css-loader", "postcss-loader"], // 아니 시볼 여기가 문제였네....
       },
+      // { // 3D Objects
+      //   test: /\.(obj|glb)$/,
+      //   include: path.resolve(__dirname, "src"),
+      //   type: "asset/resource",
+      //   generator: {
+      //     filename: "assets/[name][ext]",
+      //   },
+      // },
     ],
   },
 });

@@ -31,25 +31,25 @@ export interface TextFieldWrapperProps {
   disabledHelperText?: string; // 오류시 표기할 내용.
 }
 
-function TextFieldWrapper(props: TextFieldWrapperProps) {
+export function TextFieldWrapper(props: TextFieldWrapperProps) {
   {
     /* https://mui.com/material-ui/react-text-field/ */
   }
   return (
-    <TextField
-      sx={{ flex: 1 }} // 가득 채우기
-      id="standard-basic"
-      variant="standard"
-      type={props.type}
-      label={props.label}
-      onChange={(event) => {
-        props.onChange(event.target.value);
-      }}
-      placeholder={props.placeholder}
-      error={props.disabled}
-      helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
-      required={true}
-    />
+      <TextField
+          sx={{ flex: 1 }} // 가득 채우기
+          id="standard-basic"
+          variant="standard"
+          type={props.type}
+          label={props.label}
+          onChange={(event) => {
+            props.onChange(event.target.value);
+          }}
+          placeholder={props.placeholder}
+          error={props.disabled}
+          helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
+          required={true}
+      />
   );
 }
 
@@ -60,37 +60,19 @@ export function SignUp() {
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { handleError } = useError();
-
   const navigate = useNavigate();
-
-  const WIDTH = 250;
-  const HEIGHT = WIDTH;
-
-  // check if user is already logged-in on first render
-  // useLayoutEffect는 DOM paint가 이뤄지기 전에 호출됨으로 깜빡임을 해결 가능.
-  useEffect(() => {
-    // loggedUserId가 있고 세션스토리지도 있다는 얘기는 앱 로그인 후 사용자가 /signin 경로를 입력한 경우이다.
-    // 이 경우는 암것도 하지 않고 home으로 리다이렉트만 시킨다.
-    console.log(1);
-    if (sessionStorage.getItem('user_id') !== null) {
-      console.log(2);
-      navigate('/'); // home 경로로 이동한다.
-      return;
-    }
-  }, []);
 
   const handleSubmit = () => {
     if (submitDisabled) return;
     (async () => {
       console.log('handle submit');
-      // 1. 서버에 가입 요청.
       setIsLoading(true);
-      const user_id = await API.requestSignUp(handleError, nickname, imageFile);
+      const res = await API.requestSignUp(handleError, nickname, imageFile);
       setIsLoading(false);
-      if (user_id) {
-        setLoggedUserId(user_id);
+      if (res) {
+        alert("Sign-Up success. Please login again.");
+        navigate('/signin');
       }
-      navigate('/');
     })(/* IIFE */);
   };
 
@@ -109,13 +91,13 @@ export function SignUp() {
     }
   }, [nickname]);
 
-  // navigate 함수 사용시 컴포넌트 깜빡임 문제 해결을 위한 시도.
-  if (sessionStorage.getItem('user_id') !== null) return <></>;
-  else
-    return (
+  const WIDTH = 250;
+  const HEIGHT = 250;
+
+  return (
       <div className=" w-screen h-screen flex justify-center items-center">
         <div
-          className=" border border-green-400
+            className=" border border-green-400
                       p-5
                       max-w-sm bg-white rounded-lg shadow-lg 
                       flex flex-col"
@@ -126,25 +108,25 @@ export function SignUp() {
 
           {/* Set Nickname */}
           <TextFieldWrapper
-            value={nickname}
-            onChange={setNickname}
-            type={'text'}
-            label={'nickname'}
-            disabled={submitDisabled}
-            disabledHelperText={_validator.getRuleHint('@Nickname')}
+              value={nickname}
+              onChange={setNickname}
+              type={'text'}
+              label={'nickname'}
+              disabled={submitDisabled}
+              disabledHelperText={_validator.getRuleHint('@Nickname')}
           />
 
           {/* Submit Button */}
           <LoadingButton
-            loading={isLoading}
-            disabled={submitDisabled}
-            sx={{ marginTop: 2 }}
-            variant="outlined"
-            onClick={handleSubmit}
+              loading={isLoading}
+              disabled={submitDisabled}
+              sx={{ marginTop: 2 }}
+              variant="outlined"
+              onClick={handleSubmit}
           >
             Sign Up
           </LoadingButton>
         </div>
       </div>
-    );
+  );
 }

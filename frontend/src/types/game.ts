@@ -10,7 +10,6 @@ export enum gameType {
 }
 
 export interface MatchJoinData {
-  userId: number; // user_id --> 게임 룸 만들때 백에서 필요.
   roomType: roomType; // 방 타입
   gameType: gameType; // 게임 모드
 }
@@ -44,6 +43,7 @@ export interface objectData {
 export enum PlayerLocation {
   RIGHT,
   LEFT,
+  OBSERVER
 }
 
 export interface matchStartData {
@@ -62,10 +62,12 @@ export interface renderData {
   angle: number;
 }
 
-export enum inputEnum {
-  UP,
-  DOWN,
+export enum inputEnum{
+  UP_START,
+  DOWN_START,
   SKILL,
+  UP_END,
+  DOWN_END,
 }
 
 export interface inputData {
@@ -79,4 +81,16 @@ export interface matchResult {
   rightScore: number;
   leftScore: number;
   winner: number; //id
+}
+
+export interface PlayerData {
+  myImage: string;
+  myNickName: string;
+  enemyImage: string;
+  enemyNickName: string;
+}
+
+export interface scoreData{
+  rightScore : number;
+  leftScore : number;
 }

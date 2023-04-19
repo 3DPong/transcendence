@@ -1,7 +1,7 @@
 // const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+// const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require("webpack");
 // const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 // BundleAnalyzer는 Bundle 최적화 용도로 보통 저는 사용합니다.
@@ -22,7 +22,7 @@ module.exports = {
         },
         exclude: /node_modules/,
       },
-      { // 이미지 포멧: PNG, JP(E)G, GIF, SVG, WEBP
+      { // 이미지 포멧: PNG, JP(E)G, GIF, SVG, WEBP... 기타 등등 필요한 Static 파일들.
         // https://yamoo9.gitbook.io/webpack/webpack/webpack-loaders/file-loader
         test: /\.(svg|png|jpg|gif)$/,
         use: {
@@ -32,11 +32,17 @@ module.exports = {
             name: '[name].[contenthash].[ext]',
           },
         },
-      }
+      },
+      {
+        test: /\.(glb|gltf|obj)$/,
+        loader: 'file-loader',
+        options: {
+          outputPath: 'assets/'
+        },
+      },
     ],
   },
   plugins: [
-    // new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: "public/index.html",
     }),
@@ -44,6 +50,9 @@ module.exports = {
       React: "react",
       process: 'process/browser',
     }),
+    // new CopyWebpackPlugin({
+      // patterns: [{ from: 'src/assets', to: 'assets' }] // 브라우저 디렉토리에 파일을 복붙해줌.
+    // }),
   ],
   resolve: {
     fallback: {

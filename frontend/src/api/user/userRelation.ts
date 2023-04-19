@@ -38,7 +38,7 @@ const validateSessionStatus = async (handleError: handleErrorFunction, res: Resp
 };
 
 export async function getUserListBySearchString(handleError: handleErrorFunction, searchString: string) {
-  const requestUrl = `${API_URL}/api/user/search/${searchString}`;
+  const requestUrl = `${API_URL}/user/search/${searchString}`;
   const userListResponse = await fetch(requestUrl, { method: 'GET' });
 
   // on error
@@ -79,13 +79,13 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
   let requestUrl;
   switch (type) {
     case GET_RelationType.none: // 전체 사용자 그룹.
-      requestUrl = `${API_URL}/api/user_relation`;
+      requestUrl = `${API_URL}/user_relation`;
       break;
     case GET_RelationType.friend:
-      requestUrl = `${API_URL}/api/user_relation?relation=friend`;
+      requestUrl = `${API_URL}/user_relation?relation=friend`;
       break;
     case GET_RelationType.block:
-      requestUrl = `${API_URL}/api/user_relation?relation=block`;
+      requestUrl = `${API_URL}/user_relation?relation=block`;
       break;
   }
   const userListResponse = await fetch(requestUrl, { method: 'GET' });
@@ -125,7 +125,7 @@ export async function changeUserRelation(
   targetId: number,
   action: PUT_RelationActionType
 ) {
-  const requestUrl = `${API_URL}/api/user_relation`;
+  const requestUrl = `${API_URL}/user_relation`;
 
   let requestPayload: PUT_RelationRequestFormat = { target_id: targetId, status: 'none' };
   switch (action) {
