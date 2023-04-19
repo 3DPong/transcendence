@@ -10,21 +10,34 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import React, { useContext, useEffect, useState } from 'react';
-import { friendData_t } from '@/types/user';
+import React, {useContext, useEffect, useState} from 'react';
+import {friendData_t} from '@/types/user';
 import UserListRow from '@/components/Organism/Friends/LocalUserList/UserListRow';
-import { Box } from '@mui/material';
-import { FixedSizeList } from 'react-window';
-import { Assert } from '@/utils/Assert';
-import { ListItem } from '@mui/material';
+import {Badge, Box, Card, ListItem} from '@mui/material';
+import {FixedSizeList} from 'react-window';
+import {Assert} from '@/utils/Assert';
 import ActionMenu from '@/components/Organism/Friends/LocalUserList/ActionMenu';
 import GlobalContext from '@/context/GlobalContext';
 import * as API from '@/api/API';
 import {useError} from "@/context/ErrorContext";
 import {useSocket} from "@/context/SocketContext";
-import {UserStatusNotifyData} from "@/types/notify";
-import { Badge } from '@mui/material';
-import { userStatus } from '@/types/notify';
+import {userStatus, UserStatusNotifyData} from "@/types/notify";
+
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { grey, green } from '@mui/material/colors';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      // Purple and green play nicely together.
+      main: green[300],
+    },
+    secondary: {
+      // This is green.A700 as hex.
+      main: grey[300],
+    },
+  },
+});
 
 const Row = (props: { index: number; style: React.CSSProperties; data: { isLoading: boolean } }) => {
   const { index, style, data } = props;
@@ -32,22 +45,30 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
   const friend = friends[index];
 
   return (
-      // NOTE: MUI ListItem Component는 내부적으로 Flex가 적용됩니다.
-      <ListItem style={style} key={index} divider={true}>
-        <Badge
-            color={
-              friend.status === userStatus.ONLINE ? "primary" : "secondary"
-            }
-            variant="dot"
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "left",
-            }}
-        >
-          <UserListRow user={friend} isLoading={data.isLoading} />
+      <ThemeProvider theme={theme}>
+        <ListItem style={style} key={index} divider={true}>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between'}}>
+            <Badge
+                invisible={ friend.status === undefined }
+                color={
+                  friend.status === userStatus.ONLINE ? "primary" : "secondary"
+                }
+                // variant="dot"
+                badgeContent={ friend.status === userStatus.ONLINE ? "online" : "offline" }
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+            >
+              {/*<Card sx={{ flex: 1, display: 'flex', justifyContent: 'space-between' }}>*/}
+              <Card sx={{ flex: 1, p: 1 }}>
+                <UserListRow user={friend} isLoading={data.isLoading} />
+              </Card>
+            </Badge>
+          </Box>
           <ActionMenu user={friend} />
-        </Badge>
-    </ListItem>
+        </ListItem>
+      </ThemeProvider>
   );
 };
 
@@ -104,7 +125,7 @@ export default function VirtualizedUserList(props: UserListProps) {
 
   const LIST_HEIGHT = 400;
   const ROW_WIDTH = '100%';
-  const ROW_HEIGHT = 70;
+  const ROW_HEIGHT = 100;
 
   let searchedArray: Array<friendData_t> | null = null;
   if (props.searchString) {

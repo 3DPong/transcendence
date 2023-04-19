@@ -71,8 +71,10 @@ export function SignUp() {
       setIsLoading(false);
       if (res) {
         alert("Sign-Up success. Please login again.");
-        navigate('/signin');
+      } else { // signUp error
+        alert("Whoops! Sign-Up failure! Please sign-up again");
       }
+      navigate('/signin');
     })(/* IIFE */);
   };
 

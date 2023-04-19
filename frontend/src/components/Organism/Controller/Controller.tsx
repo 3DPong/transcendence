@@ -19,23 +19,12 @@ import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItemButtonLink from '@/components/Molecule/Link/ListItemButtonLink';
 import { AccountBox, Group, Chat, Settings } from '@mui/icons-material';
-import GlobalContext from '@/context/GlobalContext';
 import { useNavigate, useLocation } from 'react-router';
-import * as API from '@/api/API';
-import { Assert } from '@/utils/Assert';
-import { Alert, SxProps } from '@mui/material';
-import ListItemButton from '@mui/material/ListItemButton';
-
-import { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
-
+import GamesIcon from '@mui/icons-material/Games';
+import { SxProps } from '@mui/material';
 import SettingDialog from '@/components/Organism/Setting/SettingDialog';
 
+/*
 interface welcomeDialogProps {
   state: { nickname: string };
 }
@@ -74,9 +63,11 @@ function WelcomeDialog({ state }: welcomeDialogProps) {
     </Dialog>
   );
 }
+ */
 
 export enum eClickedBtn {
   NONE,
+  GAME,
   PROFILE,
   FRIENDS,
   ROOMS,
@@ -126,6 +117,16 @@ export default function Controller() {
           <List sx={{ padding: 0, margin: 0 }}>
             <div className={BUTTON_STYLE}>
               <ListItemButtonLink
+                  sx={sx}
+                  to={clickState !== eClickedBtn.PROFILE ? './game' : '/'}
+                  tooltipTitle="Random Match"
+                  children={<GamesIcon fontSize="large" />}
+                  onClick={() => toggleClickState(eClickedBtn.GAME)}
+                  badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+              />
+            </div>
+            <div className={BUTTON_STYLE}>
+              <ListItemButtonLink
                 sx={sx}
                 to={clickState !== eClickedBtn.PROFILE ? './profile' : '/'}
                 tooltipTitle="Profile"
@@ -141,7 +142,7 @@ export default function Controller() {
                 tooltipTitle="Friends"
                 children={<Group fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-                badge={3} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -151,7 +152,7 @@ export default function Controller() {
                 tooltipTitle="Rooms"
                 children={<Chat fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-                badge={5} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
+                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>

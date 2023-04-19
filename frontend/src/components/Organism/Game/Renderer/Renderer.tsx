@@ -180,7 +180,7 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
     ScoreTexture.addControl(grid);
     grid.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-    grid.width = "300px";
+    grid.width = "500px";
     grid.height = "100px";
     grid.addRowDefinition(0.25); // top margin
     grid.addRowDefinition(1); // 1행(프로필)
@@ -192,7 +192,7 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
 
     const myNickname = new GUI.TextBlock();
     myNickname.text = `${playerData.myNickName}`;
-    myNickname.fontSize = 30;
+    myNickname.fontSize = 25;
     myNickname.color = "white";
     grid.addControl(myNickname, 1, 0);
     myScoreText.text = `${0}`;
@@ -202,7 +202,7 @@ export function Renderer3D({ playerData, matchData, width, height }: RenderScene
 
     const enemyNickname = new GUI.TextBlock();
     enemyNickname.text = `${playerData.enemyNickName}`;
-    enemyNickname.fontSize = 30;
+    enemyNickname.fontSize = 25;
     enemyNickname.color = "white";
     grid.addControl(enemyNickname, 1, 2);
     enemyScoreText.text = `${0}`;

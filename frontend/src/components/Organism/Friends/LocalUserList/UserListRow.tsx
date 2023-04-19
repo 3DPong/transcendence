@@ -32,7 +32,7 @@ export interface UserCardProps {
 export default function UserListRow(props: UserCardProps) {
   return (
     // 부모 flex container에 꽉 채우기 위한 용도 div
-    <div className="flex-1 border border-green-700">
+    <div className="flex-1">
       <div className=" w-auto flex items-center">
         {/* (1) 프로필 사진 */}
         {props.isLoading ? (
@@ -43,7 +43,7 @@ export default function UserListRow(props: UserCardProps) {
           <Avatar variant="square" alt={props.user.nickname} src={props.user.profile_url} />
         )}
         {/* (2) 프로필 이름 */}
-        <div className="flex-1 ml-2 mr-2">
+        <div className="flex-1 ml-4 mr-2">
           <Typography variant="subtitle1" component="div">
             {props.isLoading ? <Skeleton /> : props.user.nickname}
           </Typography>

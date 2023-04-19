@@ -80,13 +80,16 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <div>
-        <Game />
         <L0Template organism={<Controller />} />
         <AlertSnackbar />
       </div>
     ),
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: "game",
+        element: <Game />
+      },
       {
         path: "profile",
         element: <L1Template organism={<Profile />} />,
