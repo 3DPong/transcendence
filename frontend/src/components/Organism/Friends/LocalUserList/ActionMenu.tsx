@@ -23,6 +23,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { friendData_t, globalUserData_t } from '@/types/user';
 import { Assert } from '@/utils/Assert';
 import * as API from '@/api/API';
+import {useError} from "@/context/ErrorContext";
 
 interface userActionMenuProps {
   user: friendData_t;
@@ -33,6 +34,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const currentUrl = useLocation().pathname;
+  const {handleError} = useError();
 
   // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const navigate = useNavigate();
@@ -66,7 +68,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.blockUser);
+      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, API.PUT_RelationActionType.blockUser);
       if (RESPONSE?.status === 'friend') {
         // server handle error
         alert('[SERVER]: 친구가 삭제 되지 않았습니다.');

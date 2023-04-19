@@ -20,6 +20,11 @@ import { ListItem } from '@mui/material';
 import ActionMenu from '@/components/Organism/Friends/LocalUserList/ActionMenu';
 import GlobalContext from '@/context/GlobalContext';
 import * as API from '@/api/API';
+import {useError} from "@/context/ErrorContext";
+import {useSocket} from "@/context/SocketContext";
+import {UserStatusNotifyData} from "@/types/notify";
+import { Badge } from '@mui/material';
+import { userStatus } from '@/types/notify';
 
 const Row = (props: { index: number; style: React.CSSProperties; data: { isLoading: boolean } }) => {
   const { index, style, data } = props;
@@ -27,10 +32,21 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
   const friend = friends[index];
 
   return (
-    // NOTE: MUI ListItem Component는 내부적으로 Flex가 적용됩니다.
-    <ListItem style={style} key={index} divider={true}>
-      <UserListRow user={friend} isLoading={data.isLoading} />
-      <ActionMenu user={friend} />
+      // NOTE: MUI ListItem Component는 내부적으로 Flex가 적용됩니다.
+      <ListItem style={style} key={index} divider={true}>
+        <Badge
+            color={
+              friend.status === userStatus.ONLINE ? "primary" : "secondary"
+            }
+            variant="dot"
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "left",
+            }}
+        >
+          <UserListRow user={friend} isLoading={data.isLoading} />
+          <ActionMenu user={friend} />
+        </Badge>
     </ListItem>
   );
 };
@@ -42,6 +58,27 @@ export interface UserListProps {
 export default function VirtualizedUserList(props: UserListProps) {
   const { friends, setFriends } = useContext(GlobalContext);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { handleError } = useError();
+  const { notifySocket } = useSocket();
+
+  useEffect(() => {
+    if (!notifySocket) return ;
+    function onFriendStatusNotify(notifyData: UserStatusNotifyData) {
+      // (4) update Friend online/offline status
+      console.log(`[notifySocket] friend ${notifyData.nickname} is ${notifyData.status ? "offline" : "online"}`);
+      setFriends((draft) => {
+        const targetUser = draft.find((m) => m.user_id === notifyData.user_id);
+        if (targetUser) {
+          targetUser.status = notifyData.status;
+        }
+      });
+    }
+    console.log('[DEV] notifySocket.on() : userStatus');
+    notifySocket.on("user_status", onFriendStatusNotify);
+    return () => {
+      notifySocket.off("user_status", onFriendStatusNotify);
+    }
+  }, [notifySocket]);
 
   // on first render
   useEffect(() => {
@@ -49,7 +86,7 @@ export default function VirtualizedUserList(props: UserListProps) {
       // 0. load start (used at MUI Skeleton)
       setIsLoading(true);
       // 1. 일단 userId를 불러와야 함.
-      const userList = await API.getUserListByRelationType(API.GET_RelationType.friend);
+      const userList = await API.getUserListByRelationType(handleError, API.GET_RelationType.friend);
       if (!userList) {
         return;
       }

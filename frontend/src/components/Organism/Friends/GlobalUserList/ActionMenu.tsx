@@ -28,6 +28,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { UpdateFunctionOverload } from '@/utils/CustomHooks/useArray';
 import { Assert } from '@/utils/Assert';
 import * as API from '@/api/API';
+import {useError} from "@/context/ErrorContext";
 
 interface userActionMenuProps {
   user: globalUserData_t;
@@ -39,6 +40,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
   const open = Boolean(anchorEl);
   const navigate = useNavigate(); // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const { setFriends } = useContext(GlobalContext);
+  const {handleError} = useError();
 
   // 프로필 보기 버튼
   const handleProfileRoute = () => {
@@ -59,7 +61,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(user.user_id, API.PUT_RelationActionType.addFriend);
+      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, API.PUT_RelationActionType.addFriend);
       if (RESPONSE?.status !== 'friend') {
         // server handle error
         alert('[SERVER]: 친구가 추가 되지 않았습니다.');
@@ -91,7 +93,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
       let action;
-      if (user.status === 'block') {
+      if (user.relationWithMe === 'block') {
         // if block
         action = API.PUT_RelationActionType.unBlockUser;
       } else {
@@ -99,7 +101,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         action = API.PUT_RelationActionType.blockUser;
       }
       // (2) check API response
-      const RESPONSE = await API.changeUserRelation(user.user_id, action);
+      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, action);
       if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE?.status === 'block') {
         // block handle error (no change)
         alert('[SERVER]: 유저의 차단관계 처리 에러');
@@ -110,7 +112,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         return;
       }
       // (3) if user is friend, delete from friend list (전체 사용자 리스트와 친구 리스트에 동시에 보여지고 있을 수 있기 때문)
-      if (user.status === 'friend') {
+      if (user.relationWithMe === 'friend') {
         setFriends((draft) => {
           const targetIndex = draft.findIndex((m) => m.user_id === user.user_id);
           if (targetIndex !== -1) draft.splice(targetIndex, 1);
@@ -121,7 +123,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         const targetUser = draft.find((m) => m.user_id === user.user_id);
         Assert.NonNullish(targetUser, '리스트 검색 오류'); // 같은 리스트상에서는 반드시 있어야 함.
         if (RESPONSE) {
-          targetUser.status = RESPONSE.status;
+          targetUser.relationWithMe = RESPONSE.status;
         }
       });
     })(/* IIFE */);
@@ -198,13 +200,13 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         <Divider sx={{ my: 0.5 }} />
 
         {/* Add friend handle  --> don't show if user is already a friend*/}
-        {user.status !== 'friend' && <MenuItem onClick={handleAddFriend} children={'Add friend'} disableRipple />}
+        {user.relationWithMe !== 'friend' && <MenuItem onClick={handleAddFriend} children={'Add friend'} disableRipple />}
 
         {/* Block User tooggle */}
         <MenuItem onClick={handleBlockUserToogle} disableRipple>
-          {user.status === 'none' && 'block user'}
-          {user.status === 'friend' && 'delete/block friend'}
-          {user.status === 'block' && 'unblock user'}
+          {user.relationWithMe === 'none' && 'block user'}
+          {user.relationWithMe === 'friend' && 'delete/block friend'}
+          {user.relationWithMe === 'block' && 'unblock user'}
         </MenuItem>
       </Menu>
     </div>

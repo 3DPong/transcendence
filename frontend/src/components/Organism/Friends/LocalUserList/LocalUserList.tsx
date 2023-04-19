@@ -10,12 +10,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchTextField from '@/components/Molecule/SearchTextField';
 import VirtualizedUserList from '@/components/Organism/Friends/LocalUserList/List';
 import MediaCard from '@/components/Molecule/MediaCard';
 import ButtonLink from '@/components/Molecule/Link/ButtonLink';
 import AddBoxIcon from '@mui/icons-material/AddBox';
+import {useSocket} from "@/context/SocketContext";
+import {useError} from "@/context/ErrorContext";
+import {UserStatusNotifyData} from "@/types/notify";
 
 export default function LocalUserList() {
   const [searchString, setSearchString] = useState<string>(''); // 검색 문자열.

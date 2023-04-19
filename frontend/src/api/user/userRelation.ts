@@ -24,8 +24,9 @@ import { handleErrorFunction, useError } from '@/context/ErrorContext';
  *    GET user_relations API              *
  *----------------------------------------*/
 
+
 export interface GET_GlobalSearchResponseFormat {
-  relations: globalUserData_t[];
+  users: globalUserData_t[];
 }
 
 const validateSessionStatus = async (handleError: handleErrorFunction, res: Response) => {
@@ -48,7 +49,7 @@ export async function getUserListBySearchString(handleError: handleErrorFunction
   }
   // on success
   const userData: GET_GlobalSearchResponseFormat = await validatedResponse.json();
-  return userData.relations;
+  return userData.users;
 }
 
 /*----------------------------------*
