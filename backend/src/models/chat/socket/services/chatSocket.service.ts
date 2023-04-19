@@ -207,13 +207,11 @@ export class ChatSocketService {
       if (userSocket) {
         server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
         const title = await this.getChannelName(channel_id);
-        server
-          .in(userSocket)
-          .emit('alarm', { type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장  되었습니다.` }); //당사자
+        server.in(userSocket)
+          .emit('alarm', { type: 'kick', channel_id: channel_id, message: `${title} 에서 강제 퇴장 되었습니다.` }); //당사자
       }
 
-      server
-        .to(`chat_active_${channel_id}`)
+      server.to(`chat_active_${channel_id}`)
         .emit(`kick`, { user_id: user_id, channel_id: channel_id}); //일반유저
     
     } catch (error) {
