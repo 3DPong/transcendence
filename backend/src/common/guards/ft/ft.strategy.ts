@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { FtConfigService } from '../../../config/ft/config.service';
 import { Strategy } from 'passport-oauth2';
@@ -16,14 +16,14 @@ export class FtStrategy extends PassportStrategy(Strategy, 'ft') {
       callbackURL: ftConfigService.callback,
     });
   }
-  async validate(accessToken: string, refreshToken: string): Promise<FtDataInterface> {
+  async validate(accessToken: string, refreshToken: string): Promise<FtDataInterface | boolean> {
     // get profile information from 42 api
     const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const email = data.email;
     const profileUrl = data.image.link;
-    if (!email) throw new UnauthorizedException('invalid intra');
+    if (!email) return false;
     return {
       email: email,
       profile_url: profileUrl,

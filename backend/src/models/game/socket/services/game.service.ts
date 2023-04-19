@@ -61,7 +61,7 @@ export class GameService {
 
   public gamePreheat(gameManager : GameManager, server : Server){
     gameManager.simulator = new GameSimulator(gameManager.player1, gameManager.player2, gameManager.gameType);
-    gameManager.renderDatas = this.initRenderDatas(gameManager);
+    gameManager.renderDatas = this.gameDataMaker.makeRenderDatas(gameManager);
     gameManager.scoreData = new ScoreData();
 
     const player1sid : string = gameManager.player1.sid;
@@ -72,11 +72,12 @@ export class GameService {
     server.to(player1sid).emit('onSceneReady', onSceneData1);
     server.to(player2sid).emit('onSceneReady', onSceneData2);
   }
-
-  public initRenderDatas(gameManager : GameManager) : RenderData[] {
-    return this.gameDataMaker.makeRenderDatas(gameManager);
-  }
   
+  public initObserver(gameManager : GameManager, server : Server, sid : string){
+    const onSceneData : OnSceneData = this.gameDataMaker.makeObserverData(gameManager);
+    server.to(sid).emit('onSceneReady', onSceneData);
+  }
+
   async createMatch(gameManager : GameManager){
     try {
       const newMatch = new Match();
@@ -90,5 +91,12 @@ export class GameService {
     } catch (error) {
       throw new InternalServerErrorException('DataBase save Error');
     }
+  }
+
+  public isGamePalyer(gameManager : GameManager, sid : string) : boolean {
+    if (gameManager.player1.sid == sid || gameManager.player2.sid == sid){
+      return true;
+    }
+    return false;
   }
 }
