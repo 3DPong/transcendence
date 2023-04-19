@@ -8,6 +8,7 @@ import { Notifier } from '../../../notifier/services/notifier.class';
 import { TopicEnum } from '../../../notifier/enums/topic.enum';
 import { ChannelEnum } from '../../../notifier/enums/channel.enum';
 import { SocketMapService } from '../../../../providers/redis/socketMap.service';
+import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
 
@@ -40,7 +41,7 @@ export class NotifySocketService {
     // update socket information in redis
     await this.socketMapService.setUserSocket(+userId, 'notify', socket.id);
     // notify to user status that subscribed to this user
-    const userUpdated: User = await this.userRepository.findOne({
+    const userUpdated: UserUpdateDto = await this.userRepository.findOne({
       where: { user_id: +user_id },
       select: {
         user_id: true,
@@ -51,7 +52,6 @@ export class NotifySocketService {
     });
     await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.ALL, 0);
     await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.USER, 1);
-    socket.emit('message', 'connected');
     this.logger.log(`user ${user_id} connect with socket id: ${socket.id}`);
   }
 
@@ -64,7 +64,7 @@ export class NotifySocketService {
     // delete socket information in redis
     await this.socketMapService.deleteUserSocket(+userId, 'notify');
     // notify to user status that subscribed to this user
-    const userUpdated: User = await this.userRepository.findOne({
+    const userUpdated: UserUpdateDto = await this.userRepository.findOne({
       where: { user_id: +user_id },
       select: {
         user_id: true,

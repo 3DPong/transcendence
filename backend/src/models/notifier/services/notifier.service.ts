@@ -27,7 +27,7 @@ export class NotifierService {
 
   async notifyToSpecificChatChannel(server: Server, channelId: number, event: string, data: any) {
     const channelServer: Namespace = await server.of('/chat');
-    const channelRoom = `chat_${channelId}`;
+    const channelRoom = `chat_active_${channelId}`;
     if (channelServer.adapter.rooms.has(channelRoom) === false) {
       // for debug
       this.logger.debug(`room ${channelRoom} doesn't exist`);
