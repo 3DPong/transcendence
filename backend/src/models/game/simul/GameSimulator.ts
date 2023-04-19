@@ -57,7 +57,7 @@ export function step(
       simulator.ball.SetLinearVelocity(RandomVec2());
       BallSpeedCorrection(simulator.ball, BALL_SPEED);
       scoreData.leftScore = simulator.ball.GetUserData().player1_score;
-      scoreData.rightSocre = simulator.ball.GetUserData().player2_score;
+      scoreData.rightScore = simulator.ball.GetUserData().player2_score;
       server.to(gameId).emit('score', scoreData);
     }
     MovePeddle(simulator.user1);

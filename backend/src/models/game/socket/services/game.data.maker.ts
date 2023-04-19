@@ -16,6 +16,18 @@ export class GameDataMaker {
     return matchStartData;
   }
   
+  public makeObserverData(
+    gameManager : GameManager,
+  ) : OnSceneData {
+    const matchStartData : OnSceneData = new OnSceneData();
+
+    matchStartData.gameId = gameManager.gameId;
+    matchStartData.playerLocation = PlayerLocation.OBSERVER;
+    matchStartData.enemyUserId = undefined;
+    matchStartData.sceneData = this.makeObjectDatas(gameManager);
+    return matchStartData;
+  }
+
   public makeObjectDatas (
     gameManager : GameManager
   ) : ObjectData[] {
