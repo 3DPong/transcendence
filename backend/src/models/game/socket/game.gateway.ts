@@ -2,26 +2,39 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from 'socket.io'
 import { GameManager } from '../simul/GameManager';
 import { GameService } from './services';
-import { RoomType, GameType } from '../enum/GameEnum';
 import { InputData, MatchJoinData, ObserveData } from '../gameData';
-import { Logger, UseGuards } from '@nestjs/common';
-import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
-
+import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayloadInterface } from 'src/common/interfaces/JwtUser.interface';
+import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
 @WebSocketGateway({namespace : 'game'})
-@UseGuards(JwtGuard)
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
   private server: Server;
   private gameRooms : Map<string, GameManager> = new Map();
+  private logger : Logger;
 
   constructor(
     private readonly gameService : GameService,
-    private readonly logger : Logger,
-  ){}
+    private readonly jwtService : JwtService,
+  ){
+    this.logger = new Logger("gameGateway");
+  }
 
   async handleConnection(@ConnectedSocket() client : Socket) {
-    this.logger.log(`${client.id} is connect game socket`);
+    try {
+      const cookie = client.handshake.headers.cookie;
+      const token = cookie.split(';').find((c : string) => c.trim().startsWith('Authentication=')).split('=')[1].trim();
+      const decoded : JwtPayloadInterface = this.jwtService.verify(token);
+      if (!decoded || decoded.status != TokenStatusEnum.SUCCESS){
+        client.disconnect();
+        this.logger.log(`${client.id} is disconnect jwt failed`);
+      }
+    } catch (error) {
+      client.disconnect();
+      this.logger.log(`${client.id} is disconnect jwt failed`);
+    }
   }
   //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
   //client가 게임 참가자인지 옵저버인지 구분해야함
