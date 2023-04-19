@@ -255,12 +255,13 @@ export class ChatService {
       throw new ForbiddenException(`채팅방 수정 권한이 없습니다.`);
 
     let hashedPassword = channel.password;
-    if (channel.type != ChannelType.PROTECTED && type == ChannelType.PROTECTED) {
-      if (password == undefined) {
+    if (type === ChannelType.PROTECTED) {
+      if (channel.type !== ChannelType.PROTECTED && password === null) {
         throw new BadRequestException(`비밀번호 없음`);
+      } else if (password !== null) {
+        const salt = await bcrypt.genSalt();
+        hashedPassword = await bcrypt.hash(password, salt);
       }
-      const salt = await bcrypt.genSalt();
-      hashedPassword = await bcrypt.hash(password, salt);
     }
     
     const queryRunner = this.dataSource.createQueryRunner();
