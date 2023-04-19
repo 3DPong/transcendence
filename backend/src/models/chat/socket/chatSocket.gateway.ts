@@ -13,6 +13,8 @@ import { ChatSocketService } from './services';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
 import { ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
 import { SocketException, SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
+import { JwtService } from '@nestjs/jwt';
+import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
 
 
 @UseFilters(new SocketExceptionFilter())
@@ -26,24 +28,42 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   private activeRooms: { userId: number; channelId: number }[] = [];
   private logger = new Logger('ChatGateway');
 
-  constructor(private chatSocketService: ChatSocketService) {}
+  constructor(
+    private chatSocketService: ChatSocketService,
+    private readonly jwtService: JwtService
+    ) {}
 
   async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id } = socket.handshake.query;
-    socket.data.user = user_id as string;
 
     try {
+      const cookie = socket.handshake.headers.cookie;
+      if (!cookie)
+        throw new Error('cookie is invalid');
+      const token = cookie
+        .split(';')
+        .find((c) => c.trim().startsWith('Authentication='))
+        .split('=')[1]
+        .trim();
+      if (!token) throw new Error('token is required');
+      const decoded = this.jwtService.verify(token);
+      if (!decoded || !decoded.user_id || decoded.status !== TokenStatusEnum.SUCCESS) 
+        throw new Error('token is invalid');
+      const { user_id } = decoded;
+      const userId: string = user_id.toString();
+      socket.data.user = userId;
+
       const userIndex = this.users.findIndex((u) => u.userId.toString() === user_id);
       if (userIndex >= 0) {
         this.server.in(this.users[userIndex].socketId).disconnectSockets();
         this.users[userIndex].socketId = socket.id;
       } else {
-        this.users.push({ userId: parseInt(user_id as string), socketId: socket.id });
+        this.users.push({ userId: parseInt(userId), socketId: socket.id });
       }
       this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
       this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
     } catch (error) {
       socket.disconnect();
+      this.logger.log(`Socket disconnect: ${socket.id} ` + error);
     }
   }
 
@@ -57,12 +77,6 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (activeIndex >= 0) this.activeRooms.splice(activeIndex, 1);
 
     this.logger.log(`Socket disconnected: ${user_id}`);
-  }
-
-  @SubscribeMessage('join')
-  async handleSetClientEvent(@ConnectedSocket() socket: Socket) {
-    const userId = this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.joinAllChatRooms(socket, userId);
   }
   
   @SubscribeMessage('enter-chat')
