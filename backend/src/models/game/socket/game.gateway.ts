@@ -20,9 +20,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger : Logger,
   ){}
 
-  async handleConnection() {
+  async handleConnection(@ConnectedSocket() client : Socket) {
     //socket vaild check
-    console.log('socket connet');
+    this.logger.log(`${client.id} is connect game socket`);
   }
   //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
   //client가 게임 참가자인지 옵저버인지 구분해야함
@@ -40,9 +40,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       gameManager.simulator.matchInterrupt.isInterrupt = true;
       gameManager.simulator.matchInterrupt.sid = client.id;
       this.gameService.matchGiveUp(gameManager, client.id);
-      console.log('player disconnect and giveUp game')
+      this.logger.log(`${client.id} player disconnect and giveUp game`);
     }
-    console.log('socket disconnet');
+    this.logger.log(`${client.id} is disconnect game socket`);
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
@@ -57,7 +57,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
-      console.log('gameCreate', gameManager.gameId);
+      this.logger.log(`gameCreate ${gameManager.gameId}`);
     } else {
       gameManager.createPlayer(client.id, matchJoinData.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
