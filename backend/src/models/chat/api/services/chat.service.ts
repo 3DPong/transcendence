@@ -86,9 +86,10 @@ export class ChatService {
     
     let count = 0;
     for (const dm of dmChannels) {
-      if (users.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
-        channelIds.push(dm.channel_id);
-        count++;
+      if (users.length === 0 || 
+        users.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
+          channelIds.push(dm.channel_id);
+          count++;
       }
       if (count >= 5) {
         break;
