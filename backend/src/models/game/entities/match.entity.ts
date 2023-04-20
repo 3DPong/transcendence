@@ -24,7 +24,7 @@ export class Match {
   @Column({ type: 'int8', default: 0 })
   right_score: number;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @Column({ type: 'int', default: 0 })
   left_player: number;
 
@@ -32,7 +32,7 @@ export class Match {
   @JoinColumn({ name: 'left_player' })
   lPlayer: User;
 
-  @Factory((faker) => faker.datatype.number({ min: 0, max: 100 }))
+  @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @Column({ type: 'int' })
   right_player: number;
   

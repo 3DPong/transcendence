@@ -8,6 +8,9 @@ import { Notifier } from '../../../notifier/services/notifier.class';
 import { TopicEnum } from '../../../notifier/enums/topic.enum';
 import { ChannelEnum } from '../../../notifier/enums/channel.enum';
 import { SocketMapService } from '../../../../providers/redis/socketMap.service';
+import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
+import { JwtService } from '@nestjs/jwt';
+import { TokenStatusEnum } from '../../../../common/enums/tokenStatusEnum';
 
 @Injectable()
 export class NotifySocketService {
@@ -15,13 +18,21 @@ export class NotifySocketService {
   constructor(
     private readonly socketMapService: SocketMapService,
     private readonly notifier: Notifier,
-    @InjectRepository(User) private userRepository: Repository<User>
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly jwtService: JwtService
   ) {}
 
   async connect(socket: Socket) {
-    const { user_id } = socket.handshake.query;
-    if (!user_id) throw new Error('user_id is required');
-    // 해당 부분에서 jwt validation 필요합니다.
+    const cookie = socket.handshake.headers.cookie;
+    const token = cookie
+      .split(';')
+      .find((c) => c.trim().startsWith('Authentication='))
+      .split('=')[1]
+      .trim();
+    if (!token) throw new Error('token is required');
+    const decoded = this.jwtService.verify(token);
+    if (!decoded || !decoded.user_id || decoded.status !== TokenStatusEnum.SUCCESS) throw new Error('token is invalid');
+    const { user_id } = decoded;
 
     const userId: string = user_id.toString();
     socket.data.user = userId;
@@ -30,7 +41,7 @@ export class NotifySocketService {
     // update socket information in redis
     await this.socketMapService.setUserSocket(+userId, 'notify', socket.id);
     // notify to user status that subscribed to this user
-    const userUpdated: User = await this.userRepository.findOne({
+    const userUpdated: UserUpdateDto = await this.userRepository.findOne({
       where: { user_id: +user_id },
       select: {
         user_id: true,
@@ -40,8 +51,6 @@ export class NotifySocketService {
       },
     });
     await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.ALL, 0);
-    await this.notifier.notify(+user_id, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.USER, 1);
-    socket.emit('message', 'connected');
     this.logger.log(`user ${user_id} connect with socket id: ${socket.id}`);
   }
 
@@ -54,7 +63,7 @@ export class NotifySocketService {
     // delete socket information in redis
     await this.socketMapService.deleteUserSocket(+userId, 'notify');
     // notify to user status that subscribed to this user
-    const userUpdated: User = await this.userRepository.findOne({
+    const userUpdated: UserUpdateDto = await this.userRepository.findOne({
       where: { user_id: +user_id },
       select: {
         user_id: true,

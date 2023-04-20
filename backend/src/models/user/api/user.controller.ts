@@ -11,6 +11,8 @@ import { GetUserSettingResDto } from './dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
 import { VerifyNicknameResponseDto } from './dtos/verifyNickname.dto';
 import { SearchUserResDto } from './dtos/searchUserRes.dto';
+import { TokenUserGuard } from '../../../common/guards/tokenUser/tokenUser.guard';
+import { GetUserHistoryResDto } from './dtos/getUserHistoryRes.dto';
 
 @Controller('user')
 export class UserController {
@@ -31,7 +33,7 @@ export class UserController {
     return this.userService.createUser(data, payload);
   }
 
-  @UseGuards(UserCreationGuard)
+  @UseGuards(TokenUserGuard)
   @Get('/verify/nickname/:nickname')
   async verifyNickname(@Param('nickname') nickname: string): Promise<VerifyNicknameResponseDto> {
     return this.userService.verifyDuplicateNickname(nickname);
@@ -85,5 +87,11 @@ export class UserController {
     @Param('searchString') searchString: string
   ): Promise<SearchUserResDto> {
     return this.userService.searchUser(data.user_id, searchString);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/:userId/history')
+  async getUserHistory(@Param('userId') userId: number): Promise<GetUserHistoryResDto> {
+    return await this.userService.getUserHistory(userId);
   }
 }

@@ -3,6 +3,12 @@ import { User } from '../../user/entities';
 import { ChatChannel } from './chatChannel.entity';
 import { Factory } from 'nestjs-seeder';
 
+export enum BanStatus {
+  Ban = 0,
+  NoneBan,
+  PassedBan
+}
+
 @Entity()
 export class ChannelBanList {
   @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))

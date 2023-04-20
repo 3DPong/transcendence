@@ -12,6 +12,6 @@ export class CreateUserReqDto {
     message: 'Nickname is too long',
   })
   nickname: string;
-  @IsUrl()
+  @IsUrl({ require_tld: false }, { message: 'Profile url is not valid' })
   profile_url: string;
 }

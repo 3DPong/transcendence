@@ -13,10 +13,20 @@ import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
 import { VerifyNicknameResponseDto } from '../dtos/verifyNickname.dto';
 import { SearchedUser, SearchUserResDto } from '../dtos/searchUserRes.dto';
+import { Notifier } from '../../../notifier/services/notifier.class';
+import { TopicEnum } from '../../../notifier/enums/topic.enum';
+import { ChannelEnum } from '../../../notifier/enums/channel.enum';
+import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
+import { GameHistoryDto, GetUserHistoryResDto } from '../dtos/getUserHistoryRes.dto';
+import { Match } from '../../../game/entities';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Match) private matchRepository: Repository<Match>,
+    private readonly notifier: Notifier
+  ) {}
 
   async getUser(userId: number): Promise<GetUserResDto> {
     const user: GetUserResDto = await this.userRepository.findOne({
@@ -73,7 +83,16 @@ export class UserService {
     }
 
     try {
-      await this.userRepository.update({ user_id: userId }, payload);
+      const res = await this.userRepository.update({ user_id: userId }, payload);
+      if (res.affected === 0) throw new InternalServerErrorException('server error'); // check update is success
+      // notify to all users
+      const userUpdated: UserUpdateDto = {
+        user_id: userId,
+        nickname: payload.nickname ? payload.nickname : userToUpdate.nickname,
+        profile_url: payload.profile_url ? payload.profile_url : userToUpdate.profile_url,
+        status: userToUpdate.status,
+      };
+      await this.notifier.notify(userId, 'user_status', userUpdated, TopicEnum.USER, ChannelEnum.ALL, 0);
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
@@ -133,6 +152,47 @@ export class UserService {
           return new SearchedUser(user);
         })
         .filter((user: SearchedUser) => user.user_id !== userId),
+    };
+  }
+
+  async getUserHistory(userId: number): Promise<GetUserHistoryResDto> {
+    // NOTE: 해당 부분의 로직은 쿼리 최적화가 필요함
+    // optimize below code
+    const user: User = await this.userRepository.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+    if (!user) throw new BadRequestException('not exist user');
+    // get all user's games
+    const games: Match[] = await this.matchRepository.find({
+      where: [
+        {
+          left_player: userId,
+        },
+        {
+          right_player: userId,
+        },
+      ],
+      take: 10,
+      order: {
+        created_at: 'DESC',
+      },
+      relations: ['lPlayer', 'rPlayer'],
+      withDeleted: true,
+    });
+    const recentGames: GameHistoryDto[] = games.map((game) => {
+      return {
+        user_id: game.left_player === userId ? game.left_player : game.right_player,
+        target_id: game.left_player === userId ? game.right_player : game.left_player,
+        user_score: game.left_player === userId ? game.left_score : game.right_score,
+        target_score: game.left_player === userId ? game.right_score : game.left_score,
+        user_nickname: game.left_player === userId ? game.lPlayer.nickname : game.rPlayer.nickname,
+        target_nickname: game.left_player === userId ? game.rPlayer.nickname : game.lPlayer.nickname,
+      };
+    });
+    return {
+      history: recentGames,
     };
   }
 }

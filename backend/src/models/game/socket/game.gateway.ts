@@ -2,46 +2,61 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from 'socket.io'
 import { GameManager } from '../simul/GameManager';
 import { GameService } from './services';
-import { RoomType, GameType } from '../enum/GameEnum';
 import { InputData, MatchJoinData, ObserveData } from '../gameData';
-
-@WebSocketGateway({
-  namespace : 'game',
-})
+import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayloadInterface } from 'src/common/interfaces/JwtUser.interface';
+import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
+@WebSocketGateway({namespace : 'game'})
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
-  server: Server;
+  private server: Server;
   private gameRooms : Map<string, GameManager> = new Map();
+  private logger : Logger;
 
   constructor(
     private readonly gameService : GameService,
-  ){}
+    private readonly jwtService : JwtService,
+  ){
+    this.logger = new Logger("gameGateway");
+  }
 
-  async handleConnection() {
-    //socket vaild check
-    console.log('socket connet');
+  async handleConnection(@ConnectedSocket() client : Socket) {
+    try {
+      const cookie = client.handshake.headers.cookie;
+      const token = cookie.split(';').find((c : string) => c.trim().startsWith('Authentication=')).split('=')[1].trim();
+      const decoded : JwtPayloadInterface = this.jwtService.verify(token);
+      if (!decoded || !decoded.user_id || decoded.status != TokenStatusEnum.SUCCESS){
+        client.disconnect();
+        this.logger.log(`${client.id} is disconnect jwt failed`);
+      } else {
+        client.data.userId = decoded.user_id;
+      }
+    } catch (error) {
+      client.disconnect();
+      this.logger.log(`${client.id} is disconnect jwt failed`);
+    }
   }
   //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
+  //client가 게임 참가자인지 옵저버인지 구분해야함
   async handleDisconnect(@ConnectedSocket() client : Socket) {
     //게임매칭을찾는중,게임을진행중
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager === undefined){
-      //todo:
-      console.log('manager undefined check');
-    } else if (gameManager.playerCount === 1) {
-      console.log('player disconnect and delete gameRoom')
+    if (gameManager?.playerCount === 1) {
       this.gameRooms.delete(client.data.gameId);
+      this.logger.log(`${client.id} is disconnect game socket and delete ${gameManager.gameId}`);
     } else if (
-      gameManager.playerCount === 2 && 
-      gameManager.simulator.matchInterrupt.isInterrupt === false
+      gameManager?.playerCount === 2 && 
+      gameManager.simulator.matchInterrupt.isInterrupt === false &&
+      this.gameService.isGamePalyer(gameManager, client.id)
     ) {
       gameManager.simulator.matchInterrupt.isInterrupt = true;
       gameManager.simulator.matchInterrupt.sid = client.id;
       this.gameService.matchGiveUp(gameManager, client.id);
-      console.log('player disconnect and giveUp game')
+      this.logger.log(`${client.id} player disconnect and giveUp game`);
     }
-    console.log('socket disconnet');
+    this.logger.log(`${client.id} is disconnect game socket`);
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
@@ -53,12 +68,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, matchJoinData);
     if (gameManager === undefined){
       gameManager = new GameManager(matchJoinData);
-      gameManager.createPlayer(client.id, matchJoinData.userId);
+      gameManager.createPlayer(client.id, client.data.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameRooms.set(gameManager.gameId, gameManager);
-      console.log('gameCreate', gameManager.gameId);
+      this.logger.log(`gameCreate ${gameManager.gameId}`);
     } else {
-      gameManager.createPlayer(client.id, matchJoinData.userId);
+      gameManager.createPlayer(client.id, client.data.userId);
       this.gameService.socketJoinRoom(client, gameManager.gameId);
       this.gameService.gamePreheat(gameManager, this.server);
     }
@@ -85,13 +100,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     this.gameService.socketLeaveRoom(client, client.data.gameId);
   }
-  //observeExit구현해야함
+  //observe
+  //init data 보내는 부분 추가
   @SubscribeMessage('observeJoin')
   observerJoin(
     @MessageBody() observeData : ObserveData,
     @ConnectedSocket() client : Socket,
   ) {
-    this.gameService.socketJoinRoom(client, observeData.gameId);
+    const gameManager : GameManager = this.gameRooms.get(observeData.gameId);
+    if (gameManager?.started){
+      this.gameService.initObserver(gameManager,this.server, client.id);
+      this.gameService.socketJoinRoom(client, observeData.gameId);
+    }
   }
 
   @SubscribeMessage('keyInput')
@@ -100,7 +120,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
-    if (gameManager.started){
+    if (gameManager?.started && this.gameService.isGamePalyer(gameManager, client.id) ){
       gameManager.Keyboard(inputData.key, client.id);
     }
   }
@@ -110,7 +130,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client : Socket
   ) {
     const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager && gameManager.playerCount == 2 && gameManager.started == false){
+    if (gameManager?.playerCount == 2 && gameManager.started == false){
       gameManager.started = true;
       gameManager.gameStart(this.server, this.gameService, this.gameRooms);
     }
