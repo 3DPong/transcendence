@@ -12,6 +12,7 @@ import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interfac
 import { VerifyNicknameResponseDto } from './dtos/verifyNickname.dto';
 import { SearchUserResDto } from './dtos/searchUserRes.dto';
 import { TokenUserGuard } from '../../../common/guards/tokenUser/tokenUser.guard';
+import { GetUserHistoryResDto } from './dtos/getUserHistoryRes.dto';
 
 @Controller('user')
 export class UserController {
@@ -86,5 +87,11 @@ export class UserController {
     @Param('searchString') searchString: string
   ): Promise<SearchUserResDto> {
     return this.userService.searchUser(data.user_id, searchString);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/:userId/history')
+  async getUserHistory(@Param('userId') userId: number): Promise<GetUserHistoryResDto> {
+    return await this.userService.getUserHistory(userId);
   }
 }
