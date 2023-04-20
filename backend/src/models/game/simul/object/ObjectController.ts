@@ -28,7 +28,17 @@ export function BallSpeedCorrection(ball : Box2D.Body, speed: number){
 }
 
 export function RandomVec2() : Box2D.Vec2 {
-  return new Box2D.Vec2(Math.random()+1, Math.random()+1);
+  const vec2 : Box2D.Vec2 = new Box2D.Vec2(Math.random()-0.5, Math.random()-0.5);
+  const dt : number = vec2.y / vec2.x;
+  const tx : number = vec2.x;
+  if (dt > 1) { // y=x 대칭변환
+    vec2.x = vec2.y;
+    vec2.y = tx;
+  } else if (dt < -1){  //y=-x 대칭변환
+    vec2.x = vec2.y;
+    vec2.y = -tx;
+  }
+  return vec2;
 }
 
 export function BallAngleCorrection(ball : Box2D.Body, paddle : Box2D.Body){
