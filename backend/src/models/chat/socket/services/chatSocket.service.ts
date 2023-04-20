@@ -74,7 +74,7 @@ export class ChatSocketService {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
     if (md.message === '' || isWhitespace(md.message)) throw new SocketException('BadRequest', `내용을 입력해주세요!`);
 
-    let dmUser;
+    let dmUser : DmChannel;
     const channel = await this.getChannelType(md.channel_id);
     if (!channel) {
       throw new SocketException('NotFound', `채널을 찾을 수 없습니다!`);
@@ -84,17 +84,17 @@ export class ChatSocketService {
       throw new SocketException('Forbidden', `차단 상태 입니다!`);
     } else if (channel.type !== ChannelType.DM && !(await this.checkChannelUser(md.channel_id, user_id))) {
       throw new SocketException('NotFound', `채팅 유저를 찾을 수 없습니다!`);
-    }
-
-    if (await this.checkMuteUser(md.channel_id, user_id) === MuteStatus.Mute) {
-      throw new SocketException('Forbidden', `뮤트 상태입니다!`);
+    } else if (channel.type !== ChannelType.DM && await this.checkMuteUser(md.channel_id, user_id) === MuteStatus.Mute) {
+      throw new SocketException('Forbidden', `뮤트 상태 입니다!`);
     }
 
     try {
       const newMessage = await this.createMessageLog(user_id, md);
       delete newMessage.channel;
 
-      if (channel.type === ChannelType.DM) await this.updateDmUser(dmUser);
+      if (channel.type === ChannelType.DM && await this.updateDmUser(dmUser))  {
+        
+      }
       
       server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
       server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('alarm', {type: 'chat', newMessage});
@@ -230,13 +230,20 @@ export class ChatSocketService {
   }
 
   async updateDmUser(dmUser: DmChannel) {
-    await this.dmRepository.update(
-      {
-        first_user_id: dmUser.first_user_id,
-        second_user_id: dmUser.second_user_id,
-      },
-      { updated_at: new Date() }
-    );
+    const {first_user_id, second_user_id, first_status, second_status} = dmUser;
+
+    if (first_status === false || second_status === false ) {
+      await this.dmRepository.update(
+        {
+          first_user_id,
+          second_user_id,
+        },
+        { first_status: true,
+          second_status: true }
+      );
+      return true;
+    }
+    return false;
   }
 
   async createMuteUser(muteDto: toggleTimeDto): Promise<ChannelMuteList> {

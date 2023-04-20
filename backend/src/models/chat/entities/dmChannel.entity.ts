@@ -18,7 +18,7 @@ export class DmChannel {
   channel_id: number;
 
   @Factory((faker) => faker.datatype.boolean())
-  @Column({ type: 'boolean', default: true})
+  @Column({ type: 'boolean', default: false})
   first_status: boolean;
 
   @Factory((faker) => faker.datatype.boolean())

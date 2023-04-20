@@ -1,3 +1,5 @@
+import { ChannelUserRoles } from "../entities/channelUser.entity";
+
 export interface User {
   userId: string;
   userName: string;
@@ -15,4 +17,12 @@ export interface Message {
   timeSent: Date;
   message: string;
   roomName: string;
+}
+
+export interface ChatUser {
+  userId: string;
+  userName: string;
+  profile_url: string;
+  role: ChannelUserRoles;
+  deleted_at: null;
 }

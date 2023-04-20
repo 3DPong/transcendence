@@ -343,24 +343,11 @@ export class ChatService {
     }
   }
 
-  async createDmRoom(second_user: User, first_user: User): Promise<ChatChannel> {
+  async createDmRoom(first_user: User, second_user: User): Promise<ChatChannel> {
 
-    let dmChannel = await this.dmRepository.findOne({
-      where: { first_user_id: first_user.user_id, second_user_id: second_user.user_id },
-    });
-    if (!dmChannel) {
-      dmChannel = await this.dmRepository.findOne({
-        where: { first_user_id: second_user.user_id, second_user_id: first_user.user_id },
-      });
-    }
+    const dmChannel = await this.getDmChannel(second_user.user_id, first_user.user_id);
     if (dmChannel) {
-      await this.dmRepository.update(
-        {
-          first_user_id: first_user.user_id,
-          second_user_id: second_user.user_id,
-        },
-        { updated_at: new Date() }
-      );
+
       return await this.getChannel(dmChannel.channel_id);
     }
     const queryRunner = this.dataSource.createQueryRunner();
@@ -385,9 +372,10 @@ export class ChatService {
       await queryRunner.manager.save(dmChannel);
 
       await queryRunner.commitTransaction();
-
-      const userIds: number[] = [first_user.user_id, second_user.user_id];
-      this.chatGateway.handleJoinUsers(userIds, first_user.user_id, channel.channel_id, channel);
+      //const userIds: number[] = [first_user.user_id, second_user.user_id];
+      //this.chatGateway.handleJoinUsers(userIds, first_user.user_id, channel.channel_id, channel);
+      //
+      //this.chatGateway.handleDmJoinUser(first_user.user_id, channel.channel_id);
 
       return this.channelResult(channel);
     } catch (error) {
@@ -585,6 +573,19 @@ export class ChatService {
     });
     
     return await this.channelUserRepository.save(cu);
+  }
+
+  async getDmChannel(second_user_id: number, first_user_id: number) {
+    let dmChannel = await this.dmRepository.findOne({
+      where: { first_user_id, second_user_id },
+    });
+
+    if (!dmChannel) {
+      dmChannel = await this.dmRepository.findOne({
+        where: { first_user_id, second_user_id },
+      });
+    }
+    return dmChannel;
   }
 
   async getUserRole(channel_id: number, user_id: number) {
