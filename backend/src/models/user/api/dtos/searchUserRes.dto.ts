@@ -6,7 +6,11 @@ export class SearchedUser {
     this.user_id = user.user_id;
     this.nickname = user.nickname;
     this.profile_url = user.profile_url;
-    this.relationWithMe = user.relatedOf[0]?.status || RelationStatus.NONE;
+    if (user.relatedOf[0]?.status) {
+      this.relationWithMe = user.relatedOf[0].status;
+    } else {
+      this.relationWithMe = RelationStatus.NONE;
+    }
   }
   user_id: number;
   nickname: string;
