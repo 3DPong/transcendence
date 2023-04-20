@@ -27,13 +27,13 @@ export default function Profile() {
 
   // (1) initial data loading
   useEffect(() => {
+    if (!loggedUserId) return;
     (async () => {
       // (1) parse :user_id to get user_id
       let user_id: number;
       const lastIdx = pathname.lastIndexOf('/');
       const subUrl = pathname.slice(lastIdx + 1);
       const convertResult = parseInt(subUrl);
-      console.log(`URL parse result: url param (userId) is ${convertResult}`);
       if (isNaN(convertResult)) {
         Assert.NonNullish(loggedUserId, "loggedUserId is null");
         user_id = loggedUserId;
@@ -47,7 +47,7 @@ export default function Profile() {
         setProfileState(myData);
       }
     })(/* IIFE */);
-  }, [pathname]); // call useEffect if pathname changes
+  }, [loggedUserId]); // call useEffect if pathname changes
 
   return (
     <div>

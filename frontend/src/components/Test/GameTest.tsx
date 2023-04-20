@@ -10,21 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { Renderer3D } from "@/components/Organism/Game/Renderer/Renderer";
+import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 import * as gameType from "@/types/game";
 
 export function GameTest() {
-
-  const playerData: gameType.PlayerData = {
-    myNickName: "Left",
-    myImage: "",
-    enemyNickName: "Right",
-    enemyImage: "",
-  }
-
+// 관전중일 때는 나가기 버튼도 필요하다.
   return (
       <div className=" absolute -z-50 w-0 h-0">
-        <Renderer3D playerData={playerData} width={window.innerWidth} height={window.innerHeight} />
+        <Renderer3D width={window.innerWidth} height={window.innerHeight} />
       </div>
   );
 }

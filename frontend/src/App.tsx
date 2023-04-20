@@ -8,7 +8,7 @@ import L1Template from "@/components/L1Template";
 import L2Template from "@/components/L2Template";
 import L3Template from "@/components/L2Template";
 
-import Controller from "@/components/Organism/Controller/Controller";
+import Controller from "@/components/Organism/Home/Controller/Controller";
 import Profile from "@/components/Organism/Profile/Profile";
 import LocalUserList from "@/components/Organism/Friends/LocalUserList/LocalUserList";
 import GlobalUserList from "@/components/Organism/Friends/GlobalUserList/GlobalUserList";
@@ -30,6 +30,8 @@ import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
 import { GameTest } from "@/components/Test/GameTest";
+import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
+import {Home} from "@/components/Organism/Home/Home";
 
 
 
@@ -37,11 +39,6 @@ const router = createBrowserRouter([
   // ----------------------------------------------------
   // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
   // ----------------------------------------------------
-  {
-    path: "/develop",
-    element: <GameTest />,
-    errorElement: <ErrorPage />,
-  },
   {
     // home. 버튼은 login 42 button 하나만 넣어주면 됨.
     path: "/signin",
@@ -80,7 +77,13 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <div>
-        <L0Template organism={<Controller />} />
+        <Home />
+        <L0Template organism={
+          <>
+            <Controller />
+            <Home />
+          </>
+        } />
         <AlertSnackbar />
       </div>
     ),

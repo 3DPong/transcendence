@@ -9,6 +9,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import Button from '@mui/material/Button';
 import AvatarEditor from 'react-avatar-editor';
 import CloseIcon from '@mui/icons-material/Close';
+import LoadingButton from "@mui/lab/LoadingButton";
 
 /** [ Avater editor library ]
  * --------------------------------------------------------
@@ -33,7 +34,8 @@ interface ImageUploadProps {
 const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThumbnail, width, height }) => {
   const editor = useRef<AvatarEditor>(null);
   const [openEditor, setOpenEditor] = useState<boolean>(false);
-  const [isEditDone, setIsEditDone] = useState<boolean>(false);
+  // const [isEditDone, setIsEditDone] = useState<boolean>(false);
+  const [isResizeDone, setIsResizeDone] = useState<boolean>(true);
   const [scale, setScale] = useState<number>(1);
   // const [ isInputBtnClicked, setIsInputBtnClicked ]
 
@@ -41,15 +43,30 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
     if (editor.current) {
       // This returns a HTMLCanvasElement, it can be made into a data URL or a blob,
       // drawn on another canvas, or added to the DOM.
+      let localFileUrl: string;
       const canvas = editor.current.getImage();
-      const localFileUrl = canvas.toDataURL();
+      setIsResizeDone(false);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert(`[DEV]: Editor error in ImageUpload.tsx`);
+          return;
+        }
+        console.log(`[DEV] Original blobSize: ${blob.size}`);
+        if ((blob.size > ALLOWED_FILE_MAX_SIZE)){
+          console.log("[DEV] image upload quality to 0.1");
+          localFileUrl = canvas.toDataURL('image/jpeg', 0.1);
+        } else {
+          console.log("[DEV] image upload quality to 0.5");
+          localFileUrl = canvas.toDataURL('image/jpeg', 0.5);
+        }
+        setThumbnail(localFileUrl);
+        // setIsEditDone(true);
+        setIsResizeDone(true);
+        handleEditorClose();
+      });
       // If you want the image resized to the canvas size (also a HTMLCanvasElement)
       // const canvasScaled = editor.current.getImageScaledToCanvas();
-
-      setIsEditDone(true);
       // close editor
-      handleEditorClose();
-      setThumbnail(localFileUrl);
     }
   };
 
@@ -67,13 +84,14 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
   };
 
   const isValidSize = (file: File) => {
+    console.log(`[DEV] choosed image size: ${file.size} : from imageUpload.tsx`)
     return file.size <= ALLOWED_FILE_MAX_SIZE;
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log('handleImageChange');
     if (event.target.files && event.target.files[0]) {
-      setIsEditDone(false);
+      // setIsEditDone(false);
       const file = event.target.files[0];
       // Validate file size
       if (!isValidSize(file)) {
@@ -99,17 +117,8 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
 
   const handleEditorClose = () => {
     setOpenEditor(false);
-    setIsEditDone(true);
+    // setIsEditDone(true);
   };
-
-  // if thumnail data set, then open modal (이미지 편집)
-  /*
-  useEffect(() => {
-    if (thumbnail && !isEditDone) { // if editor is closed + thumnail exist (need edit)
-      console.log("Open editor");
-    }
-  }, [thumbnail, isEditDone]);
-  */
 
   return (
     <>
@@ -168,11 +177,13 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
 
       {/* Image Editor */}
       <Dialog open={openEditor} onClose={handleEditorClose}>
-        <DialogTitle>Edit Profile</DialogTitle>
+        <DialogTitle>
+          { isResizeDone ? "Edit Profile" : "Resizing Image..."}
+        </DialogTitle>
         <DialogContent sx={{ paddingBottom: 0 }}>
           <DialogContentText>
-            You can zoom and move with mouse. <br />
-            Click 'Done' to apply change.
+              You can zoom and move with mouse. <br />
+              Click 'Done' to apply change.
           </DialogContentText>
         </DialogContent>
         <DialogContent>
@@ -183,8 +194,6 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
                 borderRadius={100000} // ROUND
                 ref={editor}
                 image={thumbnail}
-                // width={}
-                // height={}
                 border={50} // ?
                 scale={scale}
               />
@@ -192,7 +201,13 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClickSave}>Done</Button>
+          <LoadingButton
+              onClick={handleClickSave}
+              loading={!isResizeDone}
+              variant="contained"
+          >
+            Done!
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </>

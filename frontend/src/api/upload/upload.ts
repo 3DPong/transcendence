@@ -7,6 +7,9 @@ export interface POST_uploadImageResponseFormat {
 
 // 최종 편집이 완료된 이미지 바이너리를 보냄.
 export async function uploadImageToServer(handleError: handleErrorFunction, clientSideImageUrl: string) {
+
+  // Base64 image를 binary로 바꿔서 전송하는 방법.
+  // https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
   const formData = new FormData();
   const blob = await (await fetch(clientSideImageUrl)).blob();
   formData.append('file', blob);
@@ -19,6 +22,8 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
   });
 
   // on error
+  console.log(clientSideImageUrl);
+  alert(`Upload Image status: ${uploadResponse.status}\nBlob File Size: ${blob.size}`);
   if (!uploadResponse.ok) {
     if (uploadResponse.status === 401) {
       const errorData = await uploadResponse.json();
@@ -49,9 +54,10 @@ export async function verifyNickname(handleError: handleErrorFunction, name: str
   const response = await fetch(requestUrl, {
     method: 'GET'
   })
-  if (!response.ok) {
+  alert(`Verify Nickname status : ${response.status}`);
+  if (!response.ok || response.status === 304) {
     const errorData = await response.json();
-    handleError('Verify Nickname', errorData.message, "/signin");
+    handleError('Verify Nickname', errorData.message);
     return ; // null on error
   }
   const responsePayload: verifyResponse = await response.json();

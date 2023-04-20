@@ -19,13 +19,15 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Renderer3D } from "@/components/Organism/Game/Renderer/Renderer";
+import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 import GameStartButton from "@/components/Organism/Game/GameStartButton";
 import {useSocket} from "@/context/SocketContext";
 import * as gameType from "@/types/game";
 import {Avatar, Box, Skeleton, Typography} from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import GlobalContext from "@/context/GlobalContext";
+import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
+
 
 export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
@@ -47,8 +49,6 @@ export default function Game() {
     if (!loggedUserId) return;
     console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
     gameConnect();
-    console.log("[DEV] Connecting Notify Socket... at [Game.tsx]");
-    notifyConnect();
   }, [loggedUserId])
 
   /** ----------------------------------------
@@ -115,19 +115,28 @@ export default function Game() {
 
   const playerData: gameType.PlayerData = {
     myNickName: myNickname,
-    myImage: myProfile,
     enemyNickName: enemyNickname,
-    enemyImage: enemyProfile,
   }
 
-  if (matchData) {
+  if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
+    return (
+        <div className=" flex items-center -z-49 justify-center h-screen">
+          <GameMatchingDialog
+              myProfile={myProfile} setMyProfile={setMyProfile}
+              myNickname={myNickname} setMyNickname={setMyNickname}
+              enemyProfile={enemyProfile} setEnemyProfile={setEnemyProfile}
+              enemyNickname={enemyNickname} setEnemyNickname={setEnemyNickname}
+              setMatchData={setMatchData}/>
+        </div>
+    );
+  } else { // 게임 매치 정보가 정해진 경우 (게임 시작, 게임 결과)
     return (
         <div>
           {/* 게임 렌더링 */}
           { !matchResult &&
-            <div className=" absolute -z-50 w-0 h-0">
-              <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
-            </div>
+              <div className=" absolute -z-50 w-0 h-0">
+                <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+              </div>
           }
 
           {/* 게임 결과 */}
@@ -199,18 +208,6 @@ export default function Game() {
               </Dialog>
           }
         </div>
-
-    );
-  } else {
-    return (
-      <div className=" flex items-center -z-49 justify-center h-screen">
-        <GameStartButton
-            myProfile={myProfile} setMyProfile={setMyProfile}
-            myNickname={myNickname} setMyNickname={setMyNickname}
-            enemyProfile={enemyProfile} setEnemyProfile={setEnemyProfile}
-            enemyNickname={enemyNickname} setEnemyNickname={setEnemyNickname}
-            setMatchData={setMatchData}/>
-      </div>
     );
   }
-}
+};

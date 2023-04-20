@@ -42,17 +42,11 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   // 프로필 보기 버튼
   const handleProfileRoute = (currentUrl: string) => {
     setAnchorEl(null);
-    // curr URL 1 = /home/friends
-    // curr URL 2 = /home/friends/add
+    // curr URL 1 = /friends
+    // curr URL 2 = /friends/add
     const index = currentUrl.lastIndexOf('/');
     const substr = currentUrl.substring(index + 1);
-    let urlTo;
-    if (substr === 'friends') {
-      urlTo = '../';
-    } else {
-      urlTo = './';
-    }
-    navigate(urlTo + `${user.user_id}`);
+    navigate(`./${user.user_id}`);
   };
 
   // DM 보내기 버튼
