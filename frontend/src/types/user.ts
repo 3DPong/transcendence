@@ -11,13 +11,16 @@
 /* ************************************************************************** */
 
 // 친구 사용자 정보
+import {userStatus} from "@/types/notify";
+
 export interface friendData_t {
   user_id: number;
-  profile_url: string;
   nickname: string;
+  profile_url: string;
+  status?: userStatus;
 }
 
 // 일반 사용자 정보 (친구 포함. 여기엔 relation이 필요함)
 export interface globalUserData_t extends friendData_t {
-  status: 'friend' | 'block' | 'none';
+  relationWithMe : 'friend' | 'block' | 'none';
 }

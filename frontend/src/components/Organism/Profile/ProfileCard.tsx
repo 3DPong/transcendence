@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import * as API from '@/api/API';
 import React from 'react';
+import {API_URL} from "../../../../config/backend";
 
 interface profileProps {
   userData?: API.GET_UserDataResponseFormat;

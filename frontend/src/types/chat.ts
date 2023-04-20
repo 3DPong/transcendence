@@ -1,3 +1,4 @@
+export const kstOffset = 0; // 9 * 60 * 60 * 1000;
 export const defaultThumbnail = 'https://t1.daumcdn.net/cfile/tistory/216C553953FC27C335';
 
 export interface User {
