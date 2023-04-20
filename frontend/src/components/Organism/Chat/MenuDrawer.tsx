@@ -42,7 +42,7 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
       return;
     }
     setChannels(channels.filter((_channel) => _channel.id !== channel.id));
-    navigate('/channels');
+    navigate('/channels', { replace: true });
   }
 
   return (

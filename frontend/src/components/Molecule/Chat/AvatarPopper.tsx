@@ -96,7 +96,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
       };
       if (-1 === channels.findIndex((ch)=>(ch.id === newChannel.id)))
         setChannels([newChannel, ...channels]);
-      navigate('/channels/' + ch.channel_id);
+      navigate('/channels/' + ch.channel_id, { state: undefined });
       console.log(response);
     }
     fetchDM();
