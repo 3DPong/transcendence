@@ -26,6 +26,7 @@ import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
 import { UserRelation } from 'src/models/user/entities';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
+import { ChatUser } from '../../socket/chat.interface';
 
 @Injectable()
 export class ChatService {
@@ -68,6 +69,36 @@ export class ChatService {
       .getMany();
   }
 
+  async getDmUsers(channel_id: number): Promise<ChatUser[]> {
+    let dm = await this.dmRepository
+    .createQueryBuilder('dm')
+    .innerJoin('dm.first_user', 'first')
+    .innerJoin('dm.second_user', 'second')
+    .select([
+      'first.user_id', 'first.nickname', 'first.profile_url',
+      'second.user_id', 'second.nickname', 'second.profile_url'
+    ])
+    .where('dm.channel_id = :channel_id', { channel_id })
+    .getRawOne();
+
+    return [
+      {
+        userId: dm.first_user_id,
+        userName: dm.first_nickname,
+        profile_url: dm.first_profile_url,
+        role: ChannelUserRoles.USER,
+        deleted_at: null
+      },
+      {
+        userId: dm.second_user_id,
+        userName: dm.second_nickname,
+        profile_url: dm.second_profile_url,
+        role: ChannelUserRoles.USER,
+        deleted_at: null
+      }
+    ];
+  }
+
   async getMyChannels(user_id: number): Promise<ChatChannel[]> {
     const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
       where: { user_id: user_id },
@@ -78,21 +109,18 @@ export class ChatService {
     const channelIds = channelUsers.map((user) => user.channel_id);
 
     const dmChannels: DmChannel[] = await this.dmRepository.find({
-      where: [{ first_user_id: user_id }, { second_user_id: user_id }],
+      where: [{ first_user_id: user_id, first_status: true}, { second_user_id: user_id, second_status: true }],
       order: { updated_at: 'DESC' }
     });
 
-    const users: UserRelation[] = await this.getBlockedUsers(user_id);
+    const blockedUsers: UserRelation[] = await this.getBlockedUsers(user_id);
     
     let count = 0;
     for (const dm of dmChannels) {
-      if (users.length === 0 || 
-        users.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
+      if (blockedUsers.length === 0 || 
+        blockedUsers.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
           channelIds.push(dm.channel_id);
           count++;
-      }
-      if (count >= 5) {
-        break;
       }
     }
 

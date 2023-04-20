@@ -17,6 +17,14 @@ export class DmChannel {
   @Column({ type: 'int' })
   channel_id: number;
 
+  @Factory((faker) => faker.datatype.boolean())
+  @Column({ type: 'boolean', default: true})
+  first_status: boolean;
+
+  @Factory((faker) => faker.datatype.boolean())
+  @Column({ type: 'boolean', default: false})
+  second_status: boolean;
+
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 

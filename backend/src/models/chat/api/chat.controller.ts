@@ -7,6 +7,7 @@ import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services';
 import { ChannelDto, JoinDto, UserIdDto } from '../dto/channel.dto';
 import { DmDto } from '../dto/dm.dto';
+import { ChatUser } from '../socket/chat.interface';
 
 
 @UseGuards(JwtGuard)
@@ -104,6 +105,11 @@ export class ChatController {
     return this.chatService.deleteChatRoom(channelId);
   }
 
+  @Get('/:channelId/dm/users')
+  getDmUsersInfo(@Param('channelId', ParseIntPipe) channelId: number): Promise<ChatUser[]> {
+    return this.chatService.getDmUsers(channelId);
+  }
+
   @Post('/dm')
   async createDmRoom(@GetGuardData() data: JwtPayloadInterface, @Body() dmDto: DmDto): Promise<ChatChannel> {
     const first_user = await this.userService.getUser(data.user_id);
@@ -111,4 +117,5 @@ export class ChatController {
     if (!second_user_id) throw new NotFoundException("Dm을 신청 할 수 없습니다!")
     return this.chatService.createDmRoom(second_user_id, first_user);
   }
+
 }
