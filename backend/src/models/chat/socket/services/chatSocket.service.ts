@@ -18,9 +18,11 @@ import { Server, Socket } from 'socket.io';
 import { SocketException } from '../../../../common/filters/socket/socket.filter';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
 import { UserRelation } from 'src/models/user/entities';
+import { SocketMapService } from 'src/providers/redis/socketMap.service';
 
 @Injectable()
 export class ChatSocketService {
+
   constructor(
     @InjectRepository(ChatChannel)
     private channelRepository: Repository<ChatChannel>,
@@ -35,8 +37,9 @@ export class ChatSocketService {
     @InjectRepository(ChannelMuteList)
     private muteRepository: Repository<ChannelMuteList>,
     @InjectRepository(UserRelation)
-    private relationRepository: Repository<UserRelation>
+    private relationRepository: Repository<UserRelation>,
     
+    private readonly socketMapService: SocketMapService
   ) {}
 
   async joinAllChatRooms(socket: Socket, user_id: number) {
@@ -92,12 +95,10 @@ export class ChatSocketService {
       const newMessage = await this.createMessageLog(user_id, md);
       delete newMessage.channel;
 
-      if (channel.type === ChannelType.DM && await this.updateDmUser(dmUser))  {
-        
-      }
-      
+      if (channel.type === ChannelType.DM)
+        await this.updateDmUser(dmUser, server);
       server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
-      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('alarm', {type: 'chat', newMessage});
+      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('alarm', {type: 'chat', channel_id: channel.channel_id}); //보류
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -229,9 +230,8 @@ export class ChatSocketService {
     return newLog;
   }
 
-  async updateDmUser(dmUser: DmChannel) {
-    const {first_user_id, second_user_id, first_status, second_status} = dmUser;
-
+  async updateDmUser(dmChannel: DmChannel, server: Server) {
+    const {first_user_id, second_user_id, first_status, second_status} = dmChannel;
     if (first_status === false || second_status === false ) {
       await this.dmRepository.update(
         {
@@ -241,9 +241,19 @@ export class ChatSocketService {
         { first_status: true,
           second_status: true }
       );
-      return true;
+
+      if (first_status === false) {
+        const userSocket = await this.getSocketIdByUserId(first_user_id);
+        if (userSocket) server.in(userSocket).socketsJoin(`chat_alarm_${dmChannel.channel_id}`);
+      } 
+      if (second_status === false) {
+        const userSocket = await this.getSocketIdByUserId(second_user_id);
+        if (userSocket) {
+          server.in(userSocket).socketsJoin(`chat_alarm_${dmChannel.channel_id}`);
+          server.in(userSocket).emit('alarm', { type: 'invite', message: dmChannel});
+        }
+      }
     }
-    return false;
   }
 
   async createMuteUser(muteDto: toggleTimeDto): Promise<ChannelMuteList> {
@@ -407,6 +417,13 @@ export class ChatSocketService {
     const channel = await this.channelRepository.findOne({ select: { name: true }, where: { channel_id } });
     if (!channel) return null;
     return channel.name;
+  }
+
+  async getSocketIdByUserId(userId: number) {
+    const socketMap = await this.socketMapService.getUserSockets(userId);
+    if (socketMap !== null)
+      return socketMap.chat;
+    return null;
   }
 
 }
