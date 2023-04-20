@@ -29,7 +29,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   const { chatSocket } = useSocket();
   const { channelId } = useParams();
 
-  const { loggedUserId } = useContext(GlobalContext);
+  const { loggedUserId, channels, setChannels } = useContext(GlobalContext);
 
   const { handleError } = useError();
 
@@ -82,7 +82,21 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
         handleError('Send DM', error.message);
         return;
       }
-      const parse = await response.json();
+      const ch = await response.json();
+      const newChannel = {
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.owner.nickname + '님과의 DM',
+        thumbnail: ch.owner.profile_url,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      };
+      if (-1 === channels.findIndex((ch)=>(ch.id === newChannel.id)))
+        setChannels([newChannel, ...channels]);
+      navigate('/channels/' + ch.channel_id);
       console.log(response);
     }
     fetchDM();

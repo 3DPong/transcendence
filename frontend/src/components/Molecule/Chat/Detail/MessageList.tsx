@@ -35,6 +35,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
       id: msg.message_id,
       senderId: msg.user_id,
       content: msg.content,
+      type: msg.type || 'message',
       created_at: new Date(Date.parse(msg.created_at)).toISOString().replace('T', ' ').slice(0, -5),
     }));
     return msgs.reverse();

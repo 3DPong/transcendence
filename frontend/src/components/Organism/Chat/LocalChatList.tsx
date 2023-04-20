@@ -61,7 +61,9 @@ const LocalChatList: FC<ChatListProps> = () => {
                 profile: data.owner.profile_url,
               },
             };
-            setChannels([ch, ...channels]);
+            // 겹치지 않는 채널만 추가 
+            if (-1 === channelsRef.current.findIndex((channel) => (channel.id === ch.id)))
+              setChannels([ch, ...channelsRef.current]);
             // 이건 로그인이후. handleError => handleAlarm 같은걸로 변경해야함. 
             break;
           case 'chat':
@@ -103,19 +105,23 @@ const LocalChatList: FC<ChatListProps> = () => {
     async function fetchChannels() {
       const response = await fetch(API_URL + '/chat');
       const fetchChannels = await response.json();
-      setChannels(
-        fetchChannels.map((ch: any) => ({
-          id: ch.channel_id,
-          type: ch.type,
-          title: ch.type === 'dm' ? ch.owner.nickname + '님과의 DM' : ch.name,
-          thumbnail: ch.type === 'dm' ? ch.owner.profile_url : ch.thumbnale_url,
-          owner: {
-            id: ch.owner.user_id,
-            nickname: ch.owner.nickname,
-            profile: ch.owner.profile_url,
-          },
-        }))
-      );
+      const newChannels : Channel[] = fetchChannels.map((ch: any) => ({
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.type === 'dm' ? ch.owner.nickname + '님과의 DM' : ch.name,
+        thumbnail: ch.type === 'dm' ? ch.owner.profile_url : ch.thumbnale_url,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      }));
+
+      const filteredChannels = channelsRef.current.filter((oChannel) => (
+        -1 === newChannels.findIndex((nChannel: Channel) => nChannel.id === oChannel.id)
+      ));
+
+      setChannels([...filteredChannels, ...newChannels]);
       if (!response.ok) {
         const errorData = await response.json();
         handleError('Fetch MyChannels', errorData.message);
