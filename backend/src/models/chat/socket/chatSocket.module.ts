@@ -7,6 +7,7 @@ import { UserRelation } from 'src/models/user/entities';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigModule } from 'src/config/jwt/config.module';
 import { JwtConfigService } from 'src/config/jwt/config.service';
+import { SocketMapService } from 'src/providers/redis/socketMap.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { JwtConfigService } from 'src/config/jwt/config.service';
       inject: [JwtConfigService],
     }),
   ],
-  providers: [ChatSocketGateway, ChatSocketService],
+  providers: [ChatSocketGateway, ChatSocketService, SocketMapService],
   exports: [ChatSocketService, ChatSocketGateway],
 })
 export class ChatSocketModule {}
