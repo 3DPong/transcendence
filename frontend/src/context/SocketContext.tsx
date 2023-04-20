@@ -10,7 +10,7 @@ interface SocketContextProps {
   gameSocket: Socket | null;
   gameConnect: () => void;
   chatSocket: Socket | null;
-  chatConnect: (props: ChatConnectProps) => void;
+  chatConnect: () => void;
   notifySocket: Socket | null;
   notifyConnect: () => void;
   disconnectAll: () => void;
@@ -28,10 +28,6 @@ const SocketContext = createContext<SocketContextProps>({
 
 interface SocketProviderProps {
   children: ReactNode;
-}
-
-interface ChatConnectProps {
-  userId: number; // 나중에 세션쿠키로 변경예정
 }
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
@@ -59,13 +55,11 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const [chatSocket, setChatSocket] = useState<Socket | null>(null);
 
-  const chatConnect = ({ userId }: ChatConnectProps) => {
+  const chatConnect = () => {
     if (!chatSocket) {
       const newSocket = io(SOCKET_URL + '/chat', {
-        //path: '/chat_socket',
-        query: {
-          user_id: userId,
-        },
+        path: '/api/socket.io',
+        transports: ['websocket'],
       });
       setChatSocket(newSocket);
     }

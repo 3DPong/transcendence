@@ -2,7 +2,7 @@ import React from 'react';
 import { IconButton, Typography } from '@mui/material';
 import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from '@mui/icons-material';
 import { Channel, ChannelType } from '@/types/chat';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface MessageHeaderProps {
   channel: Channel;
@@ -11,6 +11,12 @@ interface MessageHeaderProps {
 }
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, handleMenuButton }) => {
+  const navigate = useNavigate();
+
+  if (channel.id === 0) {
+    navigate('/channels', { replace: true });
+  }
+
   const getChannelTypeIcon = (type: ChannelType) => {
     switch (type) {
       case 'protected':
@@ -26,9 +32,13 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/channels');
+  };
+
   return (
     <div className=" flex-shrink-0 p-2 pl-4 pr-4 border border-gray-200 flex items-center">
-      <IconButton component={Link} to={'/channels'} edge="start" color="inherit" aria-label="back">
+      <IconButton onClick={handleGoBack} edge="start" color="inherit" aria-label="back">
         <ArrowBack />
       </IconButton>
       <div className="flex-grow flex items-center justify-center">

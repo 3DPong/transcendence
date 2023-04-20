@@ -30,6 +30,7 @@ import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
 import { GameTest } from "@/components/Test/GameTest";
+import ChatProfileTemplate from "./components/ChatProfileTemplate";
 
 
 
@@ -129,6 +130,12 @@ const router = createBrowserRouter([
           {
             path: ":channelId",
             element: <ChatTemplate organism={<ChatDetail />} />,
+            children: [
+              {
+                path: "profile/:userId",
+                element: <ChatProfileTemplate organism={<Profile />} />,
+              },
+            ],
           },
         ],
       },

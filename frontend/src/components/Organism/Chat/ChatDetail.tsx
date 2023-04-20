@@ -49,11 +49,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       listRef: React.MutableRefObject<Record<number, number>>,
       setter: (list: Record<number, number>) => void
     ) {
-      console.log("unsetTimerHandler");
     clearTimeout(listRef.current[targetId]);
-      console.log("muteRef: ", muteListRef.current);
-      console.log("banRef: ", banListRef.current);
-      console.log("listRef: ", listRef.current);
     const {[targetId]: value, ...newList} = listRef.current;
     // console.log("testNewLIst=>", newList);
     setter(newList);
@@ -65,8 +61,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       setter: (list: Record<number, number>) => void,
       timer: number
     ) {
-      console.log("setTimerHandler");
-      console.log("time: ", timer);
     return setTimeout(
       () => { unsetTimerHandler(targetId, listRef, setter) }
       , timer
@@ -74,7 +68,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchUsersByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/users' + '?id=' + loggedUserId, {
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/users', {
       cache: 'no-cache',
     });
     if (!response.ok) {
@@ -94,7 +88,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchBanListByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/banlist' + '?id=' + loggedUserId);
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/banlist');
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Unknown error occurred');
@@ -112,7 +106,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   async function fetchMuteListByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/mutelist' + '?id=' + loggedUserId);
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/mutelist');
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Unknown error occurred');
@@ -122,7 +116,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     return fetchMuteList.reduce((muteRecord: Record<number, number>, user: any) => {
       const targetId = user.user.user_id;
       const timer = new Date(user.end_at).getTime() - (Date.now());
-      console.log(timer);
       if (timer > 100)
         muteRecord[targetId] = setTimerHandler(targetId, muteListRef, setMuteList, timer);
       return muteRecord;
@@ -180,10 +173,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   useEffect(() => {
-    console.log('socket useEffect in');
-    console.log('==========');
     if (chatSocket) {
-      console.log("========2========")
       chatSocket.emit('enter-chat', { channel_id: channelId } );
     }
 
@@ -194,6 +184,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           id: message.message_id,
           senderId: message.user_id,
           content: message.content,
+          type: message.type,
           created_at: new Date(Date.parse(message.created_at)).toISOString().replace('T', ' ').slice(0, -5),
         };
         setMessages([...messagesRef.current, msg]);
@@ -251,13 +242,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
       chatSocket.on('user', (message) => {
         if (message.type === 'join') {
-          console.log("=== users === ");
-          console.log(users);
-
-
-          console.log("=== message.users === ");
-          console.log(message.user);
-
           const filteredUsers = usersRef.current.filter((aUser) => (
             -1 === message.user.findIndex((iUser: any) => iUser.user.user_id === aUser.id)
           ));
@@ -270,10 +254,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
               status: 'none',
             })
           );
-          console.log("=== filtered.users === ");
-          console.log(filteredUsers);
-          console.log("=== join.users === ");
-          console.log(joinUsers);
           setUsers([...filteredUsers, ...joinUsers]);
         }
         else {
@@ -283,7 +263,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }
 
     return () => {
-      console.log('socket useEffect out');
       if (chatSocket) {
         chatSocket.off('chat');
         chatSocket.off('error');
@@ -298,10 +277,28 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
-      chatSocket.emit('message-chat', { message: textContent, channel_id: channelIdNumber });
+      chatSocket.emit('message-chat', { message: textContent, type: 'message', channel_id: channelIdNumber });
       // const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
       // const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
       // setMessages([...messages, message]);
+    }
+  }
+
+  const [msgId, setMsgId] = useState(9000); 
+  function sendInvite() {
+    // 이벤트를 on 하는 방식으로 변경해야함. 
+    if (chatSocket && loggedUserId) {
+      // chatSocket.emit('message-chat', { message: `{gameId: ${177}}`, type: 'game', channel_id: channelIdNumber });
+      const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
+      const msg: Message = {
+        id: msgId,
+        senderId: loggedUserId,
+        content: JSON.stringify({gameId: 10, gameMode: Math.random() % 2 ? 'normal' : 'special'}),
+        type: 'game' ,
+        created_at: formattedTime,
+      };
+      setMsgId(msgId + 1);
+      setMessages([...messagesRef.current, msg]);
     }
   }
 
@@ -334,7 +331,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     if (loggedUserId)
       init();
     return ()=>{
-      console.log("======cleanTimers()=======");
       cleanupTimers();
     }
   }, [channelId, loggedUserId]);
@@ -376,9 +372,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       </ChatContext.Provider>
       <MessageSender
         sendMessage={sendMessage}
-        handleBattleButton={() => {
-          setBattleModalOpen(true);
-        }}
+        handleBattleButton={sendInvite}
       />
 
       <BattleRequestModal
