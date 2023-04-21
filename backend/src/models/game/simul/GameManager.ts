@@ -7,13 +7,14 @@ import { Server} from 'socket.io'
 import { GameService } from "../socket/services";
 import { MATCH_SCORE } from "../enum/GameEnv";
 import { Min } from "../Box2D";
-import { MatchJoinData, RenderData, ScoreData } from "../gameData";
+import { MatchJoinData, RenderData, ScoreData, ChatJoinData, JoinDataInterface } from "../gameData";
 import { Logger } from "@nestjs/common";
 
 export class GameManager {
   public readonly gameId : string;
   public readonly gameRoomType : RoomType;
   public readonly gameType : GameType;
+  public readonly channelId : number;
   public started : Boolean;
   public playerCount : number;
   public player1 : GamePlayer;
@@ -23,13 +24,18 @@ export class GameManager {
   public scoreData : ScoreData;
   private logger : Logger;
 
-  constructor(matchJoinData : MatchJoinData)
+  constructor(JoinData : JoinDataInterface)
   {
-    this.gameRoomType = matchJoinData.roomType;
-    this.gameType = matchJoinData.gameType;
+    this.gameRoomType = JoinData.roomType;
+    this.gameType = JoinData.gameType;
     this.gameId = uuidv4();
     this.playerCount = 0;
     this.started = false;
+    if (JoinData.roomType == RoomType.CHAT){
+      this.channelId = JoinData.channelId;
+    } else {
+      this.channelId = null;
+    }
     this.logger = new Logger('GameManager');
   }
 
