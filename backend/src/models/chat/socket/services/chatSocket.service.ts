@@ -427,22 +427,22 @@ export class ChatSocketService {
       'second.user_id', 'second.nickname', 'second.profile_url', 'dm.second_status'
     ])
     .where('dm.channel_id = :channel_id', { channel_id })
-    .getOne();
+    .getRawOne();
 
     if (dmChannel.first_user_id !== user_id && dmChannel.second_user_id !== user_id) return null;
 
     return {
-      first_status: dmChannel.first_status,
+      first_status: dmChannel.dm_first_status,
       first_user: {
         user_id: dmChannel.first_user_id,
-        nickname: dmChannel.first_user.nickname,
-        profile_url: dmChannel.first_user.profile_url,
+        nickname: dmChannel.first_nickname,
+        profile_url: dmChannel.first_profile_url,
       },
-      second_status: dmChannel.second_status,
+      second_status: dmChannel.dm_second_status,
       second_user: {
         user_id: dmChannel.second_user_id,
-        nickname: dmChannel.second_user.nickname,
-        profile_url: dmChannel.second_user.profile_url,
+        nickname: dmChannel.second_nickname,
+        profile_url: dmChannel.second_profile_url,
       }
     };
   

@@ -79,20 +79,20 @@ export class ChatService {
       'second.user_id', 'second.nickname', 'second.profile_url'
     ])
     .where('dm.channel_id = :channel_id', { channel_id })
-    .getOne();
+    .getRawOne();
 
     return [
       {
         userId: dm.first_user_id,
-        userName: dm.first_user.nickname,
-        profile_url: dm.first_user.profile_url,
+        userName: dm.first_nickname,
+        profile_url: dm.first_profile_url,
         role: ChannelUserRoles.USER,
         deleted_at: null
       },
       {
         userId: dm.second_user_id,
-        userName: dm.second_user.nickname,
-        profile_url: dm.second_user.profile_url,
+        userName: dm.second_nickname,
+        profile_url: dm.second_profile_url,
         role: ChannelUserRoles.USER,
         deleted_at: null
       }
