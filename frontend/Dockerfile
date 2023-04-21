@@ -16,5 +16,5 @@ EXPOSE 8081
 ENV NODE_ENV prod
 
 # set-tup entrypoint
-ENTRYPOINT [ "serve", "./dist", "-p", "8081"  ]
+ENTRYPOINT [ "serve", "-s", "./dist", "-p", "8081"  ]
 

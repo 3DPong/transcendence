@@ -7,3 +7,5 @@
 .vscode/
 */.env
 .env
+docker-volume
+*/docker-volume

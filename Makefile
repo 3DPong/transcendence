@@ -1,11 +1,11 @@
 # for make
 transcendence: all
 # we need docker volume for redis and postgres
-POSTGRES_VOLUME="/Users/${USER}/docker-volume/postgres-data"
-IMAGE_VOLUME="/Users/${USER}/docker-volume/image-data"
-REDIS_VOLUME="/Users/${USER}/docker-volume/redis-data"
-NGINX_VOLUME="/Users/${USER}/docker-volume/nginx-data/log"
-PGADMIN_VOLUME="/Users/${USER}/docker-volume/pgadmin-data"
+POSTGRES_VOLUME="./docker-volume/postgres-data"
+IMAGE_VOLUME="./docker-volume/image-data"
+REDIS_VOLUME="./docker-volume/redis-data"
+NGINX_VOLUME="./docker-volume/nginx-data/log"
+PGADMIN_VOLUME="./docker-volume/pgadmin-data"
 
 .PHONY: create-volume-directory
 create-volume-directory:
@@ -18,7 +18,7 @@ create-volume-directory:
 # wait for docker engine start
 .PHONY: wait-for-docker
 wait-for-docker:
-	@open -g -a docker
+	#@open -g -a docker
 	@echo "Waiting for Docker engine to start..."
 	@until docker info >/dev/null 2>&1; do sleep 1; done
 	@echo "docker engine is started!!"
@@ -42,8 +42,16 @@ fclean:
 	@rm -rf $(IMAGE_VOLUME)
 	@rm -rf $(REDIS_VOLUME)
 	@rm -rf $(NGINX_VOLUME)
-	@rm -rf $(PGADMIN_VOLUME).PHONY
+	@rm -rf $(PGADMIN_VOLUME)
+
 .PHONY: re
 re:
+	@docker compose down
 	@make fclean
-	@make all
+	@make create-volume-directory
+	@make wait-for-docker
+	@docker-compose up -d --build
+
+.PHONY: down
+down:
+	@docker-compose down
