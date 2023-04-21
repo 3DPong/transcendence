@@ -489,15 +489,28 @@ export class ChatService {
   */
   async leaveChannel(user_id: number, channel_id: number) {
 
+    const dm = await this.dmRepository.findOne({ where: { channel_id }});
+    if (dm) {
+      const { first_user_id, second_user_id } = dm;
+      const isUserInDm = first_user_id === user_id || second_user_id === user_id;
+      if (isUserInDm) {
+        let updateData: { [key: string]: boolean } = {};
+        if (first_user_id === user_id) {
+          updateData = { first_status: false };
+        } else if (second_user_id === user_id) {
+          updateData = { second_status: false };
+        }
+        await this.dmRepository.update({ channel_id }, updateData);
+      }
+      this.chatGateway.handleLeaveUser(channel_id, user_id, ChannelType.DM);
+      return ;
+    }
     const delUser = await this.channelUserRepository.findOne({
       where: { channel_id, user_id },
       relations: { channel: true},
     });
     if (!delUser) throw new NotFoundException(`해당 채널에 속한 유저가 아닙니다!`);
-    if (delUser.channel.type === ChannelType.DM) {      
-      // throw new ForbiddenException('Dm은 나갈 수 없습니다!');
-      //dm 디비에서 찾아서 status false 로 만들기
-    }
+
     try {
       if (delUser.role === ChannelUserRoles.OWNER) {
         const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
@@ -530,10 +543,11 @@ export class ChatService {
       }
       await this.channelUserRepository.softDelete({ channel_id, user_id });
 
-      this.chatGateway.handleLeaveUser(channel_id, delUser.user_id);
+      this.chatGateway.handleLeaveUser(channel_id, delUser.user_id, ChannelType.PUBLIC);
     } catch (error) {
       throw new InternalServerErrorException();
     }
+
   }
 
   async searchChannelsByChannelName(str: string): Promise<ChatChannel[]> {

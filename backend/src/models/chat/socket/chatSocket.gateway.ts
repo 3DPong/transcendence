@@ -11,7 +11,7 @@ import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services';
 import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
-import { ChannelUser, ChannelUserRoles, ChatChannel } from '../entities';
+import { ChannelType, ChannelUser, ChannelUserRoles } from '../entities';
 import { SocketException, SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
 import { JwtService } from '@nestjs/jwt';
 import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
@@ -161,16 +161,18 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     }
   }
 
-  async handleLeaveUser(channel_id: number, user_id: number) {
+  async handleLeaveUser(channel_id: number, user_id: number, type: ChannelType) {
     const userSocket = await this.getSocketIdByUserId(user_id);
     if (userSocket) {
       this.server.in(userSocket).socketsLeave(`chat_alarm_${channel_id}`);
-      this.server.in(userSocket).socketsLeave(`chat_active_${channel_id}`);
+      // this.server.in(userSocket).socketsLeave(`chat_active_${channel_id}`); //leave-chat 을 호출한다면 굳이 필요하진 않다
     }
-    this.server.to(`chat_active_${channel_id}`).emit('user', {
-      type: 'leave',
-      user_id
-    });
+    if (type !== ChannelType.DM) {
+      this.server.to(`chat_active_${channel_id}`).emit('user', {
+        type: 'leave',
+        user_id
+      });
+    }
   }
 
   handleAdminRoleUpdate(user_id: number, channel_id: number, changedRole: ChannelUserRoles) {
