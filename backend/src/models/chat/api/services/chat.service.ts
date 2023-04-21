@@ -26,7 +26,7 @@ import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
 import { UserRelation } from 'src/models/user/entities';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
-import { ChatUser } from '../../socket/chat.interface';
+import { ChannelInterface, ChatUser } from '../../socket/chat.interface';
 
 @Injectable()
 export class ChatService {
@@ -79,20 +79,20 @@ export class ChatService {
       'second.user_id', 'second.nickname', 'second.profile_url'
     ])
     .where('dm.channel_id = :channel_id', { channel_id })
-    .getRawOne();
+    .getOne();
 
     return [
       {
         userId: dm.first_user_id,
-        userName: dm.first_nickname,
-        profile_url: dm.first_profile_url,
+        userName: dm.first_user.nickname,
+        profile_url: dm.first_user.profile_url,
         role: ChannelUserRoles.USER,
         deleted_at: null
       },
       {
         userId: dm.second_user_id,
-        userName: dm.second_nickname,
-        profile_url: dm.second_profile_url,
+        userName: dm.second_user.nickname,
+        profile_url: dm.second_user.profile_url,
         role: ChannelUserRoles.USER,
         deleted_at: null
       }
@@ -106,25 +106,9 @@ export class ChatService {
         channel_id: true,
       },
     });
-    const channelIds = channelUsers.map((user) => user.channel_id);
-
-    const dmChannels: DmChannel[] = await this.dmRepository.find({
-      where: [{ first_user_id: user_id, first_status: true}, { second_user_id: user_id, second_status: true }],
-      order: { updated_at: 'DESC' }
-    });
-
-    const blockedUsers: UserRelation[] = await this.getBlockedUsers(user_id);
     
-    let count = 0;
-    for (const dm of dmChannels) {
-      if (blockedUsers.length === 0 || 
-        blockedUsers.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
-          channelIds.push(dm.channel_id);
-          count++;
-      }
-    }
-
-    return await this.channelRepository
+    const channelIds = channelUsers.map((user) => user.channel_id);
+    const channels = await this.channelRepository
       .createQueryBuilder('channel')
       .innerJoin('channel.owner', 'owner')
       .select([
@@ -137,6 +121,64 @@ export class ChatService {
       ])
       .whereInIds(channelIds)
       .getMany();
+
+
+    const dmChannels: DmChannel[] = await this.dmRepository.find({
+      where: [{ first_user_id: user_id, first_status: true}, { second_user_id: user_id, second_status: true }],
+      order: { updated_at: 'DESC' }
+    });
+
+    const blockedUsers: UserRelation[] = await this.getBlockedUsers(user_id);
+    
+    let dmIds = [];
+    for (const dm of dmChannels) {
+      if (blockedUsers.length === 0 || 
+        blockedUsers.some(user => user.target_id !== dm.first_user_id && user.target_id !== dm.second_user_id)) {
+          dmIds.push(dm.channel_id);
+      }
+    }
+
+    let dms = await this.channelRepository
+    .createQueryBuilder('channel')
+    .innerJoin('channel.owner', 'owner')
+    .select([
+      'channel.channel_id',
+      'channel.name',
+      'channel.type',
+      'owner.user_id',
+      'owner.nickname',
+      'owner.profile_url',
+    ])
+    .whereInIds(dmIds)
+    .getMany();
+
+    dms = this.changeDmOwner(user_id, dms, dmChannels);
+
+    return channels.concat(dms);
+  }
+
+  /*
+    **changeDmOwner**
+
+    dm 객체의 owner 는 클라이언트에게, 상대방의 정보를 전달 할 수 있어야 하기 때문에,
+    데이터 베이스 안에 저장된 owner의 정보와 클라이언트 당사자와 중복되면, 
+    해당 dm owner를 상대 유저의 정보로 바꾸어야 한다.
+  */
+  changeDmOwner(user_id: number, newDms: ChatChannel[], dmChannels: DmChannel[]) {
+    for (const dm of newDms) {
+      if (dm.owner.user_id === user_id) {
+        const channel = dmChannels.find(channel => channel.channel_id === dm.channel_id);
+        if (channel) {
+          dm.owner.user_id = channel.first_user_id === user_id ? 
+            channel.second_user_id : channel.first_user_id;
+          dm.owner.nickname = channel.first_user_id === user_id ? 
+            channel.second_user.nickname : channel.first_user.nickname;
+          dm.owner.profile_url = channel.first_user_id === user_id ?
+            channel.second_user.profile_url : channel.first_user.profile_url;
+        }
+      }
+    }
+    return newDms;
   }
 
   async getChannel(id: number): Promise<ChatChannel> {
@@ -215,7 +257,7 @@ export class ChatService {
       .getMany();
   }
 
-  async createChatRoom(channelDto: ChannelDto, user: User): Promise<ChatChannel> {
+  async createChatRoom(channelDto: ChannelDto, user: User): Promise<ChannelInterface> {
     const { name, password, type, inviteList, thumbnail_url } = channelDto;
     let hashedPassword = null;
 
@@ -262,11 +304,11 @@ export class ChatService {
       await queryRunner.commitTransaction();
 
       // owner 와 invited users 모두 새로 생성된 채널에 socket join
-      channel = this.channelResult(channel);
+      const fixedChannel = this.channelResult(channel, channel.owner);
       inviteList.push(user.user_id);
-      this.chatGateway.handleJoinUsers(inviteList, user.user_id, channel.channel_id, channel);
+      this.chatGateway.handleJoinUsers(inviteList, user.user_id, channel.channel_id, fixedChannel);
 
-      return channel;
+      return fixedChannel;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
@@ -343,12 +385,11 @@ export class ChatService {
     }
   }
 
-  async createDmRoom(first_user: User, second_user: User): Promise<ChatChannel> {
+  async createDmRoom(first_user: User, second_user: User): Promise<ChannelInterface> {
 
     const dmChannel = await this.getDmChannel(second_user.user_id, first_user.user_id);
     if (dmChannel) {
-
-      return await this.getChannel(dmChannel.channel_id);
+     return this.channelResult(await this.getChannel(dmChannel.channel_id), second_user);
     }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -372,12 +413,8 @@ export class ChatService {
       await queryRunner.manager.save(dmChannel);
 
       await queryRunner.commitTransaction();
-      //const userIds: number[] = [first_user.user_id, second_user.user_id];
-      //this.chatGateway.handleJoinUsers(userIds, first_user.user_id, channel.channel_id, channel);
-      //
-      //this.chatGateway.handleDmJoinUser(first_user.user_id, channel.channel_id);
-
-      return this.channelResult(channel);
+      
+      return this.channelResult(channel, second_user);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
@@ -385,6 +422,8 @@ export class ChatService {
       await queryRunner.release();
     }
   }
+
+
 
   /*
     **joinChannelUser**
@@ -455,7 +494,10 @@ export class ChatService {
       relations: { channel: true},
     });
     if (!delUser) throw new NotFoundException(`해당 채널에 속한 유저가 아닙니다!`);
-    if (delUser.channel.type === ChannelType.DM) throw new ForbiddenException('Dm은 나갈 수 없습니다!');
+    if (delUser.channel.type === ChannelType.DM) {      
+      // throw new ForbiddenException('Dm은 나갈 수 없습니다!');
+      //dm 디비에서 찾아서 status false 로 만들기
+    }
     try {
       if (delUser.role === ChannelUserRoles.OWNER) {
         const channelUsers: ChannelUser[] = await this.channelUserRepository.find({
@@ -627,23 +669,17 @@ export class ChatService {
     return false;
   }
 
-  channelResult(result: ChatChannel) {
-    delete result.password;
-    delete result.deleted_at;
-    delete result.owner_id;
-    delete result.owner.email;
-    delete result.owner.profile_url;
-    delete result.owner.created_at;
-    delete result.owner.deleted_at;
-    delete result.owner.wins;
-    delete result.owner.losses;
-    delete result.owner.total;
-    delete result.owner.level;
-    delete result.owner.total;
-    delete result.owner.two_factor;
-    delete result.owner.two_factor_secret;
-
-    return result;
+  channelResult(channel: ChatChannel, second_user: User) : ChannelInterface {
+    return {
+      channel_id: channel.channel_id,
+      name: channel.name,
+      type: channel.type,
+      owner: {
+        user_id: second_user.user_id,
+        nickname: second_user.nickname,
+        profile_url: second_user.profile_url,
+      },
+    };
   }
 
 }

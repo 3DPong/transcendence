@@ -16,6 +16,7 @@ import { SocketException, SocketExceptionFilter } from '../../../common/filters/
 import { JwtService } from '@nestjs/jwt';
 import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
 import { SocketMapService } from 'src/providers/redis/socketMap.service';
+import { ChannelInterface } from './chat.interface';
 
 
 @UseFilters(new SocketExceptionFilter())
@@ -77,17 +78,14 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   @SubscribeMessage('enter-chat')
   async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = await this.getUserIdBySocketId(socket.id);
-    console.log("\nuserid = "+ userId)
     if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     const userIndex = this.activeRooms.findIndex((u) => u.userId === parseInt(userId));
     if (userIndex >= 0) {
       socket.leave(`chat_active_${this.activeRooms[userIndex].channelId}`);
       this.activeRooms[userIndex].channelId =  dto.channel_id;
-    }
-    else  {
+    } else {
       this.activeRooms.push({ userId: parseInt(userId), channelId: dto.channel_id });
-      console.log("\n\nactive user ="+ userId)
     }
     socket.join(`chat_active_${dto.channel_id}`);
 
@@ -149,7 +147,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     });
   }
 
-  async handleJoinUsers(userIds: number[], owner_id: number, channel_id: number, channel: ChatChannel) {
+  async handleJoinUsers(userIds: number[], owner_id: number, channel_id: number, channel: ChannelInterface) {
  
     if (userIds !== null) {
       for (const userId of userIds) {
