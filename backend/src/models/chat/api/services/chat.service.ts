@@ -59,7 +59,12 @@ export class ChatService {
     status: UserStatus; //현재 없음
 
   */
-  async getChatUsers(channel_id: number): Promise<ChannelUser[]> {
+  async getChatUsers(channel_id: number) {
+
+    const channel = await this.channelRepository.findOne({ where: { channel_id }, select: { type: true }});
+    if (channel.type === ChannelType.DM)
+      return this.getDmUsers(channel_id);
+
     return await this.channelUserRepository
       .createQueryBuilder('channel')
       .innerJoin('channel.user', 'us')

@@ -42,7 +42,7 @@ export class ChatController {
   }
 
   @Get('/:channelId/users')
-  getUsersInfo(@Param('channelId', ParseIntPipe) channelId: number): Promise<ChannelUser[]> {
+  getUsersInfo(@Param('channelId', ParseIntPipe) channelId: number) {
     return this.chatService.getChatUsers(channelId);
   }
 
