@@ -10,8 +10,8 @@ export enum GameType {
 }
 
 export enum RoomType {
-  CHAT,
   RANDOM,
+  CHAT,
 }
 
 export enum PlayerLocation {
