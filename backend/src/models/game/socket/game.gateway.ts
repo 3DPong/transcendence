@@ -2,12 +2,15 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from 'socket.io'
 import { GameManager } from '../simul/GameManager';
 import { GameService } from './services';
-import { InputData, MatchJoinData, ObserveData } from '../gameData';
-import { Logger } from '@nestjs/common';
+import { ChatJoinData, InputData, MatchJoinData, ObserveData } from '../gameData';
+import { Logger, UseFilters } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadInterface } from 'src/common/interfaces/JwtUser.interface';
 import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
+import { InviteData } from '../gameData/InviteData';
+import { SocketException, SocketExceptionFilter } from 'src/common/filters/socket/socket.filter';
 @WebSocketGateway({namespace : 'game'})
+@UseFilters(new SocketExceptionFilter())
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
@@ -38,34 +41,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`${client.id} is disconnect jwt failed`);
     }
   }
-  //client가 창을 닫을 때 끊을 것 인지 게임 매칭을 나갈때 닫을 것인지에 따라 구현이 달라질듯
-  //client가 게임 참가자인지 옵저버인지 구분해야함
+
   async handleDisconnect(@ConnectedSocket() client : Socket) {
     //게임매칭을찾는중,게임을진행중
-    const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager?.playerCount === 1) {
-      this.gameRooms.delete(client.data.gameId);
-      this.logger.log(`${client.id} is disconnect game socket and delete ${gameManager.gameId}`);
-    } else if (
-      gameManager?.playerCount === 2 && 
-      gameManager.simulator.matchInterrupt.isInterrupt === false &&
-      this.gameService.isGamePalyer(gameManager, client.id)
-    ) {
-      gameManager.simulator.matchInterrupt.isInterrupt = true;
-      gameManager.simulator.matchInterrupt.sid = client.id;
-      this.gameService.matchGiveUp(gameManager, client.id);
-      this.logger.log(`${client.id} player disconnect and giveUp game`);
-    }
+    this.gameService.gameExit(this.gameRooms, client);
     this.logger.log(`${client.id} is disconnect game socket`);
   }
 
   //모드 맞는 방 찾아서 매칭하고 없으면 생성  
   @SubscribeMessage('matchJoin')
-  match(
+  gameMatchJoin(
     @MessageBody() matchJoinData : MatchJoinData,
     @ConnectedSocket() client : Socket,
   ) {
-    let gameManager : GameManager = this.gameService.mathFind(this.gameRooms, matchJoinData);
+    let gameManager : GameManager = this.gameService.randomMatchFind(this.gameRooms, matchJoinData);
     if (gameManager === undefined){
       gameManager = new GameManager(matchJoinData);
       gameManager.createPlayer(client.id, client.data.userId);
@@ -78,30 +67,35 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.gameService.gamePreheat(gameManager, this.server);
     }
   }
-
+  @SubscribeMessage('chatJoin')
+  chatMatchJoin(
+    @MessageBody() matchJoinData : ChatJoinData,
+    @ConnectedSocket() client : Socket,
+  ) {
+    let gameManager : GameManager = this.gameService.ChatMatchFind(this.gameRooms, matchJoinData);
+    if (gameManager === undefined){
+      gameManager = new GameManager(matchJoinData);
+      gameManager.createPlayer(client.id, client.data.userId);
+      this.gameService.socketJoinRoom(client, gameManager.gameId);
+      this.gameRooms.set(gameManager.gameId, gameManager);
+      this.server.to(client.id).emit("onGameInvite", new InviteData(gameManager.gameId, matchJoinData.channelId));
+      this.logger.log(`gameCreate ${gameManager.gameId}`);
+    } else {
+      gameManager.createPlayer(client.id, client.data.userId);
+      this.gameService.socketJoinRoom(client, gameManager.gameId);
+      this.gameService.gamePreheat(gameManager, this.server);
+    }
+  }
   //game 시작전 나가기 누르면 매칭시스템에서 탈출
+  //game 중에 나가면 게임 포기
   @SubscribeMessage('exit')
   matchExit(
     @ConnectedSocket() client : Socket,
   ) {
-    const gameManager : GameManager = this.gameRooms.get(client.data.gameId);
-    if (gameManager === undefined || gameManager.player1.sid !== client.id){
-      this.server.to(client.id).emit('gameExit', 'player is not in gameRoom');
-      return;
-    }
-    this.gameService.socketLeaveRoom(client, gameManager.gameId);
-    this.server.to(client.id).emit('gameExit', 'player is exit gameRoom');
-    this.gameRooms.delete(gameManager.gameId);
+    this.gameService.gameExit(this.gameRooms, client);
   }
 
-  @SubscribeMessage('observeExit')
-  observerExit(
-    @ConnectedSocket() client : Socket,
-  ) {
-    this.gameService.socketLeaveRoom(client, client.data.gameId);
-  }
   //observe
-  //init data 보내는 부분 추가
   @SubscribeMessage('observeJoin')
   observerJoin(
     @MessageBody() observeData : ObserveData,
@@ -111,6 +105,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (gameManager?.started){
       this.gameService.initObserver(gameManager,this.server, client.id);
       this.gameService.socketJoinRoom(client, observeData.gameId);
+    } else {
+      throw new SocketException('BadRequest', "게임중인 방이 아닙니다.");
     }
   }
 
@@ -122,6 +118,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const gameManager : GameManager = this.gameRooms.get(inputData.gameId);
     if (gameManager?.started && this.gameService.isGamePalyer(gameManager, client.id) ){
       gameManager.Keyboard(inputData.key, client.id);
+    } else {
+      throw new SocketException('BadRequest', "player가 아닙니다.");
     }
   }
 
