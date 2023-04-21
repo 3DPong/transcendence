@@ -1,4 +1,4 @@
-import {  useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { ErrorPage } from "@/components/ErrorPage";
@@ -29,9 +29,8 @@ import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
-import { GameTest } from "@/components/Test/GameTest";
-import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 import {Home} from "@/components/Organism/Home/Home";
+import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 
 
 
@@ -77,7 +76,6 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <div>
-        <Home />
         <L0Template organism={
           <>
             <Controller />

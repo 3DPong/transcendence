@@ -9,7 +9,9 @@ export function attachGameEventToCanvas(
     playerLocation: gameType.PlayerLocation,
 ) {
 
-  let isMoveKeyDown = false;
+  // let isMoveKeyDown = false;
+  let isMoveLeftKeyDown = false;
+  let isMoveRightKeyDown = false;
   let isSkillKeyDown = false;
 
   if (playerLocation === gameType.PlayerLocation.LEFT) {
@@ -30,7 +32,6 @@ export function attachGameEventToCanvas(
     }
   }
 
-
   const onSkillKeyUp = (event: KeyboardEvent) => {
     console.log(event.key);
     if (event.key === 'Shift') {
@@ -38,11 +39,9 @@ export function attachGameEventToCanvas(
     }
   }
 
-
-
-  const onMoveKeyDown = (event: KeyboardEvent) => {
+  const onMoveLeftKeyDown = (event: KeyboardEvent) => {
     let inputData: gameType.inputData;
-    if (isMoveKeyDown) return;
+    if (isMoveLeftKeyDown) return;
 
     let movePaddleLeft, movePaddleRight;
     if (playerLocation === gameType.PlayerLocation.LEFT) {
@@ -54,27 +53,44 @@ export function attachGameEventToCanvas(
       movePaddleLeft = gameType.inputEnum.DOWN_START;
       movePaddleRight = gameType.inputEnum.UP_START;
     }
-
-    switch (event.key) {
-      case 'ArrowLeft': // Move Left
-        inputData = {gameId: gameId, key: movePaddleLeft};
-        gameSocket.emit('keyInput', inputData);
-        console.log("[Dev] : Move Left");
-        isMoveKeyDown = true;
-        break;
-      case 'ArrowRight': // Move Right
+    if (event.key === 'ArrowLeft') {
+      if (isMoveRightKeyDown) {
         inputData = {gameId: gameId, key: movePaddleRight};
         gameSocket.emit('keyInput', inputData);
-        console.log("[Dev] : Move Right");
-        isMoveKeyDown = true;
-        break;
-      default: // no handling
-        return;
+      }
+      inputData = {gameId: gameId, key: movePaddleLeft};
+      gameSocket.emit('keyInput', inputData);
+      isMoveLeftKeyDown = true;
     }
   }
 
-  const onMoveKeyUp = (event: KeyboardEvent) => {
+  const onMoveRightKeyDown = (event: KeyboardEvent) => {
+    let inputData: gameType.inputData;
+    if (isMoveRightKeyDown) return;
 
+    let movePaddleLeft, movePaddleRight;
+    if (playerLocation === gameType.PlayerLocation.LEFT) {
+      // Left Player
+      movePaddleLeft = gameType.inputEnum.UP_START;
+      movePaddleRight = gameType.inputEnum.DOWN_START;
+    } else {
+      // Right Player
+      movePaddleLeft = gameType.inputEnum.DOWN_START;
+      movePaddleRight = gameType.inputEnum.UP_START;
+    }
+    if (event.key === 'ArrowRight') {
+      if (isMoveLeftKeyDown) {
+        inputData = {gameId: gameId, key: movePaddleLeft};
+        gameSocket.emit('keyInput', inputData);
+      }
+      inputData = {gameId: gameId, key: movePaddleRight};
+      gameSocket.emit('keyInput', inputData);
+      isMoveRightKeyDown = true;
+    }
+  }
+
+
+  const onMoveLeftKeyUp = (event: KeyboardEvent) => {
     let inputData: gameType.inputData;
     let movePaddleLeft, movePaddleRight;
 
@@ -82,33 +98,56 @@ export function attachGameEventToCanvas(
       // Left Player
       // 왼쪽 플레이어에게 왼쪽 움직임은 위로 움직이는것과 동일.
       movePaddleLeft = gameType.inputEnum.UP_END;
-      movePaddleRight = gameType.inputEnum.DOWN_END;
+      movePaddleRight = gameType.inputEnum.DOWN_START;
     } else {
       // Right Player
       movePaddleLeft = gameType.inputEnum.DOWN_END;
-      movePaddleRight = gameType.inputEnum.UP_END;
+      movePaddleRight = gameType.inputEnum.UP_START;
     }
-
-    switch (event.key) {
-      case 'ArrowLeft': // Move Left
-        inputData = {gameId: gameId, key: movePaddleLeft};
-        gameSocket.emit('keyInput', inputData);
-        console.log("[Dev] : Move Left Stop");
-        isMoveKeyDown = false;
-        break;
-      case 'ArrowRight': // Move Right
+    if (event.key === 'ArrowLeft') {
+      inputData = {gameId: gameId, key: movePaddleLeft};
+      gameSocket.emit('keyInput', inputData);
+      isMoveLeftKeyDown = false;
+      if (isMoveRightKeyDown) {
         inputData = {gameId: gameId, key: movePaddleRight};
         gameSocket.emit('keyInput', inputData);
-        console.log("[Dev] : Move Right Stop");
-        isMoveKeyDown = false;
-        break;
-      default: // no handling
-        return;
+      }
     }
   }
-  canvas.addEventListener('keydown', onMoveKeyDown, false);
+
+
+  const onMoveRightKeyUp = (event: KeyboardEvent) => {
+    let inputData: gameType.inputData;
+    let movePaddleLeft, movePaddleRight;
+
+    if (playerLocation === gameType.PlayerLocation.LEFT) {
+      // Left Player
+      // 왼쪽 플레이어에게 왼쪽 움직임은 위로 움직이는것과 동일.
+      movePaddleLeft = gameType.inputEnum.UP_START;
+      movePaddleRight = gameType.inputEnum.DOWN_END;
+    } else {
+      // Right Player
+      movePaddleLeft = gameType.inputEnum.DOWN_START;
+      movePaddleRight = gameType.inputEnum.UP_END;
+    }
+    if (event.key === 'ArrowRight') {
+      inputData = {gameId: gameId, key: movePaddleRight};
+      gameSocket.emit('keyInput', inputData);
+      isMoveRightKeyDown = false;
+      if (isMoveLeftKeyDown) {
+        inputData = {gameId: gameId, key: movePaddleLeft};
+        gameSocket.emit('keyInput', inputData);
+      }
+    }
+  }
+
+  canvas.addEventListener('keydown', onMoveLeftKeyDown, false);
+  canvas.addEventListener('keydown', onMoveRightKeyDown, false);
+
+  canvas.addEventListener('keyup', onMoveLeftKeyUp, false);
+  canvas.addEventListener('keyup', onMoveRightKeyUp, false);
+
   canvas.addEventListener('keydown', onSkillKeyDown, false);
-  canvas.addEventListener('keyup', onMoveKeyUp, false);
   canvas.addEventListener('keyup', onSkillKeyUp, false);
 }
 

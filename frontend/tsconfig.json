@@ -27,6 +27,7 @@
       "babylonjs",
       "babylonjs-gui",
       "babylonjs-loaders",
+      "babylonjs-materials",
     ]
   },
   "include": [

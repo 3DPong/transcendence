@@ -20,10 +20,7 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
     // headers: { "Content-Type": "multipart/form-data" }, // 이 부분 세팅하지 말라는 말이 있음.
     // (https://muffinman.io/blog/uploading-files-using-fetch-multipart-form-data/)
   });
-
   // on error
-  console.log(clientSideImageUrl);
-  alert(`Upload Image status: ${uploadResponse.status}\nBlob File Size: ${blob.size}`);
   if (!uploadResponse.ok) {
     if (uploadResponse.status === 401) {
       const errorData = await uploadResponse.json();
@@ -54,8 +51,7 @@ export async function verifyNickname(handleError: handleErrorFunction, name: str
   const response = await fetch(requestUrl, {
     method: 'GET'
   })
-  alert(`Verify Nickname status : ${response.status}`);
-  if (!response.ok || response.status === 304) {
+  if (!response.ok) {
     const errorData = await response.json();
     handleError('Verify Nickname', errorData.message);
     return ; // null on error

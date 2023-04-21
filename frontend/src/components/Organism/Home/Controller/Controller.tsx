@@ -53,7 +53,7 @@ export default function Controller() {
     setClickState((prev) => {
       console.log(`[Controller] state ${prev} --> ${srcState}`)
       if (srcState === eClickedBtn.GAME) {
-        return eClickedBtn.NONE;
+        return srcState;
       }
       return ((prev !== srcState) ? srcState : eClickedBtn.NONE);
     });
@@ -95,7 +95,6 @@ export default function Controller() {
                   tooltipTitle="Random Match"
                   children={<GamesIcon fontSize="large" />}
                   onClick={() => toggleClickState(eClickedBtn.GAME)}
-                  badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -105,7 +104,6 @@ export default function Controller() {
                 tooltipTitle="Profile"
                 children={<AccountBox fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.PROFILE)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -115,7 +113,6 @@ export default function Controller() {
                 tooltipTitle="Friends"
                 children={<Group fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -125,7 +122,6 @@ export default function Controller() {
                 tooltipTitle="Rooms"
                 children={<Chat fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -133,7 +129,10 @@ export default function Controller() {
                 sx={sx}
                 tooltipTitle={'Settings'}
                 to={'/'}
-                onClick={() => setOpenSetting(true)}
+                onClick={() => {
+                  console.log(openSetting);
+                  setOpenSetting(true);
+                }}
                 children={<Settings fontSize="large" />}
               />
               {/* Dialog */}

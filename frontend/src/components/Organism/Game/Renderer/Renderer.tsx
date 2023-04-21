@@ -14,7 +14,7 @@
 import * as BABYLON from 'babylonjs';
 import { MeshBuilder, Scene, Vector3, Color3 } from 'babylonjs';
 import 'babylonjs-loaders';
-
+import * as MATERIAL from 'babylonjs-materials';
 import * as GUI from 'babylonjs-gui';
 import SceneComponent from './SceneComponent'; // uses above component in same directory
 import { Assert } from '@/utils/Assert';
@@ -155,12 +155,83 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       attachGameEventToCanvas(_Canvas, gameSocket, matchData.gameId, matchData.playerLocation);
     }
 
+    // Create Ground for Shadow
     // (2) create Light, ambient light
-    scene3D.ambientColor = new BABYLON.Color3(1, 1, 1);
-    const light = new BABYLON.HemisphericLight('hemiLight', new BABYLON.Vector3(-1, 1, 0), scene3D);
-    light.diffuse = new BABYLON.Color3(1, 0, 0);
-    light.specular = new BABYLON.Color3(0, 1, 0);
-    light.groundColor = new BABYLON.Color3(0, 1, 0);
+    scene3D.ambientColor = new BABYLON.Color3(1, 1, 1); // White
+
+    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, 0, 1), scene3D);
+    light.intensity = 0.7;
+    light.position = new BABYLON.Vector3(5, 5, -5);
+    light.diffuse = new BABYLON.Color3(1, 1, 1);
+    light.specular = new BABYLON.Color3(1, 1, 1);
+
+    const light0 = new BABYLON.HemisphericLight("light0", new BABYLON.Vector3(0, 1, 0), scene3D);
+    light0.intensity = 0.25;
+
+    const sg = new BABYLON.ShadowGenerator(1024, light);
+    sg.enableSoftTransparentShadow = false;
+    sg.blurBoxOffset = 4;
+
+
+    function degrees_to_radians(degrees: number)
+    {
+      const pi = Math.PI;
+      return degrees * (pi/180);
+    }
+
+    // create Ground for shadow
+    /*
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100}, scene3D);
+
+    ground.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
+    ground.position = new Vector3(0, 0, 3);
+    ground.material = new MATERIAL.ShadowOnlyMaterial('mat', scene3D);
+    ground.receiveShadows = true;
+    */
+
+    if (playerData && matchData) {
+      const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
+      importPromise.then((result) => {
+        const table = new BABYLON.TransformNode("Table");
+        result.meshes.forEach(mesh => {
+          if (!mesh.parent) {
+            mesh.parent = table;
+          }
+        });
+        table.position = new Vector3(-20, -160, 38);
+        table.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
+        table.scaling = new Vector3(0.43, 0.43, 0.43);
+      });
+    }
+
+    // (6) create Objects using simulator's data
+    if (matchData && matchData.sceneData) {
+      for (const obj2D of matchData.sceneData) {
+        let mesh: BABYLON.Mesh
+        const {b2ShapeType} = gameType;
+        switch (obj2D.shapeType) {
+          case b2ShapeType.e_circleShape: // ball
+            mesh = ObjectConverter.convertCircleToMesh(obj2D, scene3D);
+            m_MeshMap.set(obj2D.objectId, mesh);
+            sg.addShadowCaster(mesh);
+            break;
+          case b2ShapeType.e_chainShape: // ground
+            mesh = ObjectConverter.convertChainToLineMesh(obj2D, scene3D);
+            m_MeshMap.set(obj2D.objectId, mesh);
+            sg.addShadowCaster(mesh);
+            break;
+          case b2ShapeType.e_polygonShape: // paddle, box, etc...
+            mesh = ObjectConverter.convertPolygonToMesh(obj2D, scene3D);
+            m_MeshMap.set(obj2D.objectId, mesh);
+            sg.addShadowCaster(mesh);
+            break;
+          default:
+            console.log('no matching type');
+            break;
+        }
+      }
+    }
+
 
 
     // (3) Set up Camera via player type
@@ -182,10 +253,11 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
 
     // (5-1) Load GUI
     if (playerData && matchData) {
+      console.log(playerData);
       m_Gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("SCORE_GUI", true, scene3D);
       (async () => {
         // https://gui.babylonjs.com/#7YQSCB#2
-        await m_Gui.parseFromSnippetAsync("7YQSCB#2", false)
+        await m_Gui.parseFromSnippetAsync("7YQSCB#3", false)
         let UserA_Nickname = m_Gui.getControlByName('UserA_Nickname') as GUI.TextBlock;
         UserA_Nickname.text = `${playerData.myNickName}`
         let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
@@ -197,85 +269,36 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       })(/* IIFE */);
     }
 
-    if (playerData && matchData) {
-      function degrees_to_radians(degrees: number)
-      {
-        const pi = Math.PI;
-        return degrees * (pi/180);
-      }
-
-      const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
-      importPromise.then((result) => {
-        const table = new BABYLON.TransformNode("Table");
-        result.meshes.forEach(mesh => {
-          if (!mesh.parent) {
-            mesh.parent = table;
-          }
-        });
-        table.position = new Vector3(-20, -160, 38);
-        table.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
-        table.scaling = new Vector3(0.43, 0.43, 0.43);
-      });
-    }
 
 
-    // (6) create Objects using simulator's data
-    if (matchData && matchData.sceneData) {
-      for (const obj2D of matchData.sceneData) {
-        let mesh;
-        const { b2ShapeType } = gameType;
-        switch (obj2D.shapeType) {
-          case b2ShapeType.e_circleShape: // ball
-            mesh = ObjectConverter.convertCircleToMesh(obj2D, scene3D);
-            m_MeshMap.set(obj2D.objectId, mesh);
-            break;
-          case b2ShapeType.e_chainShape: // ground
-            mesh = ObjectConverter.convertChainToLineMesh(obj2D, scene3D);
-            m_MeshMap.set(obj2D.objectId, mesh);
-            break;
-          case b2ShapeType.e_edgeShape: // ?
-            // m_MeshMap.set(obj2D, mesh)
-            break;
-          case b2ShapeType.e_polygonShape: // paddle, box, etc...
-            mesh = ObjectConverter.convertPolygonToMesh(obj2D, scene3D);
-            m_MeshMap.set(obj2D.objectId, mesh);
-            break;
-          default:
-            console.log('no matching type');
-            break;
+
+    // (6) Start Game after 120 frame.
+    if (matchData) {
+      console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
+      const readyTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("COUNT_GUI", true, scene3D);
+      const readyText = new GUI.TextBlock();
+      readyText.text = "";
+      readyText.fontSize = 50;
+      readyText.color = "white";
+      readyTexture.addControl(readyText);
+      let MS = CAMERA_ANIMATION_TIME_MS + 2000;
+      const ID = setInterval(() => {
+        if (MS === 2000) readyText.text = "Ready"
+        else if (MS === 1000) readyText.text = "Go!"
+        else if (MS <= 500) {
+          readyText.dispose();
+          clearInterval(ID);
         }
-    }
+        MS -= 500;
+      }, 500);
 
-      // (6) Start Game after 120 frame.
-      if (matchData) {
-        console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
-        const readyTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("COUNT_GUI", true, scene3D);
-        const readyText = new GUI.TextBlock();
-        readyText.text = "";
-        readyText.fontSize = 50;
-        readyText.color = "white";
-        readyTexture.addControl(readyText);
-        let MS = CAMERA_ANIMATION_TIME_MS + 2000;
-        const ID = setInterval(() => {
-          if (MS === 2000) readyText.text = "Ready"
-          else if (MS === 1000) readyText.text = "Go!"
-          else if (MS <= 500) {
-            readyText.dispose();
-            clearInterval(ID);
-          }
-          MS -= 500;
-        }, 500);
-
-        if (gameSocket) {
-          setTimeout(() => {
-            gameSocket.emit('start');
-            console.log('[DEV] : GAME START!');
-          }, CAMERA_ANIMATION_TIME_MS + 2000);
-        }
+      if (gameSocket) {
+        setTimeout(() => {
+          gameSocket.emit('start');
+          console.log('[DEV] : GAME START!');
+        }, CAMERA_ANIMATION_TIME_MS + 2000);
       }
     }
-
-
   }; // onSceneReady
 
   // https://doc.babylonjs.com/features/featuresDeepDive/animation/animation_introduction

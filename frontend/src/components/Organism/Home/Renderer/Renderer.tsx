@@ -18,13 +18,14 @@ import 'babylonjs-loaders';
 import * as GUI from 'babylonjs-gui';
 import SceneComponent from './SceneComponent'; // uses above component in same directory
 import { Assert } from '@/utils/Assert';
-import React, { useEffect, useRef } from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
 import * as gameType from '@/types/game';
 import { useSocket } from '@/context/SocketContext';
 import { useError } from '@/context/ErrorContext';
 import HOCKEY_TABLE_3D from '@/assets/air_hockey_table.glb';
 import {attachGameEventToCanvas} from "@/components/Organism/Game/Renderer/KeyInput";
+import GlobalContext from "@/context/GlobalContext";
 
 // camera class for extension function
 class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
@@ -67,13 +68,14 @@ export interface RenderSceneProps {
 
 function HomeScreen3D({ width, height }: RenderSceneProps) {
   const sceneRef = useRef<Scene | null>(null);
-  const m_MeshMap: Map<gameType.objectId, BABYLON.Mesh> = new Map();
-  let m_Gui: (GUI.AdvancedDynamicTexture | undefined);
+  // const m_MeshMap: Map<gameType.objectId, BABYLON.Mesh> = new Map();
+  // let m_Gui: (GUI.AdvancedDynamicTexture | undefined);
+  // const {loggedUserId} = useContext(GlobalContext);
 
-  const { gameSocket } = useSocket();
-  const { handleError } = useError();
 
   const onSceneReady = (scene3D: Scene) => {
+    // if (!loggedUserId) return;
+
     // (0) ** set scene to sceneRef
     sceneRef.current = scene3D;
     const _Canvas = scene3D.getEngine().getRenderingCanvas();
@@ -102,25 +104,21 @@ function HomeScreen3D({ width, height }: RenderSceneProps) {
     light.groundColor = new BABYLON.Color3(0, 1, 0);
 
 
+    const vertexArray3D: Vector3[] = [];
+    vertexArray3D.push(new Vector3(50, 25, 0));
+    vertexArray3D.push(new Vector3(-50, 25, 0));
+    vertexArray3D.push(new Vector3(-50, -25, 0));
+    vertexArray3D.push(new Vector3(50, -25, 0));
+    vertexArray3D.push(new Vector3(50, 25, 0));
+    const lines = MeshBuilder.CreateLines(
+        "Test",
+        {
+          points: vertexArray3D,
+        },
+        scene3D
+    );
+    lines.color = new Color3(1, 0, 0);
 
-    function degrees_to_radians(degrees: number)
-    {
-      const pi = Math.PI;
-      return degrees * (pi/180);
-    }
-
-    const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
-    importPromise.then((result) => {
-      const table = new BABYLON.TransformNode("Table");
-      result.meshes.forEach(mesh => {
-        if (!mesh.parent) {
-          mesh.parent = table;
-        }
-      });
-      table.position = new Vector3(-20, -160, 38);
-      table.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
-      table.scaling = new Vector3(0.43, 0.43, 0.43);
-    });
 
   }; // onSceneReady
 
