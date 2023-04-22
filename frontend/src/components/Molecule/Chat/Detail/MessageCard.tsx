@@ -54,15 +54,19 @@ function parseInviteMessage(content: string, sender: User) {
   }
 
   function handleJoinGameClick() {
-    setInviteGameId(inviteGameId);
+    setInviteGameId(data.gameId);
   }
 
   useEffect(() => {
-    setInviteGameId(inviteGameId);
+    if (isObserve) {
+      setInviteGameId(data.gameId);
+    }
   }, [isObserve])
 
   useEffect(() => {
-    navigate('/game');
+    if (inviteGameId) {
+      navigate('/game');
+    }
   }, [inviteGameId]);
 
   return (

@@ -24,7 +24,7 @@ export interface Message {
 }
 
 export interface GameMessage {
-  gameId: number;
+  gameId: string;
   gameMode: gameType;
 }
 

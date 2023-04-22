@@ -94,21 +94,20 @@ export default function GameMatchingDialog({
 
   // 참여자또는 옵저버로 들어온 경우 
   useEffect(() => {
+    if (!gameSocket) return;
     if (inviteGameId) {
       handleModeSelectDialogClose(); // 모드 선택 종료.
       handleMatchingDialogOpen(); // 매칭 시작.
       if (isObserve) {
         console.log('observe 로 들어온 사람');
-        if (gameSocket)
-          gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
       }
       else {
         console.log('플레이어로 들어온 사람');
-        if (gameSocket)
-          gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
       }
     }
-  }, [inviteGameId])
+  }, [inviteGameId, gameSocket])
 
   // ---------------------------------------
   // 첫 렌더시 소켓 이벤트 등록, 사용자 정보 로드
