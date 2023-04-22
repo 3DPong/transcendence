@@ -17,14 +17,22 @@ export class DmChannel {
   @Column({ type: 'int' })
   channel_id: number;
 
+  @Factory((faker) => faker.datatype.boolean())
+  @Column({ type: 'boolean', default: false})
+  first_status: boolean;
+
+  @Factory((faker) => faker.datatype.boolean())
+  @Column({ type: 'boolean', default: false})
+  second_status: boolean;
+
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 
-  @ManyToOne(() => User, (user) => user.dmList1)
+  @ManyToOne(() => User, (user) => user.dmList1, { eager: true })
   @JoinColumn({ name: 'first_user_id' })
   first_user: User;
 
-  @ManyToOne(() => User, (user) => user.dmList2)
+  @ManyToOne(() => User, (user) => user.dmList2, { eager: true })
   @JoinColumn({ name: 'second_user_id' })
   second_user: User;
 
