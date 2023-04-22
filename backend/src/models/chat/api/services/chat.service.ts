@@ -392,10 +392,15 @@ export class ChatService {
 
   async createDmRoom(first_user: User, second_user: User): Promise<ChannelInterface> {
 
-    const dmChannel = await this.getDmChannel(second_user.user_id, first_user.user_id);
+    if (first_user.user_id === second_user.user_id)
+      throw new BadRequestException(`자기 자신과 Dm을 생성할 수 없습니다.`);
+    const dmChannel = await this.getDmChannel(first_user.user_id, second_user.user_id);
     if (dmChannel) {
-     return this.channelResult(await this.getChannel(dmChannel.channel_id), second_user);
+      let user: User = null;
+      return this.channelResult(await this.getChannel(dmChannel.channel_id), 
+        user = dmChannel.first_user_id ===  first_user.user_id? dmChannel.second_user : dmChannel.first_user);
     }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -636,16 +641,10 @@ export class ChatService {
     return await this.channelUserRepository.save(cu);
   }
 
-  async getDmChannel(second_user_id: number, first_user_id: number) {
+  async getDmChannel(first_user_id: number, second_user_id: number) {
     let dmChannel = await this.dmRepository.findOne({
-      where: { first_user_id, second_user_id },
+      where: [{ first_user_id, second_user_id}, { first_user_id : second_user_id, second_user_id: first_user_id}],
     });
-
-    if (!dmChannel) {
-      dmChannel = await this.dmRepository.findOne({
-        where: { first_user_id, second_user_id },
-      });
-    }
     return dmChannel;
   }
 
