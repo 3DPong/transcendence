@@ -34,7 +34,7 @@ interface GameStartButtonProps {
   setMatchData: (matchData: gameType.matchStartData) => void;
 }
 
-export default function GameStartButton({
+export default function GameMatchingDialog({
   setMatchData,
   myProfile,
   setMyProfile,
@@ -47,7 +47,7 @@ export default function GameStartButton({
 }: GameStartButtonProps) {
   const { gameSocket } = useSocket();
   // 모드 선택 dialog
-  const [modeSelectDialogOpen, setModeSelectDialogOpen] = useState<boolean>(false);
+  const [modeSelectDialogOpen, setModeSelectDialogOpen] = useState<boolean>(true);
   const [isModeSelected, setIsModeSelected] = useState<boolean>(false);
   // 매칭 로딩 dialog
   const [matchingDialogOpen, setMatchingDialogOpen] = useState<boolean>(false);
@@ -58,11 +58,11 @@ export default function GameStartButton({
   const { handleError } = useError();
   const navigate = useNavigate();
 
-  const handleModeSelectDialogOpen = () => {
-    setModeSelectDialogOpen(true);
-  };
-
-  const handleModeSelectDialogClose = () => {
+  const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
+    if (reason && reason === 'backdropClick') {
+      console.log("ModeSelectDialog Close");
+      navigate('/');
+    }
     setModeSelectDialogOpen(false);
   };
 
@@ -159,16 +159,12 @@ export default function GameStartButton({
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화
     setIsModeSelected(false); // 초기화
+    navigate('/'); // 홈으로 이동.
   }, [cancelMatching]);
   // ---------------------------------------
 
   return (
     <div>
-      {/* ------------------ 랜덤 매칭 시작 버튼 ------------------------------- */}
-      <Button variant="contained" onClick={handleModeSelectDialogOpen}>
-        Random Match
-      </Button>
-
       {/* ------------------ 게임 모드 선택 Dialog ------------------------------- */}
       <Dialog
         open={modeSelectDialogOpen}

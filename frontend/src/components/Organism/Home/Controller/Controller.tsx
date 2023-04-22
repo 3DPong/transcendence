@@ -19,51 +19,12 @@ import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItemButtonLink from '@/components/Molecule/Link/ListItemButtonLink';
 import { AccountBox, Group, Chat, Settings } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router';
 import GamesIcon from '@mui/icons-material/Games';
 import { SxProps } from '@mui/material';
 import SettingDialog from '@/components/Organism/Setting/SettingDialog';
-
-/*
-interface welcomeDialogProps {
-  state: { nickname: string };
-}
-
-function WelcomeDialog({ state }: welcomeDialogProps) {
-  const [open, setOpen] = useState<boolean>(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">welcome {state.nickname}!</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          저희 게임에 처음 오셨군요! <br />
-          게임 진행에 관한 튜토리얼을 진행하시겠어요?
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>네</Button>
-        <Button onClick={handleClose} autoFocus>
-          아니요
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
- */
+import {useContext, useEffect} from "react";
+import GlobalContext from "@/context/GlobalContext";
+import {useSocket} from "@/context/SocketContext";
 
 export enum eClickedBtn {
   NONE,
@@ -71,30 +32,42 @@ export enum eClickedBtn {
   PROFILE,
   FRIENDS,
   ROOMS,
-  SETTINGS,
 }
 
 export default function Controller() {
   const [clickState, setClickState] = React.useState<eClickedBtn>(0);
   const [openSetting, setOpenSetting] = React.useState<boolean>(false);
+  const {loggedUserId} = useContext(GlobalContext);
+  const {notifyConnect} = useSocket();
 
   // ---------------------------------------------------------------
   // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
   // 어떻게 생각하면 강제 로그인 검사임 (프론트 차원)
-  const location = useLocation();
-
-  const navigate = useNavigate();
   React.useEffect(() => {
-    // TODO: 이  방식 보다는, API call로 session을 서버가 검증하도록 요청하자.
+    console.log("Initial Render : Controller.tsx");
+    setClickState(eClickedBtn.NONE);
   }, []);
   // ---------------------------------------------------------------
 
   const toggleClickState = (srcState: eClickedBtn) => {
-    setClickState(clickState !== srcState ? srcState : eClickedBtn.NONE);
+    setClickState((prev) => {
+      console.log(`[Controller] state ${prev} --> ${srcState}`)
+      if (srcState === eClickedBtn.GAME) {
+        return srcState;
+      }
+      return ((prev !== srcState) ? srcState : eClickedBtn.NONE);
+    });
   };
 
   const BUTTON_STYLE = '';
   const sx: SxProps = { width: '100%', aspectRatio: '1/1', border: 0.5, borderColor: 'gray' };
+
+  // Connect notify socket
+  useEffect(() => {
+    if (!loggedUserId) return;
+    console.log("[DEV] Connecting Notify Socket... at [Controller.tsx]");
+    notifyConnect();
+  }, [loggedUserId]);
 
   return (
     <>
@@ -118,11 +91,10 @@ export default function Controller() {
             <div className={BUTTON_STYLE}>
               <ListItemButtonLink
                   sx={sx}
-                  to={clickState !== eClickedBtn.PROFILE ? './game' : '/'}
+                  to={clickState !== eClickedBtn.GAME ? './game' : '/'}
                   tooltipTitle="Random Match"
                   children={<GamesIcon fontSize="large" />}
                   onClick={() => toggleClickState(eClickedBtn.GAME)}
-                  badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -132,7 +104,6 @@ export default function Controller() {
                 tooltipTitle="Profile"
                 children={<AccountBox fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.PROFILE)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -142,7 +113,6 @@ export default function Controller() {
                 tooltipTitle="Friends"
                 children={<Group fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -152,7 +122,6 @@ export default function Controller() {
                 tooltipTitle="Rooms"
                 children={<Chat fontSize="large" />}
                 onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-                badge={0} /** @special 친구 업데이트 등의 이벤트 발생시 여기에 추가. */
               />
             </div>
             <div className={BUTTON_STYLE}>
@@ -160,7 +129,10 @@ export default function Controller() {
                 sx={sx}
                 tooltipTitle={'Settings'}
                 to={'/'}
-                onClick={() => setOpenSetting(true)}
+                onClick={() => {
+                  console.log(openSetting);
+                  setOpenSetting(true);
+                }}
                 children={<Settings fontSize="large" />}
               />
               {/* Dialog */}

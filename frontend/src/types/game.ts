@@ -84,9 +84,7 @@ export interface matchResult {
 }
 
 export interface PlayerData {
-  myImage: string;
   myNickName: string;
-  enemyImage: string;
   enemyNickName: string;
 }
 

@@ -78,12 +78,15 @@ export async function updateUserData(handleError: handleErrorFunction, nickname?
 
   // 0. 닉네임 중복 검사.
   let nicknameToSubmit = "";
+  let isNicknameOk;
 
   if (nickname) {
-    const isNicknameOk = await verifyNickname(handleError, nickname);
+    isNicknameOk = await verifyNickname(handleError, nickname);
     if (isNicknameOk) {
       console.log("[DEV] verifyNickname Success");
       nicknameToSubmit = nickname;
+    // } else { // 200, but has duplicated nickname
+    //   handleError('Verify Nickname', "해당 Nickname은 이미 존재합니다.");
     }
   }
 
@@ -123,6 +126,8 @@ export async function updateUserData(handleError: handleErrorFunction, nickname?
     const errorData = await updateResponse.json();
     handleError('UserData', errorData.message, updateResponse.status === 401 ? '/signin' : null);
     return;
+  } else if (!isNicknameOk) {
+    handleError('Verify Nickname', "해당 Nickname은 이미 존재합니다.\n프로필 이미지만 업데이트되었습니다.");
   }
   // on success
   const userData: PUT_UserDataResponseFormat = await updateResponse.json();
