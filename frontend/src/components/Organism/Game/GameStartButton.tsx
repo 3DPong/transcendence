@@ -59,7 +59,7 @@ export default function GameMatchingDialog({
   const { handleError } = useError();
   const navigate = useNavigate();
 
-  const { inviteChannelId, setInviteChannelId } = useContext(MatchDataContext);
+  const { inviteChannelId, inviteGameId, isObserve, clearInviteData } = useContext(MatchDataContext);
 
   const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
     if (reason && reason === 'backdropClick') {
@@ -91,6 +91,24 @@ export default function GameMatchingDialog({
     if (inviteChannelId) {
     }
   }, [inviteChannelId]);
+
+  // 참여자또는 옵저버로 들어온 경우 
+  useEffect(() => {
+    if (inviteGameId) {
+      handleModeSelectDialogClose(); // 모드 선택 종료.
+      handleMatchingDialogOpen(); // 매칭 시작.
+      if (isObserve) {
+        console.log('observe 로 들어온 사람');
+        if (gameSocket)
+          gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
+      }
+      else {
+        console.log('플레이어로 들어온 사람');
+        if (gameSocket)
+          gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
+      }
+    }
+  }, [inviteGameId])
 
   // ---------------------------------------
   // 첫 렌더시 소켓 이벤트 등록, 사용자 정보 로드
@@ -169,7 +187,7 @@ export default function GameMatchingDialog({
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화
     setIsModeSelected(false); // 초기화
-    setInviteChannelId(null);
+    clearInviteData();
     navigate('/'); // 홈으로 이동.
   }, [cancelMatching]);
   // ---------------------------------------
@@ -180,7 +198,7 @@ export default function GameMatchingDialog({
       <Dialog
         open={modeSelectDialogOpen}
         onClose={() => {
-          setInviteChannelId(null);    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
+          clearInviteData();    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
           handleModeSelectDialogClose();
         }}
         aria-labelledby="select game mode"

@@ -1,8 +1,9 @@
-import { Message, ChatUser } from '@/types/chat';
-import { gameType } from '@/types/game';
-import { FC } from 'react';
+import { Message, ChatUser, GameMessage, User } from '@/types/chat';
+import { FC, useContext, useEffect } from 'react';
 import AvatarSet from '../AvatarSet';
 import { FiRefreshCcw } from 'react-icons/fi';
+import { Navigate, useNavigate } from 'react-router';
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 interface Image {
   url: string;
@@ -22,18 +23,16 @@ const images: {
   },
 }
 
-interface InviteMessage {
-  gameId: string, 
-  gameMode: gameType,
-}
-
-function parseInviteMessage(content: string) {
-  const data: InviteMessage = JSON.parse(content);
+function parseInviteMessage(content: string, sender: User) {
+  const data: GameMessage = JSON.parse(content);
   const image = images[data.gameMode];
   const imageUrl = image ? image.url : '';
-  const p1 = 'dongkim';
+  const p1 = sender.nickname;
   const p2 = null;
-  const gameState = 'wait';
+  const gameState = 'none';
+  
+  const navigate = useNavigate();
+  const { inviteGameId, isObserve, setIsObserve, setInviteGameId } = useContext(MatchDataContext);
 
   function getGameState(state: string) {
     switch (state) {
@@ -48,6 +47,24 @@ function parseInviteMessage(content: string) {
     }
   }
 
+  // 플레이어로 입장하려는 경우 gameId 세팅 => navigate
+  // 옵저버로 입장하려는 경우 isObserve 세팅 => gameId 세팅 => navigate 
+  function handleObserveGameClick() {
+    setIsObserve(true);
+  }
+
+  function handleJoinGameClick() {
+    setInviteGameId(inviteGameId);
+  }
+
+  useEffect(() => {
+    setInviteGameId(inviteGameId);
+  }, [isObserve])
+
+  useEffect(() => {
+    navigate('/game');
+  }, [inviteGameId]);
+
   return (
     <div className="relative">
       <div className="flex flex-col items-center">
@@ -61,8 +78,16 @@ function parseInviteMessage(content: string) {
         <img src={imageUrl} alt={image?.title} style={{ width:'100%'}} />
 
         <div className="mt-2 flex space-x-2">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg">게임 참여하기</button>
-          <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-lg">관전하기</button>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg"
+            onClick={handleJoinGameClick}>
+            게임 참여하기
+          </button>
+          <button
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-lg"
+            onClick={handleObserveGameClick}>
+            관전하기
+          </button>
         </div>
       </div>
 
@@ -117,7 +142,7 @@ const MessageCard: FC<MessageCardProps> = ({
             isMyMessage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
           } break-all`}
         >
-          {message.type === 'message' ? message.content : parseInviteMessage(message.content)}
+          {message.type === 'message' ? message.content : parseInviteMessage(message.content, sender)}
         </div>
         {isLastMessage && <p className="text-xs text-gray-500 mt-1">{message.created_at}</p>}
       </div>

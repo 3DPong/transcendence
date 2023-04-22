@@ -12,7 +12,6 @@ import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
 import { useError } from '@/context/ErrorContext';
 import { useSocket } from '@/context/SocketContext';
-import GameModal from './GameModal';
 import { MatchDataContext } from '@/context/MatchDataContext';
 
 interface ChatDetailProps {}

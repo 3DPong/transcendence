@@ -128,15 +128,6 @@ const LocalChatList: FC<ChatListProps> = () => {
         return;
       }
       setIsLoading(false);
-
-      // 소켓연결 Connect 호출
-
-      console.log("======chatConnectBef======");
-      if (loggedUserId) {
-        chatConnect();
-        console.log("======chatConnectAft======");
-      }
-      // ======
     }
     if (loggedUserId) fetchChannels();
   }, [loggedUserId]);
