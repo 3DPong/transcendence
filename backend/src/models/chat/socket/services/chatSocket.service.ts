@@ -9,6 +9,7 @@ import {
   ChatChannel,
   DmChannel,
   MessageLog,
+  MessageType,
   MuteStatus,
 } from '../../entities';
 import { Repository } from 'typeorm';
@@ -76,7 +77,8 @@ export class ChatSocketService {
 
   async sendChatMessage(server: Server, user_id: number, md: MessageDto, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
-    if (md.message === '' || isWhitespace(md.message)) throw new SocketException('BadRequest', `내용을 입력해주세요!`);
+    if ((md.type === MessageType.MESSAGE && md.message === null) || md.message === '' || isWhitespace(md.message))
+      throw new SocketException('BadRequest', `내용을 입력해주세요!`);
 
     let dmUser;
     const channel = await this.getChannel(md.channel_id);
@@ -226,6 +228,7 @@ export class ChatSocketService {
       channel_id: md.channel_id,
       user_id,
       content: md.message,
+      type: md.type,
     });
     await this.messageLogRepository.save(newLog);
     return newLog;

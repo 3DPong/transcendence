@@ -46,14 +46,6 @@ export class JoinDto {
   password!: string | null;
 }
 
-// export class LogDto {
-
-// 	@IsNotEmpty()
-// 	@IsString()
-// 	@MaxLength(80)
-// 	content: string;
-// }
-
 export class UserIdDto {
   @IsNotEmpty()
   @IsNumber()
@@ -64,16 +56,3 @@ export class UserIdDto {
   role: ChannelUserRoles;
 }
 
-// export class User {
-// 	@IsNotEmpty()
-// 	@IsNumber()
-//   user_id: number;
-
-// 	@IsNotEmpty()
-// 	@IsString()
-//   nickname: string;
-
-// 	@IsNotEmpty()
-// 	@IsNumber()
-//   socket_id: string;
-// }
