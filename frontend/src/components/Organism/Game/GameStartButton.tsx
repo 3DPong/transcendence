@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -18,6 +18,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { green } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
 import {useNavigate} from "react-router";
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 // https://mui.com/material-ui/customization/color/
 
@@ -58,12 +59,14 @@ export default function GameMatchingDialog({
   const { handleError } = useError();
   const navigate = useNavigate();
 
+  const { inviteChannelId, setInviteChannelId } = useContext(MatchDataContext);
+
   const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
     if (reason && reason === 'backdropClick') {
       console.log("ModeSelectDialog Close");
       navigate('/');
     }
-    setModeSelectDialogOpen(false);
+    setModeSelectDialogOpen(true);
   };
 
   const handleMatchingDialogOpen = () => {
@@ -81,6 +84,13 @@ export default function GameMatchingDialog({
     console.log("[DEV] handleProgressFinish")
     setMatchData(__matchDataCache);
   };
+
+  // --------------------------------------
+  // 게임 초대 버튼으로 페이지에 들어온 경우 버튼 생략
+  useEffect(() => {
+    if (inviteChannelId) {
+    }
+  }, [inviteChannelId]);
 
   // ---------------------------------------
   // 첫 렌더시 소켓 이벤트 등록, 사용자 정보 로드
@@ -159,6 +169,7 @@ export default function GameMatchingDialog({
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화
     setIsModeSelected(false); // 초기화
+    setInviteChannelId(null);
     navigate('/'); // 홈으로 이동.
   }, [cancelMatching]);
   // ---------------------------------------
@@ -168,7 +179,10 @@ export default function GameMatchingDialog({
       {/* ------------------ 게임 모드 선택 Dialog ------------------------------- */}
       <Dialog
         open={modeSelectDialogOpen}
-        onClose={handleModeSelectDialogClose}
+        onClose={() => {
+          setInviteChannelId(null);    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
+          handleModeSelectDialogClose();
+        }}
         aria-labelledby="select game mode"
         aria-describedby="select game mode"
         PaperProps={{ sx: { width: '50%' } }}
@@ -179,7 +193,7 @@ export default function GameMatchingDialog({
         </DialogContent>
         <DialogActions>
           {/* 게임 모드 선택 팝업 (socket.emit) */}
-          <ChooseModeButton setIsModeSelected={setIsModeSelected} />
+          <ChooseModeButton setIsModeSelected={setIsModeSelected}/>
         </DialogActions>
       </Dialog>
       {/* // Mode select */}

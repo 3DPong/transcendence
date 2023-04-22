@@ -28,6 +28,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
+import { MatchDataContext } from "@/context/MatchDataContext";
 
 export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
@@ -40,9 +41,12 @@ export default function Game() {
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
 
+  const {setInviteChannelId} = useContext(MatchDataContext);
+
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
+    setInviteChannelId(null);
   };
 
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function Game() {
     // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
       setMatchResult(matchResult);
+      setInviteChannelId(null);
     }
     gameSocket.on("matchEnd", handleGameEnd);
     return () => {
