@@ -36,3 +36,6 @@ export { getMySettings } from '@/api/me/settings';
 
 // Logout
 export { requestLogOut } from '@/api/logout/logout';
+
+// Chat
+export { fetchDM } from '@/api/chat/chat';
