@@ -6,14 +6,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import MessageSender from '@/components/Molecule/Chat/Detail/MessageSender';
 import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
-import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
-import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
 import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
 import { useError } from '@/context/ErrorContext';
 import { useSocket } from '@/context/SocketContext';
+import GameModal from './GameModal';
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 interface ChatDetailProps {}
 
@@ -33,11 +33,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [battleModalOpen, setBattleModalOpen] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
   const { handleError } = useError();
 
   const { chatSocket } = useSocket();
+
+  const { inviteChannelId, setInviteChannelId } = useContext(MatchDataContext);
 
   // 최신 상태 유지를 위한 ref
   const messagesRef = useRef<Message[]>([]);
@@ -138,12 +138,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       return muteRecord;
     }, {});
   }
-
-  const handleGameCreate = (gameType: string) => {
-    //createBattle();
-    setShowNotification(true);
-    setBattleModalOpen(false);
-  };
 
   // State들의 최신 상태 유지
   useEffect(() => {
@@ -287,22 +281,30 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   const [msgId, setMsgId] = useState(9000); 
+
   function sendInvite() {
+    setInviteChannelId(channelIdNumber);
     // TODO: 이벤트를 on 하는 방식으로 변경해야함. 
-    if (chatSocket && loggedUserId) {
-      // chatSocket.emit('message-chat', { message: `{gameId: ${177}}`, type: 'game', channel_id: channelIdNumber });
-      const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-      const msg: Message = {
-        id: msgId,
-        senderId: loggedUserId,
-        content: JSON.stringify({gameId: 10, gameMode: Math.random() % 2 ? 'normal' : 'special'}),
-        type: 'game' ,
-        created_at: formattedTime,
-      };
-      setMsgId(msgId + 1);
-      setMessages([...messagesRef.current, msg]);
-    }
+    // if (chatSocket && loggedUserId) {
+    //   // chatSocket.emit('message-chat', { message: `{gameId: ${177}}`, type: 'game', channel_id: channelIdNumber });
+    //   const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
+    //   const msg: Message = {
+    //     id: msgId,
+    //     senderId: loggedUserId,
+    //     content: JSON.stringify({gameId: 10, gameMode: Math.random() % 2 ? 'normal' : 'special'}),
+    //     type: 'game' ,
+    //     created_at: formattedTime,
+    //   };
+    //   setMsgId(msgId + 1);
+    //   setMessages([...messagesRef.current, msg]);
+    // }
   }
+  
+  // 초대 버튼을 누르는 순간 채널아이디가 세팅됨. 세팅된 이후에 navigate
+  useEffect(() => {
+    if (inviteChannelId)
+      navigate('/game');
+  }, [inviteChannelId])
 
   useEffect(() => {
     function cleanupTimers() {
@@ -330,7 +332,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
 
     async function init() {
       setMyRole(null);
-      setShowNotification(false);
+      setInviteChannelId(null);
       setDrawerOpen(false);
       try {
         const [usrs, mutes] = await Promise.all(
@@ -402,17 +404,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         sendMessage={sendMessage}
         handleBattleButton={sendInvite}
       />
-
-      <BattleRequestModal
-        open={battleModalOpen}
-        onClose={() => setBattleModalOpen(false)}
-        onGameCreate={handleGameCreate}
-      />
-      {showNotification && (
-        <div className="absolute top-14 left-0 right-0 ">
-          <BattleNotification onClose={() => setShowNotification(false)} />
-        </div>
-      )}
     </div>
   );
 };

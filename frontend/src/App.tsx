@@ -33,6 +33,7 @@ import {Home} from "@/components/Organism/Home/Home";
 import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 import { GameTest } from "@/components/Test/GameTest";
 import ChatProfileTemplate from "./components/ChatProfileTemplate";
+import { MatchProvider } from "./context/MatchDataContext";
 
 
 
@@ -164,19 +165,21 @@ function App() {
 
   return (
     <div>
-      <SocketProvider>
-        <ErrorProvider>
-          <div className="App">
-            <header className="App-header">
-              <GlobalContext.Provider
-                value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-              >
-                <RouterProvider router={router} />
-              </GlobalContext.Provider>
-            </header>
-          </div>
-        </ErrorProvider>
-      </SocketProvider>
+      <MatchProvider>
+        <SocketProvider>
+          <ErrorProvider>
+            <div className="App">
+              <header className="App-header">
+                <GlobalContext.Provider
+                  value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+                >
+                  <RouterProvider router={router} />
+                </GlobalContext.Provider>
+              </header>
+            </div>
+          </ErrorProvider>
+        </SocketProvider>
+      </MatchProvider>
     </div>
   );
 }
