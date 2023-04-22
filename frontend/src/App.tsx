@@ -31,6 +31,8 @@ import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
 import {Home} from "@/components/Organism/Home/Home";
 import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
+import { GameTest } from "@/components/Test/GameTest";
+import ChatProfileTemplate from "./components/ChatProfileTemplate";
 
 
 
@@ -130,6 +132,12 @@ const router = createBrowserRouter([
           {
             path: ":channelId",
             element: <ChatTemplate organism={<ChatDetail />} />,
+            children: [
+              {
+                path: "profile/:userId",
+                element: <ChatProfileTemplate organism={<Profile />} />,
+              },
+            ],
           },
         ],
       },

@@ -17,6 +17,7 @@ export interface Message {
   id: number;
   senderId: number;
   content: string;
+  type: MessageType;
   created_at: string;
 }
 
@@ -54,3 +55,4 @@ export const defaultChannel: Channel = {
 export type UserRole = 'owner' | 'admin' | 'user' | 'none';
 export type UserStatus = 'online' | 'offline' | 'ingame' | 'none';
 export type ChannelType = 'protected' | 'private' | 'public' | 'dm' | 'none';
+export type MessageType = 'message' | 'game';

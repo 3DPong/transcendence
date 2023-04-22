@@ -27,7 +27,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
 
   const handleCreate = () => {
     async function createChat() {
-      const response = await fetch(API_URL + '/chat/' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

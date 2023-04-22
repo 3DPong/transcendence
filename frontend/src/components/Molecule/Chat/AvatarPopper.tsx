@@ -3,7 +3,7 @@ import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/mater
 import ChatContext from '@/context/ChatContext';
 import { ChatUser } from '@/types/chat';
 import { useSocket } from '@/context/SocketContext';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import { useError } from '@/context/ErrorContext';
@@ -29,9 +29,11 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   const { chatSocket } = useSocket();
   const { channelId } = useParams();
 
-  const { loggedUserId } = useContext(GlobalContext);
+  const { loggedUserId, channels, setChannels } = useContext(GlobalContext);
 
   const { handleError } = useError();
+
+  const navigate = useNavigate();
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -59,13 +61,14 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   // 여기선 보내기만하고 상태 변경은 최상단에서
   function handleProfileClick(id: number) {
     console.log(id + ' is profile');
+    navigate('./profile/' + id); // 이렇게 해도 되고
     handleClose();
   }
 
   function handleDMClick(id: number) {
     console.log(id + ' is DM');
     async function fetchDM() {
-      const response = await fetch(API_URL + '/chat/dm' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/dm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +82,21 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
         handleError('Send DM', error.message);
         return;
       }
-      const parse = await response.json();
+      const ch = await response.json();
+      const newChannel = {
+        id: ch.channel_id,
+        type: ch.type,
+        title: ch.owner.nickname + '님과의 DM',
+        thumbnail: ch.owner.profile_url,
+        owner: {
+          id: ch.owner.user_id,
+          nickname: ch.owner.nickname,
+          profile: ch.owner.profile_url,
+        },
+      };
+      if (-1 === channels.findIndex((ch)=>(ch.id === newChannel.id)))
+        setChannels([newChannel, ...channels]);
+      navigate('/channels/' + ch.channel_id, { state: undefined });
       console.log(response);
     }
     fetchDM();
@@ -140,7 +157,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleGrantClick(id: number) {
     console.log(id + ' is Grant');
     async function fetchGrant() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +179,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleRevokeClick(id: number) {
     console.log(id + ' is Revoke');
     async function fetchRevoke() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
