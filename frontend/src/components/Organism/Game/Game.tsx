@@ -33,90 +33,39 @@ export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const {loggedUserId} = useContext(GlobalContext);
-  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
 
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
 
+  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
+
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
-  };
-
-  useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
-    gameConnect();
-  }, [loggedUserId])
-
-  /** ----------------------------------------
-   *              Game Socket
-   ------------------------------------------- */
-  useEffect(() => {
-    if (!gameSocket) return;
-    gameSocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    gameSocket.on('connect', () => {
-      console.log('[gameSocket] 서버와 연결되었습니다.');
-    });
-    gameSocket.on('my_connect', () => {
-      console.log('[gameSocket] nest서버와 연결');
-    });
-    gameSocket.on('disconnect', () => {
-      console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    // if game finished
-    function handleGameEnd(matchResult: gameType.matchResult) {
-      setMatchResult(matchResult);
-    }
-    gameSocket.on("matchEnd", handleGameEnd);
-    return () => {
-      gameSocket.off("connect_error");
-      gameSocket.off("connect");
-      gameSocket.off("my_connect");
-      gameSocket.off("disconnect");
-      gameSocket.off("matchEnd", handleGameEnd);
-    }
-  }, [gameSocket]);
-
-  /** ----------------------------------------
-   *              Notify Socket
-   ------------------------------------------- */
-  useEffect(() => {
-    if (!notifySocket) return;
-    notifySocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    notifySocket.on('connect', () => {
-      console.log('[notifySocket] 서버와 연결되었습니다.');
-    });
-    notifySocket.on('my_connect', () => {
-      console.log('[notifySocket] nest서버와 연결');
-    });
-    notifySocket.on('disconnect', () => {
-      console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    return () => {
-      notifySocket.off("connect_error");
-      notifySocket.off("connect");
-      notifySocket.off("my_connect");
-      notifySocket.off("disconnect");
-    }
-  }, [notifySocket]);
-
-
+  }; 
 
   const playerData: gameType.PlayerData = {
     myNickName: myNickname,
     enemyNickName: enemyNickname,
   }
+
+  useEffect(() => {
+    if (!gameSocket) return;
+     // if game finished
+    function handleGameEnd(matchResult: gameType.matchResult) {
+      setMatchResult(matchResult);
+    }
+    gameSocket.on("matchEnd", handleGameEnd);
+    return () => {
+      gameSocket.off("matchEnd", handleGameEnd);
+    }
+  }, [gameSocket]); 
+
+
+
+
 
   if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
     return (

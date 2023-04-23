@@ -25,6 +25,7 @@ import SettingDialog from '@/components/Organism/Setting/SettingDialog';
 import {useContext, useEffect} from "react";
 import GlobalContext from "@/context/GlobalContext";
 import {useSocket} from "@/context/SocketContext";
+import { useError } from '@/context/ErrorContext';
 
 export enum eClickedBtn {
   NONE,
@@ -38,7 +39,8 @@ export default function Controller() {
   const [clickState, setClickState] = React.useState<eClickedBtn>(0);
   const [openSetting, setOpenSetting] = React.useState<boolean>(false);
   const {loggedUserId} = useContext(GlobalContext);
-  const {notifyConnect} = useSocket();
+  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
+  const {handleError} = useError();
 
   // ---------------------------------------------------------------
   // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
@@ -51,23 +53,91 @@ export default function Controller() {
 
   const toggleClickState = (srcState: eClickedBtn) => {
     setClickState((prev) => {
-      console.log(`[Controller] state ${prev} --> ${srcState}`)
-      if (srcState === eClickedBtn.GAME) {
-        return srcState;
+      // (1) 일단 상태 초기화
+      let finalState = eClickedBtn.NONE;
+      // (2) prev와 srcState이 다를 경우
+      if (prev !== srcState) {
+        finalState = srcState;
       }
-      return ((prev !== srcState) ? srcState : eClickedBtn.NONE);
+      if (srcState === eClickedBtn.GAME) {
+        finalState = eClickedBtn.NONE;
+      }
+      return finalState;
     });
   };
 
   const BUTTON_STYLE = '';
   const sx: SxProps = { width: '100%', aspectRatio: '1/1', border: 0.5, borderColor: 'gray' };
 
-  // Connect notify socket
+  /** ----------------------------------------
+   *              Game Socket
+   ------------------------------------------- */
+ useEffect(() => {
+    if (!loggedUserId) return;
+    console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
+    gameConnect();
+  }, [loggedUserId])
+
+  useEffect(() => {
+    if (!gameSocket) return;
+    gameSocket.on("connect_error", (err: Error)=>{
+      console.log(`connect error due to ${err.message}`);
+      console.log(`error cause : ${err.cause}`);
+      console.log(`error name : ${err.name}`);
+    })
+    gameSocket.on('connect', () => {
+      console.log('[gameSocket] 서버와 연결되었습니다.');
+    });
+    gameSocket.on('my_connect', () => {
+      console.log('[gameSocket] nest서버와 연결');
+    });
+    gameSocket.on('disconnect', () => {
+      console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
+      handleError('GameSocket', '서버와의 연결이 끊어졌습니다.', '/signin');
+    }); 
+    return () => {
+      gameSocket.off("connect_error");
+      gameSocket.off("connect");
+      gameSocket.off("my_connect");
+      gameSocket.off("disconnect");
+    }
+  }, [gameSocket]); 
+
+  /** ----------------------------------------
+   *              Notify Socket
+   ------------------------------------------- */
   useEffect(() => {
     if (!loggedUserId) return;
     console.log("[DEV] Connecting Notify Socket... at [Controller.tsx]");
     notifyConnect();
   }, [loggedUserId]);
+
+  useEffect(() => {
+    if (!notifySocket) return;
+    notifySocket.on("connect_error", (err: Error)=>{
+      console.log(`connect error due to ${err.message}`);
+      console.log(`error cause : ${err.cause}`);
+      console.log(`error name : ${err.name}`);
+    })
+    notifySocket.on('connect', () => {
+      console.log('[notifySocket] 서버와 연결되었습니다.');
+    });
+    notifySocket.on('my_connect', () => {
+      console.log('[notifySocket] nest서버와 연결');
+    });
+    notifySocket.on('disconnect', () => {
+      console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
+      handleError('NotifySocket', '서버와의 연결이 끊어졌습니다.', '/signin');
+    });
+    return () => {
+      notifySocket.off("connect_error");
+      notifySocket.off("connect");
+      notifySocket.off("my_connect");
+      notifySocket.off("disconnect");
+    }
+  }, [notifySocket]);
+
+
 
   return (
     <>
