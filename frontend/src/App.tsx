@@ -24,14 +24,13 @@ import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
+import { LoginError } from "./components/Organism/Login/LoginError";
 import { Auth2FaInput } from "./components/Organism/Login/2FA";
 import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
 import {Home} from "@/components/Organism/Home/Home";
-import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
-import { GameTest } from "@/components/Test/GameTest";
 import ChatProfileTemplate from "./components/ChatProfileTemplate";
 
 
@@ -68,6 +67,11 @@ const router = createBrowserRouter([
           <Auth2FaInput />
           <AlertSnackbar />
         </div>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/401",
+    element: <LoginError />,
     errorElement: <ErrorPage />,
   },
   // ----------------------------------------------------

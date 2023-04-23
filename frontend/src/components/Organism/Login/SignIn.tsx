@@ -29,8 +29,6 @@ function Icon42() {
   );
 }
 
-interface signInProps {}
-
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const {disconnectAll} = useSocket();
