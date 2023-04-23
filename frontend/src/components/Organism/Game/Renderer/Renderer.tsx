@@ -122,6 +122,7 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       console.log('gameSocket: [score] off');
       gameSocket.off('score', onScoreSentFromServer);
       console.log('Player has closed the game.');
+      alert('[DEV] gameSocket.emit(`exit`) called');
       gameSocket.emit('exit'); // 화면을 나가게 되면 그때 exit 신호를 보내야 함.
     };
   }, []);

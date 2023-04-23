@@ -154,7 +154,7 @@ export default function GameMatchingDialog({
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    console.log('매칭이 취소되었습니다.');
+    alert('[DEV] gameSocket.emit(exit) called');
     gameSocket.emit('exit');
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화
