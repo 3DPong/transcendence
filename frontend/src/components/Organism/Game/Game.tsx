@@ -29,12 +29,17 @@ import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
 import { MatchDataContext } from "@/context/MatchDataContext";
+import { useError } from "@/context/ErrorContext";
+import { Navigate, useNavigate } from "react-router";
 
 export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const {loggedUserId} = useContext(GlobalContext);
   const {gameSocket, gameConnect, notifySocket, notifyConnect, chatSocket } = useSocket();
+
+  const {handleError} = useError();
+  const navigate = useNavigate();
 
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
@@ -79,6 +84,11 @@ export default function Game() {
       setMatchResult(matchResult);
       clearInviteData();
     }
+    gameSocket.on('error', (message) => {
+      handleError('Socket Error', message.message);
+      clearInviteData();
+      navigate(-1);
+    });
     gameSocket.on("matchEnd", handleGameEnd);
     gameSocket.on('onGameInvite', (data) => {
       const inviteMessage = JSON.stringify({
@@ -95,6 +105,7 @@ export default function Game() {
       gameSocket.off("disconnect");
       gameSocket.off("matchEnd", handleGameEnd);
       gameSocket.off('onGameInvite');
+      gameSocket.off('error');
     }
   }, [gameSocket]);
 
