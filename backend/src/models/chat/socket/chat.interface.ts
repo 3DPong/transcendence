@@ -37,5 +37,6 @@ export interface ChannelInterface {
   channel_id: number;
   name: string;
   type: ChannelType;
+  thumbnail_url: string;
   owner: Owner;
 }
