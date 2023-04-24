@@ -40,7 +40,7 @@ export default function Controller() {
   const [clickState, setClickState] = React.useState<eClickedBtn>(0);
   const [openSetting, setOpenSetting] = React.useState<boolean>(false);
   const {loggedUserId} = useContext(GlobalContext);
-  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
+  const {gameSocket, gameConnect, notifySocket, notifyConnect, chatSocket, chatConnect} = useSocket();
   const {handleError} = useError();
   const navigate = useNavigate();
 
@@ -71,15 +71,22 @@ export default function Controller() {
   const BUTTON_STYLE = '';
   const sx: SxProps = { width: '100%', aspectRatio: '1/1', border: 0.5, borderColor: 'gray' };
 
+
+ /** ----------------------------------------
+   *             Socket Connect
+   ------------------------------------------- */
+  useEffect(() => {
+    if (!loggedUserId) return;
+    console.log("[DEV] Connecting Sockets... at [Controller.tsx]");
+    notifyConnect();
+    chatConnect();
+    gameConnect();
+  }, [loggedUserId]);
+
+
   /** ----------------------------------------
    *              Game Socket
    ------------------------------------------- */
- useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
-    gameConnect();
-  }, [loggedUserId])
-
   useEffect(() => {
     if (!gameSocket) return;
     gameSocket.on("connect_error", (err: Error)=>{
@@ -96,24 +103,27 @@ export default function Controller() {
     gameSocket.on('disconnect', () => {
       console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
       handleError('GameSocket', '서버와의 연결이 끊어졌습니다.', '/signin');
-    }); 
+    });
+    gameSocket.on('onGameInvite', (data) => {
+      const inviteMessage = JSON.stringify({
+        gameId: data.gameId,
+        gameMode: data.gameMode || 'normal',
+      });
+      if (chatSocket)
+        chatSocket.emit('message-chat', { message: inviteMessage, type: 'game', channel_id: data.channelId });
+    });
     return () => {
       gameSocket.off("connect_error");
       gameSocket.off("connect");
       gameSocket.off("my_connect");
       gameSocket.off("disconnect");
+      gameSocket.off('onGameInvite');
     }
   }, [gameSocket]); 
 
   /** ----------------------------------------
    *              Notify Socket
    ------------------------------------------- */
-  useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Notify Socket... at [Controller.tsx]");
-    notifyConnect();
-  }, [loggedUserId]);
-
   useEffect(() => {
     if (!notifySocket) return;
     notifySocket.on("connect_error", (err: Error)=>{

@@ -28,44 +28,54 @@ import ClearIcon from "@mui/icons-material/Clear";
 import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
+import { MatchDataContext } from "@/context/MatchDataContext";
+import { useError } from "@/context/ErrorContext";
+import { Navigate, useNavigate } from "react-router";
 
 export default function Game() {
+  const {gameSocket, notifySocket } = useSocket();
+  const {handleError} = useError();
+  const {loggedUserId} = useContext(GlobalContext);
+  const {clearInviteData} = useContext(MatchDataContext);
+  const navigate = useNavigate();
+  
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
-  const {loggedUserId} = useContext(GlobalContext);
-
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
-
-  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
-
+ 
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
-  }; 
-
-  const playerData: gameType.PlayerData = {
-    myNickName: myNickname,
-    enemyNickName: enemyNickname,
-  }
+    clearInviteData();
+  };
 
   useEffect(() => {
     if (!gameSocket) return;
+    // 게임 도중 발생한 소켓 에러?
+    gameSocket.on('error', (message) => {
+      handleError('Socket Error', message.message);
+      clearInviteData();
+      navigate(-1);
+    });
      // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
       setMatchResult(matchResult);
+      clearInviteData();
     }
     gameSocket.on("matchEnd", handleGameEnd);
     return () => {
       gameSocket.off("matchEnd", handleGameEnd);
+      gameSocket.off('error');
     }
   }, [gameSocket]); 
-
-
-
-
+  
+  const playerData: gameType.PlayerData = {
+    myNickName: myNickname,
+    enemyNickName: enemyNickname,
+  }
 
   if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
     return (

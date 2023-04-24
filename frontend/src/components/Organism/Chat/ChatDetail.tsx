@@ -2,22 +2,22 @@ import { FC, useContext, useEffect, useState, useRef } from 'react';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { Channel, ChatUser, defaultChannel, Message, UserRole } from '@/types/chat';
 
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import MessageSender from '@/components/Molecule/Chat/Detail/MessageSender';
 import MessageList from '@/components/Molecule/Chat/Detail/MessageList';
 import MessageHeader from '@/components/Molecule/Chat/Detail/MessageHeader';
-import BattleRequestModal from '@/components/Molecule/Chat/Detail/BattleRequestModal';
-import BattleNotification from '@/components/Molecule/Chat/Detail/BattleNotification';
 import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
 import { useError } from '@/context/ErrorContext';
 import { useSocket } from '@/context/SocketContext';
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 interface ChatDetailProps {}
 
 const ChatDetail: FC<ChatDetailProps> = () => {
+  const navigate = useNavigate();
   const { channels, loggedUserId } = useContext(GlobalContext);
   const { channelId } = useParams();
   const channelIdNumber = Number(channelId);
@@ -32,11 +32,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [battleModalOpen, setBattleModalOpen] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
   const { handleError } = useError();
 
   const { chatSocket } = useSocket();
+
+  const { inviteChannelId, setInviteChannelId } = useContext(MatchDataContext);
 
   // 최신 상태 유지를 위한 ref
   const messagesRef = useRef<Message[]>([]);
@@ -67,10 +67,26 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     );
   }
 
+  async function fetchUsersByChannelIdforDM(_channelId: number) {
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/users');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Unknown error occurred');
+    }
+    const fetchUsers = await response.json();
+    const usrs: ChatUser[] = fetchUsers.map((usr: any) => ({
+      id: usr.userId,
+      profile: usr.profile_url,
+      nickname: usr.userName,
+      role: 'user',
+      status: 'none',
+      deleted_at: null,
+    }));
+    return usrs;
+  }
+
   async function fetchUsersByChannelId(_channelId: number) {
-    const response = await fetch(API_URL + '/chat/' + _channelId + '/users', {
-      cache: 'no-cache',
-    });
+    const response = await fetch(API_URL + '/chat/' + _channelId + '/users');
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Unknown error occurred');
@@ -122,28 +138,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
     }, {});
   }
 
-  const handleGameCreate = (gameType: string) => {
-    //createBattle();
-    setShowNotification(true);
-    setBattleModalOpen(false);
-  };
-
-  useEffect(() => {
-    async function fetchAdminList() {
-      const [bans] = await Promise.all([
-        fetchBanListByChannelId(channelIdNumber),
-      ]);
-      // console.log("fetchBans: ", bans);
-      // console.log("fetchMute: ", mutes);
-      setBanList(bans);
-    }
-    if (myRole !== null) {
-      if (["admin", "owner"].includes(myRole)) {
-        fetchAdminList();
-      }
-    }
-  }, [myRole]);
-
   // State들의 최신 상태 유지
   useEffect(() => {
     messagesRef.current = messages;
@@ -173,18 +167,19 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   }
 
   useEffect(() => {
+    setMyRole(null);
+
     if (chatSocket) {
       chatSocket.emit('enter-chat', { channel_id: channelId } );
     }
 
     if (chatSocket) {
-      // 이게 의미가 있나? 현재 채팅방의 이벤트인지 확인 후 처리
       chatSocket.on('chat', (message) => {
         const msg: Message = {
           id: message.message_id,
           senderId: message.user_id,
           content: message.content,
-          type: message.type,
+          type: message.type || 'message',
           created_at: new Date(Date.parse(message.created_at)).toISOString().replace('T', ' ').slice(0, -5),
         };
         setMessages([...messagesRef.current, msg]);
@@ -278,29 +273,18 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
       chatSocket.emit('message-chat', { message: textContent, type: 'message', channel_id: channelIdNumber });
-      // const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-      // const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
-      // setMessages([...messages, message]);
     }
   }
 
-  const [msgId, setMsgId] = useState(9000); 
   function sendInvite() {
-    // 이벤트를 on 하는 방식으로 변경해야함. 
-    if (chatSocket && loggedUserId) {
-      // chatSocket.emit('message-chat', { message: `{gameId: ${177}}`, type: 'game', channel_id: channelIdNumber });
-      const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-      const msg: Message = {
-        id: msgId,
-        senderId: loggedUserId,
-        content: JSON.stringify({gameId: 10, gameMode: Math.random() % 2 ? 'normal' : 'special'}),
-        type: 'game' ,
-        created_at: formattedTime,
-      };
-      setMsgId(msgId + 1);
-      setMessages([...messagesRef.current, msg]);
-    }
+    setInviteChannelId(channelIdNumber);
   }
+  
+  // 초대 버튼을 누르는 순간 채널아이디가 세팅됨. 세팅된 이후에 navigate
+  useEffect(() => {
+    if (inviteChannelId)
+      navigate('/game');
+  }, [inviteChannelId])
 
   useEffect(() => {
     function cleanupTimers() {
@@ -312,32 +296,58 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       }
     };
 
+    async function fetchAdminList() {
+      try {
+        const [bans] = await Promise.all([
+          fetchBanListByChannelId(channelIdNumber),
+        ]);
+        // console.log("fetchBans: ", bans);
+        // console.log("fetchMute: ", mutes);
+        setBanList(bans);
+      }
+      catch {
+        setBanList([]);
+      }
+    }
+
     async function init() {
       setMyRole(null);
-      setShowNotification(false);
+      setInviteChannelId(null);
       setDrawerOpen(false);
       try {
-        const [usrs, mutes] = await Promise.all([
-          fetchUsersByChannelId(channelIdNumber),
-          fetchMuteListByChannelId(channelIdNumber),
-        ]);
+        const [usrs, mutes] = await Promise.all(
+        channel.type === 'dm' ?
+        [ fetchUsersByChannelIdforDM(channelIdNumber)] :
+        [ fetchUsersByChannelId(channelIdNumber),
+          fetchMuteListByChannelId(channelIdNumber)]);
         setUsers(usrs);
-        setMuteList(mutes);
-        setMyRole(usrs.find((u) => u.id === loggedUserId)?.role || 'none');
+        setMuteList(mutes || []);
+        const currentRole = usrs.find((u) => u.id === loggedUserId)?.role || 'none';
+        setMyRole(currentRole);
+        if (currentRole) {
+          if (['admin', 'owner'].includes(currentRole)) {
+            console.log(currentRole);
+            await fetchAdminList();
+          }
+        }
       } catch (error) {
         handleError('Init Fetch', (error as Error).message);
       }
     }
-    if (loggedUserId)
+    if (channel.id !== 0 && loggedUserId) {
       init();
-    return ()=>{
+    }
+    return () => {
       cleanupTimers();
     }
-  }, [channelId, loggedUserId]);
+  }, [channel, loggedUserId]);
 
   useEffect(() => {
     const channel = channels.find((ch) => ch.id === channelIdNumber);
-    if (channel) setChannel(channel);
+    if (channel)
+      setChannel(channel);
+    else
+      navigate('/channels', { replace: true });
   }, [channelId, channels]);
 
   return (
@@ -374,17 +384,6 @@ const ChatDetail: FC<ChatDetailProps> = () => {
         sendMessage={sendMessage}
         handleBattleButton={sendInvite}
       />
-
-      <BattleRequestModal
-        open={battleModalOpen}
-        onClose={() => setBattleModalOpen(false)}
-        onGameCreate={handleGameCreate}
-      />
-      {showNotification && (
-        <div className="absolute top-14 left-0 right-0 ">
-          <BattleNotification onClose={() => setShowNotification(false)} />
-        </div>
-      )}
     </div>
   );
 };

@@ -34,7 +34,7 @@ import {Home} from "@/components/Organism/Home/Home";
 import ChatProfileTemplate from "./components/ChatProfileTemplate";
 import {SignInError} from "@/components/Organism/Login/SignInError";
 import {ServerError} from "@/components/Organism/Login/ServerError";
-
+import { MatchProvider } from "./context/MatchDataContext";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -191,19 +191,21 @@ function App() {
 
   return (
     <div>
-      <SocketProvider>
-        <ErrorProvider>
-          <div className="App">
-            <header className="App-header">
-              <GlobalContext.Provider
-                value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-              >
-                <RouterProvider router={router} />
-              </GlobalContext.Provider>
-            </header>
-          </div>
-        </ErrorProvider>
-      </SocketProvider>
+      <MatchProvider>
+        <SocketProvider>
+          <ErrorProvider>
+            <div className="App">
+              <header className="App-header">
+                <GlobalContext.Provider
+                  value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+                >
+                  <RouterProvider router={router} />
+                </GlobalContext.Provider>
+              </header>
+            </div>
+          </ErrorProvider>
+        </SocketProvider>
+      </MatchProvider>
     </div>
   );
 }

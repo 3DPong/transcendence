@@ -8,6 +8,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { API_URL } from '@/../config/backend';
 import { useError } from '@/context/ErrorContext';
 import InviteList from '@/components/Molecule/Chat/InviteList';
+import { uploadImageToServer } from '@/api/API';
 
 interface ChannelSettingProps {
   handleClose: () => void;
@@ -25,6 +26,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
 
   const { setChannels, loggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
+  const minLen = 1;
 
   useEffect(() => {
     setTitle(channel.title);
@@ -34,6 +36,24 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
 
   function handleSave() {
     async function updateChannel() {
+
+      if (title.length < minLen) {
+        handleError('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
+        return;
+      }
+      if (type === 'protected' && password.length < minLen) {
+        handleError('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
+        return;
+      }
+
+      let imageToSubmit: string | undefined;
+      if (thumbnail) {
+        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        if (serverSideImageUrl) {
+          console.log("[DEV] uploadImage Success");
+          imageToSubmit = serverSideImageUrl;
+        }
+      }
       const response = await fetch(API_URL + '/chat/' + channel.id + '/update', {
         method: 'PUT',
         headers: {
@@ -44,7 +64,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: thumbnail,
+          thumbnail_url: imageToSubmit || defaultThumbnail,
         }),
       });
       if (!response.ok) {
@@ -74,7 +94,6 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
             newUserList.push(newUser);
           }
         }
-        console.log("=== set USER!! 1 ===");
         setUserList(newUserList);
       }
       // setUsersWithoutExist();
@@ -91,7 +110,13 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
       <ImageUpload width={100} height={100} thumbnail={thumbnail} setThumbnail={setThumbnail} />
       <Box component="form" sx={{ mt: 1 }}>
         <div className="mb-6">
-          <TextField state={title} label="채팅방 제목" placeholder="제목을 입력하세요" setState={setTitle} />
+          <TextField
+            state={title}
+            label="채팅방 제목"
+            placeholder="제목을 입력하세요"
+            setState={setTitle}
+            helperText={title.length < minLen ? `${minLen}글자 이상 입력하세요` : ''}
+          />
         </div>
         <ChatTypeToggle type={type} setType={setType} />
         {'protected' === type && (
@@ -102,6 +127,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
               state={password}
               setState={setPassword}
               placeholder="비밀번호를 입력하세요"
+              helperText={password.length < minLen ? `${minLen}글자 이상 입력하세요` : ''}
             />
           </div>
         )}

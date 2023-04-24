@@ -14,6 +14,13 @@ export interface MatchJoinData {
   gameType: gameType; // 게임 모드
 }
 
+export interface ChatJoinData {
+	channelId : number;
+	gameId : string | null;
+	roomType: roomType; // 방 타입
+	gameType: gameType; // 게임 모드
+}
+
 export interface Vec2 {
   x: number;
   y: number;
