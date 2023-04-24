@@ -24,7 +24,7 @@ import { Channel } from "@/types/chat";
 import { friendData_t } from "./types/user";
 import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
-import { LoginError } from "./components/Organism/Login/LoginError";
+import { SignInDuplicatedError } from "./components/Organism/Login/SignInDuplicatedError";
 import { Auth2FaInput } from "./components/Organism/Login/2FA";
 import { ErrorProvider } from "@/context/ErrorContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
@@ -32,7 +32,8 @@ import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
 import {Home} from "@/components/Organism/Home/Home";
 import ChatProfileTemplate from "./components/ChatProfileTemplate";
-
+import {SignInError} from "@/components/Organism/Login/SignInError";
+import {ServerError} from "@/components/Organism/Login/ServerError";
 
 
 const router = createBrowserRouter([
@@ -70,8 +71,30 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/401",
-    element: <LoginError />,
+    path: "/signin_duplicated",
+    element:
+        <div>
+          <SignInDuplicatedError />
+          <AlertSnackbar />
+        </div>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/signin_fail",
+    element:
+        <div>
+          <SignInError />
+          <AlertSnackbar />
+        </div>,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/server_error",
+    element:
+        <div>
+          <ServerError />
+          <AlertSnackbar />
+        </div>,
     errorElement: <ErrorPage />,
   },
   // ----------------------------------------------------

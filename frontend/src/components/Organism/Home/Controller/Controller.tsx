@@ -26,6 +26,7 @@ import {useContext, useEffect} from "react";
 import GlobalContext from "@/context/GlobalContext";
 import {useSocket} from "@/context/SocketContext";
 import { useError } from '@/context/ErrorContext';
+import {useNavigate} from "react-router";
 
 export enum eClickedBtn {
   NONE,
@@ -41,6 +42,7 @@ export default function Controller() {
   const {loggedUserId} = useContext(GlobalContext);
   const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
   const {handleError} = useError();
+  const navigate = useNavigate();
 
   // ---------------------------------------------------------------
   // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
@@ -115,10 +117,15 @@ export default function Controller() {
   useEffect(() => {
     if (!notifySocket) return;
     notifySocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
+        console.log(`connect error due to ${err.message}`);
+        console.log(`error cause : ${err.cause}`);
+        console.log(`error name : ${err.name}`);
+    });
+    notifySocket.on("duplicate_error", () => {
+      (async () => {
+        navigate('/signin_duplicated');
+      })(/* IIFE */);
+    });
     notifySocket.on('connect', () => {
       console.log('[notifySocket] 서버와 연결되었습니다.');
     });
@@ -127,13 +134,14 @@ export default function Controller() {
     });
     notifySocket.on('disconnect', () => {
       console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
-      handleError('NotifySocket', '서버와의 연결이 끊어졌습니다.', '/signin');
+      handleError('NotifySocket', '서버와의 연결이 끊어졌습니다.', '/server_error');
     });
     return () => {
       notifySocket.off("connect_error");
       notifySocket.off("connect");
       notifySocket.off("my_connect");
       notifySocket.off("disconnect");
+      notifySocket.off("duplicate_error");
     }
   }, [notifySocket]);
 
