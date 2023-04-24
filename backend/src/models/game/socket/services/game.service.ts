@@ -133,10 +133,10 @@ export class GameService {
     if (!gameManager) return;
 
     if (gameManager.playerCount === 1 && this.isGamePalyer(gameManager, client.id)) {
-      this.socketLeaveRoom(client, gameManager.gameId);
       gameRooms.delete(client.data.gameId);
-      
+      this.socketLeaveRoom(client, gameManager.gameId);
       this.logger.log(`${client.id} is disconnect game socket and delete ${gameManager.gameId}`);
+      
     } else if (
       gameManager.playerCount === 2 && 
       gameManager.simulator.matchInterrupt.isInterrupt === false
@@ -145,8 +145,8 @@ export class GameService {
         this.matchGiveUp(gameManager, client.id);
         this.logger.log(`${client.id} player disconnect and giveUp game`);
       } else { //observer
-        this.socketLeaveRoom(client, gameManager.gameId);
         this.logger.log(`${client.id} observer leave game room`);
+        this.socketLeaveRoom(client, gameManager.gameId);
       }
     }
   }
