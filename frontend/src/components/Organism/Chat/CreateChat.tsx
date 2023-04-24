@@ -10,6 +10,7 @@ import { API_URL } from '@/../config/backend';
 import { useNavigate } from 'react-router';
 import GlobalContext from '@/context/GlobalContext';
 import { useError } from '@/context/ErrorContext';
+import { uploadImageToServer } from '@/api/API';
 
 interface CreateChatRoomProps {
   //onCreate: (title: string, type: ChatType, password: string, invitedUsers: string[]) => void;
@@ -20,13 +21,22 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [type, setType] = useState<ChannelType>('public');
   const [password, setPassword] = useState('');
   const [inviteUsers, setInviteUsers] = useState<User[]>([]);
-  const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
+  const [thumbnail, setThumbnail] = useState<string>('');
   const navigate = useNavigate();
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
 
   const handleCreate = () => {
     async function createChat() {
+      let imageToSubmit: string | undefined;
+      if (thumbnail) {
+        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        if (serverSideImageUrl) {
+          console.log("[DEV] uploadImage Success");
+          imageToSubmit = serverSideImageUrl;
+        }
+      }
+
       const response = await fetch(API_URL + '/chat/', {
         method: 'POST',
         headers: {
@@ -37,7 +47,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: thumbnail,
+          thumbnail_url: imageToSubmit || defaultThumbnail,
         }),
       });
       if (!response.ok) {

@@ -52,8 +52,8 @@ const LocalChatList: FC<ChatListProps> = () => {
             const data = message.message;
             const ch: Channel = {
               id: data.channel_id,
-              title: data.name,
-              thumbnail: data.thumbnail_url,
+              title: data.type === 'dm' ? data.owner.nickname + '님과의 DM' : data.name,
+              thumbnail: data.type === 'dm' ? data.owner.profile_url : data.thumbnale_url,
               type: data.type,
               owner: {
                 id: data.owner.user_id,
@@ -128,15 +128,6 @@ const LocalChatList: FC<ChatListProps> = () => {
         return;
       }
       setIsLoading(false);
-
-      // 소켓연결 Connect 호출
-
-      console.log("======chatConnectBef======");
-      if (loggedUserId) {
-        chatConnect();
-        console.log("======chatConnectAft======");
-      }
-      // ======
     }
     if (loggedUserId) fetchChannels();
   }, [loggedUserId]);

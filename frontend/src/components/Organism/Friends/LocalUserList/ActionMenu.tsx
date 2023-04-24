@@ -30,7 +30,7 @@ interface userActionMenuProps {
 }
 
 export default function UserActionMenu({ user }: userActionMenuProps) {
-  const { setFriends } = useContext(GlobalContext);
+  const { setFriends, channels, setChannels } = useContext(GlobalContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const currentUrl = useLocation().pathname;
@@ -52,6 +52,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   // DM 보내기 버튼
   const handleSendMessageRoute = () => {
     setAnchorEl(null);
+    API.fetchDM(user.user_id, navigate, handleError, channels, setChannels);
     console.log('DM 보내기');
     // ...
   };

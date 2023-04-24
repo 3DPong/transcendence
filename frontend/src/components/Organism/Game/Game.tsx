@@ -28,21 +28,25 @@ import ClearIcon from "@mui/icons-material/Clear";
 import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
+import { MatchDataContext } from "@/context/MatchDataContext";
 
 export default function Game() {
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const {loggedUserId} = useContext(GlobalContext);
-  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
+  const {gameSocket, gameConnect, notifySocket, notifyConnect, chatSocket } = useSocket();
 
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
 
+  const {clearInviteData} = useContext(MatchDataContext);
+
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
+    clearInviteData();
   };
 
   useEffect(() => {
@@ -73,14 +77,24 @@ export default function Game() {
     // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
       setMatchResult(matchResult);
+      clearInviteData();
     }
     gameSocket.on("matchEnd", handleGameEnd);
+    gameSocket.on('onGameInvite', (data) => {
+      const inviteMessage = JSON.stringify({
+        gameId: data.gameId,
+        gameMode: data.gameMode || 'normal',
+      });
+      if (chatSocket)
+        chatSocket.emit('message-chat', { message: inviteMessage, type: 'game', channel_id: data.channelId });
+    });
     return () => {
       gameSocket.off("connect_error");
       gameSocket.off("connect");
       gameSocket.off("my_connect");
       gameSocket.off("disconnect");
       gameSocket.off("matchEnd", handleGameEnd);
+      gameSocket.off('onGameInvite');
     }
   }, [gameSocket]);
 

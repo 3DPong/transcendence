@@ -8,6 +8,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { API_URL } from '@/../config/backend';
 import { useError } from '@/context/ErrorContext';
 import InviteList from '@/components/Molecule/Chat/InviteList';
+import { uploadImageToServer } from '@/api/API';
 
 interface ChannelSettingProps {
   handleClose: () => void;
@@ -34,6 +35,14 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
 
   function handleSave() {
     async function updateChannel() {
+      let imageToSubmit: string | undefined;
+      if (thumbnail) {
+        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        if (serverSideImageUrl) {
+          console.log("[DEV] uploadImage Success");
+          imageToSubmit = serverSideImageUrl;
+        }
+      }
       const response = await fetch(API_URL + '/chat/' + channel.id + '/update', {
         method: 'PUT',
         headers: {
@@ -44,7 +53,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: thumbnail,
+          thumbnail_url: imageToSubmit || defaultThumbnail,
         }),
       });
       if (!response.ok) {

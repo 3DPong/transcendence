@@ -38,7 +38,7 @@ export default function Controller() {
   const [clickState, setClickState] = React.useState<eClickedBtn>(0);
   const [openSetting, setOpenSetting] = React.useState<boolean>(false);
   const {loggedUserId} = useContext(GlobalContext);
-  const {notifyConnect} = useSocket();
+  const {notifyConnect, chatConnect} = useSocket();
 
   // ---------------------------------------------------------------
   // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
@@ -67,6 +67,7 @@ export default function Controller() {
     if (!loggedUserId) return;
     console.log("[DEV] Connecting Notify Socket... at [Controller.tsx]");
     notifyConnect();
+    chatConnect();
   }, [loggedUserId]);
 
   return (

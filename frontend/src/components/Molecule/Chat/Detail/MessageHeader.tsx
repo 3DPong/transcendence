@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconButton, Typography } from '@mui/material';
 import { ArrowBack, Public, Lock, LockOpen, Person, Menu } from '@mui/icons-material';
 import { Channel, ChannelType } from '@/types/chat';
@@ -12,10 +11,6 @@ interface MessageHeaderProps {
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, handleMenuButton }) => {
   const navigate = useNavigate();
-
-  if (channel.id === 0) {
-    navigate('/channels', { replace: true });
-  }
 
   const getChannelTypeIcon = (type: ChannelType) => {
     switch (type) {
