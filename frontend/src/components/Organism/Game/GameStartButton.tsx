@@ -66,7 +66,7 @@ export default function GameMatchingDialog({
       console.log("ModeSelectDialog Close");
       navigate('/');
     }
-    setModeSelectDialogOpen(true);
+    setModeSelectDialogOpen(false);
   };
 
   const handleMatchingDialogOpen = () => {
