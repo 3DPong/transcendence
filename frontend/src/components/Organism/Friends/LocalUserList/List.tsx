@@ -54,7 +54,7 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
                   friend.status === userStatus.ONLINE ? "primary" : "secondary"
                 }
                 // variant="dot"
-                badgeContent={ friend.status === userStatus.ONLINE ? "online" : "offline" }
+                badgeContent="eqwewqe"
                 anchorOrigin={{
                   vertical: "top",
                   horizontal: "right",
@@ -102,6 +102,7 @@ export default function VirtualizedUserList(props: UserListProps) {
 
   // on first render
   useEffect(() => {
+
     (async () => {
       // 0. load start (used at MUI Skeleton)
       setIsLoading(true);
@@ -115,7 +116,7 @@ export default function VirtualizedUserList(props: UserListProps) {
           user_id: relation.target_id,
           nickname: relation.nickname,
           profile_url: relation.profile_url,
-          status: relation.status,
+          status: relation.status ? relation.status : 1
         };
       });
       setFriends(friendsList);

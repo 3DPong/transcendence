@@ -71,7 +71,8 @@ export interface Relation {
   nickname: string;
   profile_url: string;
   relation: 'friend' | 'block' | 'none';
-  status?: userStatus;
+  // status?: userStatus;
+  status: userStatus;
 }
 
 export interface GET_RelationResponseFormat {
@@ -98,6 +99,7 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
     return;
   }
   // on success
+
   const userData: GET_RelationResponseFormat = await validatedResponse.json();
   return userData.relations;
 }
