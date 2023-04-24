@@ -27,6 +27,7 @@ export class ChannelDto {
   inviteList!: number[] | null;
 
   @ValidateIf((object, value) => value !== null)
+  @IsUrl({ require_tld: false })
   thumbnail_url!: string | null;
 }
 

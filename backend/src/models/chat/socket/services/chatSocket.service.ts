@@ -151,7 +151,6 @@ export class ChatSocketService {
       throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     const banned = await this.checkBanUser(channel_id, user_id);
-    //const nickname = await this.getChannelUserName(channel_id, user_id);
 
     if (banned === BanStatus.Ban) {
       throw new SocketException('Forbidden', `이미 밴 상태입니다!`);
@@ -454,7 +453,7 @@ export class ChatSocketService {
   async getChannel(channel_id: number): Promise<ChatChannel> {
     const channel = await this.channelRepository.findOne(
       { 
-        select: { channel_id: true, name: true, type: true },
+        select: { channel_id: true, name: true, type: true, thumbnail_url: true },
         where: { channel_id } 
       });
     if (!channel) return null;
@@ -479,6 +478,7 @@ export class ChatSocketService {
       channel_id: channel.channel_id,
       name: channel.name,
       type: channel.type,
+      thumbnail_url: channel.thumbnail_url,
       owner: {
         user_id: second_user.user_id,
         nickname: second_user.nickname,

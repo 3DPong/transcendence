@@ -120,6 +120,7 @@ export class ChatService {
         'channel.channel_id',
         'channel.name',
         'channel.type',
+        'channel.thumbnail_url',
         'owner.user_id',
         'owner.nickname',
         'owner.profile_url',
@@ -150,6 +151,7 @@ export class ChatService {
       'channel.channel_id',
       'channel.name',
       'channel.type',
+      'channel.thumbnail_url',
       'owner.user_id',
       'owner.nickname',
       'owner.profile_url',
@@ -194,6 +196,7 @@ export class ChatService {
         'channel.channel_id',
         'channel.name',
         'channel.type',
+        'channel.thumbnail_url',
         'owner.user_id',
         'owner.nickname',
         'owner.profile_url',
@@ -210,6 +213,7 @@ export class ChatService {
         'channel.channel_id',
         'channel.name',
         'channel.type',
+        'channel.thumbnail_url',
         'owner.user_id',
         'owner.nickname',
         'owner.profile_url',
@@ -254,7 +258,7 @@ export class ChatService {
     return await this.messageLogRepository
       .createQueryBuilder('log')
       .innerJoin('log.channel', 'channel')
-      .select(['log.message_id', 'log.user_id', 'log.content', 'log.created_at', 'channel.type'])
+      .select(['log.message_id', 'log.user_id', 'log.content', 'log.created_at', 'log.type', 'channel.type'])
       .where('log.channel_id = :channel_id', { channel_id })
       .orderBy('log.created_at', 'DESC')
       .take(take)
@@ -395,10 +399,10 @@ export class ChatService {
     if (first_user.user_id === second_user.user_id)
       throw new BadRequestException(`자기 자신과 Dm을 생성할 수 없습니다.`);
     const dmChannel = await this.getDmChannel(first_user.user_id, second_user.user_id);
-    if (dmChannel) {
-      let user: User = null;
-      return this.channelResult(await this.getChannel(dmChannel.channel_id), 
-        user = dmChannel.first_user_id ===  first_user.user_id? dmChannel.second_user : dmChannel.first_user);
+    if (dmChannel) {  
+      const channel: ChatChannel = await this.getChannel(dmChannel.channel_id);
+      const user: User = dmChannel.first_user_id === first_user.user_id ? dmChannel.second_user : dmChannel.first_user;
+      return this.channelResult(channel, user);
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -568,6 +572,7 @@ export class ChatService {
         'channel.channel_id',
         'channel.name',
         'channel.type',
+        'channel.thumbnail_url',
         'owner.user_id',
         'owner.nickname',
         'owner.profile_url',
@@ -692,6 +697,7 @@ export class ChatService {
       channel_id: channel.channel_id,
       name: channel.name,
       type: channel.type,
+      thumbnail_url: channel.thumbnail_url,
       owner: {
         user_id: second_user.user_id,
         nickname: second_user.nickname,

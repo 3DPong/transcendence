@@ -20,7 +20,7 @@ export class MessageLog {
   @Column({ type: 'int' })
   user_id: number;
 
-  @Factory((faker) => faker.helpers.arrayElement(['message', 'game']))
+  @Factory((faker) => faker.helpers.arrayElement([MessageType.MESSAGE, MessageType.GAME]))
   @Column({ type: 'enum', enum: MessageType, default: MessageType.MESSAGE })
   type: MessageType;
 
