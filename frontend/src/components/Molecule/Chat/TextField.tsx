@@ -10,6 +10,7 @@ interface ITextFieldProps {
   type?: fieldType;
   label?: string;
   placeholder?: string;
+  helperText?: string;
 }
 
 export function TextField({
@@ -18,6 +19,7 @@ export function TextField({
   label = 'Label',
   placeholder = 'Placeholder',
   type = 'text',
+  helperText,
 }: ITextFieldProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,6 +50,7 @@ export function TextField({
           )}
         </div>
       </div>
+      <span className="text-red-500 text-sm">{helperText}</span>
     </div>
   );
 }

@@ -273,30 +273,11 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   function sendMessage(textContent: string) {
     if (chatSocket && loggedUserId) {
       chatSocket.emit('message-chat', { message: textContent, type: 'message', channel_id: channelIdNumber });
-      // const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-      // const message : Message = {id: getMessageId(), senderId:loggedUserId, content:textContent, created_at:formattedTime};
-      // setMessages([...messages, message]);
     }
   }
 
-  const [msgId, setMsgId] = useState(9000); 
-
   function sendInvite() {
     setInviteChannelId(channelIdNumber);
-    // TODO: 이벤트를 on 하는 방식으로 변경해야함. 
-    // if (chatSocket && loggedUserId) {
-    //   // chatSocket.emit('message-chat', { message: `{gameId: ${177}}`, type: 'game', channel_id: channelIdNumber });
-    //   const formattedTime = new Date(Date.now()).toISOString().replace('T', ' ').slice(0, -5);
-    //   const msg: Message = {
-    //     id: msgId,
-    //     senderId: loggedUserId,
-    //     content: JSON.stringify({gameId: 10, gameMode: Math.random() % 2 ? 'normal' : 'special'}),
-    //     type: 'game' ,
-    //     created_at: formattedTime,
-    //   };
-    //   setMsgId(msgId + 1);
-    //   setMessages([...messagesRef.current, msg]);
-    // }
   }
   
   // 초대 버튼을 누르는 순간 채널아이디가 세팅됨. 세팅된 이후에 navigate
