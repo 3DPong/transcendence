@@ -1,10 +1,7 @@
 import { AlertTitle, Snackbar } from '@mui/material';
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useError } from '@/context/ErrorContext';
-import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 // https://mui.com/material-ui/react-snackbar/
@@ -29,20 +26,9 @@ function AlertSnackbar() {
     handleError(null, null);
     if (redirectUrl) {
       // action callback 실행 (Re-direct 용)
-      // navigate(redirectUrl);
+      navigate(redirectUrl);
     }
   };
-
-  const ActionBtn = (
-    <React.Fragment>
-      {/*<Button color="secondary" size="small" onClick={handleClose}>*/}
-      {/*  UNDO*/}
-      {/*</Button>*/}
-      <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
-        <CloseIcon fontSize="small" />
-      </IconButton>
-    </React.Fragment>
-  );
 
   return (
     <Snackbar

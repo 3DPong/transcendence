@@ -155,6 +155,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   }, [nickname]);
   // ---------------------------------------------------------------------
 
+
   // Profile Change Submit Button Handle
   // ---------------------------------------------------------------------
   const handleClickSave = () => {
@@ -165,8 +166,8 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
       setIsLoading(false);
       if (response) {
         setLoggedUserId(response.user_id);
-        alert("서버에 변경사항을 전달하였습니다.");
       }
+      handleSettingDialogClose();
     })(/* IIFE */);
   };
 
@@ -257,20 +258,22 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   };
 
   // Dialog close
-  const handleClose = () => {
+  // ---------------------------------------------------------------------
+  const handleSettingDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
+    // if (reason && reason === 'backdropClick') return; // 외곽 영역 클릭시 꺼지지 않도록 설정.
     setOpen(false); // close dialog
   };
 
   return (
       // https://mui.com/material-ui/api/container/
       <Container maxWidth="lg">
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={open} onClose={handleSettingDialogClose}>
           {/* 제목 */}
           <DialogTitle>Settings</DialogTitle>
           {/* X 버튼 */}
           <IconButton
               sx={{ position: 'absolute', right: 0, paddingRight: '24px', paddingTop: '16px' }}
-              onClick={handleClose}
+              onClick={handleSettingDialogClose}
           >
             <CloseIcon fontSize="medium" />
           </IconButton>

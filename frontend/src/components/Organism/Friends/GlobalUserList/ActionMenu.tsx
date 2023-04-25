@@ -39,7 +39,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate(); // React Router useNavigate hook (프로필 보기 클릭시 이동)
-  const { setFriends } = useContext(GlobalContext);
+  const { setFriends, channels, setChannels } = useContext(GlobalContext);
   const {handleError} = useError();
 
   // 프로필 보기 버튼
@@ -51,6 +51,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
   // DM 보내기 버튼
   const handleSendMessageRoute = () => {
     setAnchorEl(null);
+    API.fetchDM(user.user_id, navigate, handleError, channels, setChannels);
     console.log('DM 보내기');
     // ...
   };

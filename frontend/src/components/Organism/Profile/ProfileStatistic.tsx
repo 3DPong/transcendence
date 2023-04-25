@@ -18,16 +18,25 @@ import Box from '@mui/material/Box';
 import { FixedSizeList } from 'react-window';
 import { ListItem } from '@mui/material';
 import * as API from '@/api/API';
+import {useEffect, useState} from "react";
+import {useError} from "@/context/ErrorContext";
 
-const Row = (props: { index: number; style: React.CSSProperties; data?: any }) => {
+const Row = (props: { index: number; style: React.CSSProperties; data?: API.History[] }) => {
+  {/*TODO: CSS 작업하기! */}
   const { index, style, data } = props;
+  // const [singleHistory, setSingleHistory] = useState<API.History>();
+  let history;
+  if (data) {
+    history = data[index];
+  }
 
   return (
     <ListItem style={style} key={index} divider={true} sx={{ display: 'inline' /* flex 끄기 위함. */ }}>
-      {data ? (
-        'Recent game result'
+      {history ? (
+          `${history.user_nickname} ${history.user_score} vs ${history.target_nickname} ${history.target_score}`
       ) : (
         <Box sx={{ pt: 0.5 }}>
+          {/* While loading */}
           <Skeleton width="100%" />
         </Box>
       )}
@@ -36,10 +45,10 @@ const Row = (props: { index: number; style: React.CSSProperties; data?: any }) =
 };
 
 interface statisticsListProps {
-  userData?: API.GET_UserDataResponseFormat;
+  historyList?: API.History[];
 }
 
-function StatisticsList({ userData }: statisticsListProps) {
+function StatisticsList({ historyList }: statisticsListProps) {
   const HEIGHT = 250;
 
   return (
@@ -55,9 +64,9 @@ function StatisticsList({ userData }: statisticsListProps) {
         height={HEIGHT}
         width="100%"
         itemSize={60}
-        itemCount={10}
+        itemCount={historyList ? historyList.length : 5}
         overscanCount={5}
-        itemData={userData}
+        itemData={historyList}
         // Scrollbar css
         className=" scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-200"
       >
@@ -72,10 +81,25 @@ interface profileStatisticProps {
 }
 
 export default function ProfileStatistic({ userData }: profileStatisticProps) {
+  const [historyList, setHistoryList] = useState<API.History[]>();
+  const {handleError} = useError();
+
+  useEffect(() => {
+    if (!userData) return;
+    (async () => {
+      const res = await API.getUserHistoryById(handleError, userData.user_id);
+      if (res) {
+        setHistoryList(res);
+      }
+    })(/* IIFE */);
+  }, [userData]);
+
+
   return (
     <div className=" max-w-full">
       {userData ? (
         <Box className=" p-5 bg-slate-50 border">
+          {/*TODO: CSS 작업하기! */}
           {`Total:${userData.total} Win:${userData.wins} Lose:${userData.losses} Level:${userData.level}`}
         </Box>
       ) : (
@@ -83,7 +107,7 @@ export default function ProfileStatistic({ userData }: profileStatisticProps) {
           <Skeleton width="100%" />
         </Box>
       )}
-      <StatisticsList userData={userData} />
+      <StatisticsList historyList={historyList} />
     </div>
   );
 }

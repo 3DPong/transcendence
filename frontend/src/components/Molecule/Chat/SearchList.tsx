@@ -20,15 +20,19 @@ interface SearchListProps {
 }
 
 const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
+  const searchMin = 1;
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [searchString, setSearchString] = useState('');
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false)
   const { handleError } = useError();
 
+
   function searchButtonClick() {
+    if (submitDisabled) return;
     async function searchUser() {
-      const response = await fetch(API_URL + '/chat/users/' + searchString);
+      const response = await fetch(API_URL + '/user/search/' + searchString);
       if (!response.ok) {
         const error = await response.json();
         handleError('Search User', error.message);
@@ -37,7 +41,7 @@ const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
       const fetchUsers = await response.json();
 
       setSearchUsers(
-        fetchUsers.map((u: any) => ({
+        fetchUsers.users.map((u: any) => ({
           id: u.user_id,
           nickname: u.nickname,
           profile: u.profile_url,
@@ -82,6 +86,14 @@ const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
     setInviteUsers(newInviteUsers);
   };
 
+  useEffect(() => {
+    if (searchString.length < searchMin) {
+      setSubmitDisabled(true);
+    } else {
+      setSubmitDisabled(false);
+    }
+  }, [searchString]);
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <SearchTextField
@@ -90,6 +102,8 @@ const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
         setState={setSearchString}
         onClick={searchButtonClick}
         onKeyUp={searchButtonKeyup}
+        disabled={submitDisabled}
+        disabledHelperText={searchMin + '글자 이상 입력하세요'}
       />
       {isOpen && (
         <ClickAwayListener onClickAway={() => setIsOpen(false)}>

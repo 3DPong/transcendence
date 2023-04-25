@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -14,10 +14,10 @@ import * as API from '@/api/API';
 import { Assert } from '@/utils/Assert';
 import { Skeleton } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import LinearProgress from '@mui/material/LinearProgress';
 import { green } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
 import {useNavigate} from "react-router";
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 // https://mui.com/material-ui/customization/color/
 
@@ -34,7 +34,7 @@ interface GameStartButtonProps {
   setMatchData: (matchData: gameType.matchStartData) => void;
 }
 
-export default function GameStartButton({
+export default function GameMatchingDialog({
   setMatchData,
   myProfile,
   setMyProfile,
@@ -47,7 +47,7 @@ export default function GameStartButton({
 }: GameStartButtonProps) {
   const { gameSocket } = useSocket();
   // 모드 선택 dialog
-  const [modeSelectDialogOpen, setModeSelectDialogOpen] = useState<boolean>(false);
+  const [modeSelectDialogOpen, setModeSelectDialogOpen] = useState<boolean>(true);
   const [isModeSelected, setIsModeSelected] = useState<boolean>(false);
   // 매칭 로딩 dialog
   const [matchingDialogOpen, setMatchingDialogOpen] = useState<boolean>(false);
@@ -58,11 +58,11 @@ export default function GameStartButton({
   const { handleError } = useError();
   const navigate = useNavigate();
 
-  const handleModeSelectDialogOpen = () => {
-    setModeSelectDialogOpen(true);
-  };
+  const { inviteChannelId, inviteGameId, isObserve, clearInviteData } = useContext(MatchDataContext);
 
-  const handleModeSelectDialogClose = () => {
+  const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
+    // if (reason && reason === 'backdropClick') { ... }
+    navigate('/');
     setModeSelectDialogOpen(false);
   };
 
@@ -81,6 +81,30 @@ export default function GameStartButton({
     console.log("[DEV] handleProgressFinish")
     setMatchData(__matchDataCache);
   };
+
+  // --------------------------------------
+  // 게임 초대 버튼으로 페이지에 들어온 경우 버튼 생략
+  useEffect(() => {
+    if (inviteChannelId) {
+    }
+  }, [inviteChannelId]);
+
+  // 참여자또는 옵저버로 들어온 경우 
+  useEffect(() => {
+    if (!gameSocket) return;
+    if (inviteGameId) {
+      handleModeSelectDialogClose(); // 모드 선택 종료.
+      handleMatchingDialogOpen(); // 매칭 시작.
+      if (isObserve) {
+        console.log('observe 로 들어온 사람');
+        gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
+      }
+      else {
+        console.log('플레이어로 들어온 사람');
+        gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
+      }
+    }
+  }, [inviteGameId, gameSocket])
 
   // ---------------------------------------
   // 첫 렌더시 소켓 이벤트 등록, 사용자 정보 로드
@@ -154,25 +178,25 @@ export default function GameStartButton({
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    console.log('매칭이 취소되었습니다.');
+    alert('[DEV] gameSocket.emit(exit) called');
     gameSocket.emit('exit');
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화
     setIsModeSelected(false); // 초기화
+    clearInviteData();
+    navigate('/'); // 홈으로 이동.
   }, [cancelMatching]);
   // ---------------------------------------
 
   return (
     <div>
-      {/* ------------------ 랜덤 매칭 시작 버튼 ------------------------------- */}
-      <Button variant="contained" onClick={handleModeSelectDialogOpen}>
-        Random Match
-      </Button>
-
       {/* ------------------ 게임 모드 선택 Dialog ------------------------------- */}
       <Dialog
         open={modeSelectDialogOpen}
-        onClose={handleModeSelectDialogClose}
+        onClose={() => {
+          clearInviteData();    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
+          handleModeSelectDialogClose();
+        }}
         aria-labelledby="select game mode"
         aria-describedby="select game mode"
         PaperProps={{ sx: { width: '50%' } }}
@@ -183,7 +207,7 @@ export default function GameStartButton({
         </DialogContent>
         <DialogActions>
           {/* 게임 모드 선택 팝업 (socket.emit) */}
-          <ChooseModeButton setIsModeSelected={setIsModeSelected} />
+          <ChooseModeButton setIsModeSelected={setIsModeSelected}/>
         </DialogActions>
       </Dialog>
       {/* // Mode select */}

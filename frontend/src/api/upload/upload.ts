@@ -7,6 +7,9 @@ export interface POST_uploadImageResponseFormat {
 
 // 최종 편집이 완료된 이미지 바이너리를 보냄.
 export async function uploadImageToServer(handleError: handleErrorFunction, clientSideImageUrl: string) {
+
+  // Base64 image를 binary로 바꿔서 전송하는 방법.
+  // https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
   const formData = new FormData();
   const blob = await (await fetch(clientSideImageUrl)).blob();
   formData.append('file', blob);
@@ -17,7 +20,6 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
     // headers: { "Content-Type": "multipart/form-data" }, // 이 부분 세팅하지 말라는 말이 있음.
     // (https://muffinman.io/blog/uploading-files-using-fetch-multipart-form-data/)
   });
-
   // on error
   if (!uploadResponse.ok) {
     if (uploadResponse.status === 401) {
@@ -51,7 +53,7 @@ export async function verifyNickname(handleError: handleErrorFunction, name: str
   })
   if (!response.ok) {
     const errorData = await response.json();
-    handleError('Verify Nickname', errorData.message, "/signin");
+    handleError('Verify Nickname', errorData.message);
     return ; // null on error
   }
   const responsePayload: verifyResponse = await response.json();

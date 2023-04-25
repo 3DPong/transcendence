@@ -49,18 +49,17 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
         <ListItem style={style} key={index} divider={true}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between'}}>
             <Badge
-                invisible={ friend.status === undefined }
+                // invisible={ friend.status === undefined }
                 color={
                   friend.status === userStatus.ONLINE ? "primary" : "secondary"
                 }
                 // variant="dot"
-                badgeContent={ friend.status === userStatus.ONLINE ? "online" : "offline" }
+                badgeContent="eqwewqe"
                 anchorOrigin={{
                   vertical: "top",
                   horizontal: "right",
                 }}
             >
-              {/*<Card sx={{ flex: 1, display: 'flex', justifyContent: 'space-between' }}>*/}
               <Card sx={{ flex: 1, p: 1 }}>
                 <UserListRow user={friend} isLoading={data.isLoading} />
               </Card>
@@ -103,6 +102,7 @@ export default function VirtualizedUserList(props: UserListProps) {
 
   // on first render
   useEffect(() => {
+
     (async () => {
       // 0. load start (used at MUI Skeleton)
       setIsLoading(true);
@@ -116,6 +116,7 @@ export default function VirtualizedUserList(props: UserListProps) {
           user_id: relation.target_id,
           nickname: relation.nickname,
           profile_url: relation.profile_url,
+          status: relation.status ? relation.status : 1
         };
       });
       setFriends(friendsList);

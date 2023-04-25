@@ -7,8 +7,9 @@ import { useSocket } from '@/context/SocketContext';
 import { useContext } from 'react';
 import GlobalContext from '@/context/GlobalContext';
 import { Assert } from '@/utils/Assert';
-import { gameType, MatchJoinData, roomType } from '@/types/game';
+import { ChatJoinData, gameType, MatchJoinData, roomType } from '@/types/game';
 import { useError } from '@/context/ErrorContext';
+import { MatchDataContext } from '@/context/MatchDataContext';
 
 // https://mui.com/material-ui/react-button/
 const images = [
@@ -97,17 +98,32 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
   const { gameSocket } = useSocket();
   const { handleError } = useError();
   const { loggedUserId } = useContext(GlobalContext);
+
+  const { inviteChannelId } = useContext(MatchDataContext);
+
   const handleNormalModeClick = () => {
     if (!gameSocket) {
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
     console.log('NormalMode selected');
-    const matchJoinData: MatchJoinData = {
-      roomType: roomType.random,
-      gameType: gameType.normal,
-    };
-    gameSocket.emit('matchJoin', matchJoinData);
+    console.log('inviteChannelId: ' + inviteChannelId);
+    if (inviteChannelId) {
+      const matchJoinData: ChatJoinData = {
+        channelId: inviteChannelId,
+        gameId: null,
+        roomType: roomType.chat,
+        gameType: gameType.normal,
+      };
+      gameSocket.emit('chatJoin', matchJoinData);
+    }
+    else {
+      const matchJoinData: MatchJoinData = {
+        roomType: roomType.random,
+        gameType: gameType.normal,
+      };
+      gameSocket.emit('matchJoin', matchJoinData);
+    }
     setIsModeSelected(true);
   };
   const handleSpecialModeClick = () => {
@@ -118,11 +134,22 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
     Assert.NonNullish(loggedUserId, 'UserId is null');
     console.log('SpecialMode selected');
     console.log(loggedUserId);
-    const matchJoinData: MatchJoinData = {
-      roomType: roomType.random,
-      gameType: gameType.special,
-    };
-    gameSocket.emit('matchJoin', matchJoinData);
+    if (inviteChannelId) {
+      const matchJoinData: ChatJoinData = {
+        channelId: inviteChannelId,
+        gameId: null,
+        roomType: roomType.chat,
+        gameType: gameType.special,
+      };
+      gameSocket.emit('chatJoin', matchJoinData);
+    }
+    else {
+      const matchJoinData: MatchJoinData = {
+        roomType: roomType.random,
+        gameType: gameType.special,
+      };
+      gameSocket.emit('matchJoin', matchJoinData);
+    }
     setIsModeSelected(true);
   };
 
