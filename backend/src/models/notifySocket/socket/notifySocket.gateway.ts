@@ -9,6 +9,7 @@ import { Logger, UseFilters } from '@nestjs/common';
 import { NotifySocketService } from './services';
 import { WsExceptionFilter } from '../../../common/filters/socket/wsException.filter';
 import { Server, Socket } from 'socket.io';
+import { SocketException } from '../../../common/filters/socket/socket.filter';
 
 /**
  * NotifyGateway 의 경우 Entriy Point 로 사용하지 않기 때문에 특별한 행동을 하지 않습니다.
@@ -25,8 +26,14 @@ export class NotifySocketGateway implements OnGatewayConnection, OnGatewayDiscon
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       await this.notifyService.connect(socket);
-    } catch (e) {
+    } catch (e: any) {
       this.logger.error(`${e} on connecting`);
+      if (e instanceof SocketException && e.status === 'Conflict') {
+        socket.emit('duplicate_error', {
+          status: e.status,
+          message: e.message,
+        });
+      }
       socket.disconnect();
     }
   }
