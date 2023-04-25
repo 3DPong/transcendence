@@ -11,8 +11,12 @@ export type ExceptionStatus =
   | 'InternalServerError';
 
 export class SocketException extends WsException {
+  status;
+  message;
   constructor(status: ExceptionStatus, message: string) {
     super({ status, message });
+    this.status = status;
+    this.message = message;
   }
 }
 
@@ -20,11 +24,10 @@ export class SocketException extends WsException {
 export class SocketExceptionFilter extends BaseWsExceptionFilter {
   catch(exception: SocketException, host: ArgumentsHost) {
     const socket: Socket = host.getArgByIndex(0);
-    const error = exception.getError();
 
     socket.emit('error', {
-      status: `${Object.values(error)[0]}`,
-      message: `${Object.values(error)[1]}`,
+      status: exception.status,
+      message: exception.message,
     });
   }
 }
