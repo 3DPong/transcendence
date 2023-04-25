@@ -13,6 +13,7 @@ export type ExceptionStatus =
 export class SocketException extends WsException {
   status: string;
   message: string;
+
   constructor(status: ExceptionStatus, message: string) {
     super({ status, message });
     this.status = status;

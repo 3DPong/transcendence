@@ -4,6 +4,7 @@ import configuration from './configuration';
 import { FtConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ENV_FILE } from '../envFile.constant';
+
 /**
  * Import and provide app configuration related classes.
  *

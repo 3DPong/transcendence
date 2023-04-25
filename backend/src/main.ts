@@ -6,7 +6,6 @@ import { RedisIoAdapter } from './providers/redis/RedisIO.adapter';
 import { JwtPayloadInterface } from './common/interfaces/JwtUser.interface';
 import * as cookieParser from 'cookie-parser';
 import { AppConfigService } from './config/app/config.service';
-import { LoggerMiddleware } from './common/middlewares/logger/middleware/logger.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,6 +20,8 @@ async function bootstrap() {
   await app.listen(appConfig.port);
   startLogging();
 }
+
+// noinspection JSIgnoredPromiseFromCall
 bootstrap();
 
 declare global {

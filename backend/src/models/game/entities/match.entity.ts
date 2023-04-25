@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../../user/entities';
 import { Factory } from 'nestjs-seeder';
 import { GameType, RoomType } from '../enum/GameEnum';
@@ -35,7 +35,7 @@ export class Match {
   @Factory((faker) => faker.datatype.number({ min: 1, max: 100 }))
   @Column({ type: 'int' })
   right_player: number;
-  
+
   @ManyToOne(() => User, (user) => user.rightPlayerGames)
   @JoinColumn({ name: 'right_player' })
   rPlayer: User;

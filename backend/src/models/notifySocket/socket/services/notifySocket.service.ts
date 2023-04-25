@@ -20,6 +20,7 @@ import { SocketException } from '../../../../common/filters/socket/socket.filter
 @Injectable()
 export class NotifySocketService {
   private readonly logger = new Logger('NotifySocketService');
+
   constructor(
     private readonly socketMapService: SocketMapService,
     private readonly notifier: Notifier,
@@ -95,6 +96,9 @@ export class NotifySocketService {
   async isOnline(userId: number, socketId: string): Promise<boolean> {
     // check user is online in db and sockets
     const sockets = await this.socketMapService.getUserSockets(userId);
-    return sockets?.notify !== socketId;
+    // offline case
+    if (!sockets || !sockets.notify) return false;
+    // 동일 소켓 접속 케이스는 무시
+    return sockets.notify !== socketId;
   }
 }

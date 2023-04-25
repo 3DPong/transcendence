@@ -5,6 +5,7 @@ import { User } from '../../models/user/entities';
 import { Repository } from 'typeorm';
 import { OtpConfigService } from '../../config/otp/config.service';
 import * as CryptoJS from 'crypto-js';
+
 @Injectable()
 export class OtpService {
   constructor(

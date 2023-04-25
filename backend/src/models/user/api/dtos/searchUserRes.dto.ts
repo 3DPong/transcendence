@@ -12,6 +12,7 @@ export class SearchedUser {
       this.relationWithMe = RelationStatus.NONE;
     }
   }
+
   user_id: number;
   nickname: string;
   profile_url: string;

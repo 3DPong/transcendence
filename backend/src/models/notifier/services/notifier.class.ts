@@ -58,6 +58,7 @@ export class Notifier {
       .filter((relationship) => relationship.status === RelationStatus.FRIEND)
       .map((relationship) => relationship.user_id);
   }
+
   private async getFollowings(user: User) {
     return user.relationships
       .filter((relationship) => relationship.status === RelationStatus.FRIEND)
