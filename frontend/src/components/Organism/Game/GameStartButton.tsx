@@ -61,8 +61,10 @@ export default function GameMatchingDialog({
   const { inviteChannelId, inviteGameId, isObserve, clearInviteData } = useContext(MatchDataContext);
 
   const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
-    // if (reason && reason === 'backdropClick') { ... }
-    navigate('/');
+    clearInviteData();    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
+    if (reason && reason === 'backdropClick') {
+      navigate('/');
+    }
     setModeSelectDialogOpen(false);
   };
 
@@ -139,6 +141,7 @@ export default function GameMatchingDialog({
   // 모드 선택이 됬다면 해당 Dialog 종료.
   useEffect(() => {
     if (!isModeSelected) return;
+    console.log("[DEV] Mode selected.")
     if (!gameSocket) {
       handleError('gameSocket', 'gameSocket is currently null', '/');
       return;
@@ -193,10 +196,7 @@ export default function GameMatchingDialog({
       {/* ------------------ 게임 모드 선택 Dialog ------------------------------- */}
       <Dialog
         open={modeSelectDialogOpen}
-        onClose={() => {
-          clearInviteData();    // 외곽 클릭해서 종료되는 경우에도 inviteChannelId 삭제
-          handleModeSelectDialogClose();
-        }}
+        onClose={handleModeSelectDialogClose}
         aria-labelledby="select game mode"
         aria-describedby="select game mode"
         PaperProps={{ sx: { width: '50%' } }}
