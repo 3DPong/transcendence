@@ -40,8 +40,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         transports: ['websocket'],
       });
       setGameSocket(newSocket);
+      console.log('gameConnect()');
     }
-    console.log('gameConnect()');
   };
 
   useEffect(() => {
@@ -62,6 +62,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         transports: ['websocket'],
       });
       setChatSocket(newSocket);
+      console.log('chatConnect()');
     }
   };
 
@@ -82,8 +83,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         transports: ['websocket'],
       });
       setNotifySocket(newSocket);
+      console.log('notifyConnect()');
     }
-    console.log('notifyConnect()');
   };
 
   useEffect(() => {
