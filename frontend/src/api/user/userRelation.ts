@@ -19,6 +19,7 @@ import { globalUserData_t } from '@/types/user';
 import { useNavigate } from 'react-router';
 import { API_URL } from '../../../config/backend';
 import { handleErrorFunction, useError } from '@/context/ErrorContext';
+import {userStatus} from "@/types/notify";
 
 /*----------------------------------------*
  *    GET user_relations API              *
@@ -69,7 +70,9 @@ export interface Relation {
   target_id: number;
   nickname: string;
   profile_url: string;
-  status: 'friend' | 'block' | 'none';
+  relation: 'friend' | 'block' | 'none';
+  // status?: userStatus;
+  status: userStatus;
 }
 
 export interface GET_RelationResponseFormat {
@@ -96,6 +99,7 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
     return;
   }
   // on success
+
   const userData: GET_RelationResponseFormat = await validatedResponse.json();
   return userData.relations;
 }

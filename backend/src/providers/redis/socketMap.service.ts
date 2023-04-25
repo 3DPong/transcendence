@@ -8,6 +8,7 @@ interface SocketMap {
 @Injectable()
 export class SocketMapService {
   private readonly redisClient;
+
   constructor(private redisService: RedisService) {
     this.redisClient = this.redisService.getClient();
   }
@@ -45,7 +46,7 @@ export class SocketMapService {
    * @param socketId
    */
   private async setSocketIdToUserId(userId: number, socketType: string, socketId: string) {
-    return await this.redisClient.hmset(`${userId}`, socketType, socketId);
+    return await this.redisClient.hmset(`user:${userId}`, socketType, socketId);
   }
 
   /**
@@ -53,7 +54,7 @@ export class SocketMapService {
    * @param userId
    */
   private async getSocketsFromUserId(userId: number): Promise<SocketMap | null> {
-    const result = await this.redisClient.hgetall(`${userId}`);
+    const result = await this.redisClient.hgetall(`user:${userId}`);
     if (Object.keys(result).length === 0) return null;
     return result;
   }
@@ -66,7 +67,7 @@ export class SocketMapService {
    * @param userId
    */
   private async setUserIdToSocketId(socketId: string, userId: number) {
-    await this.redisClient.set(`socketToUser:${socketId}`, userId);
+    await this.redisClient.set(`socket:${socketId}`, userId);
   }
 
   /**
@@ -74,14 +75,14 @@ export class SocketMapService {
    * @param socketId
    */
   private async getUserIdFromSocketId(socketId: string): Promise<string | null> {
-    return await this.redisClient.get(`socketToUser:${socketId}`);
+    return await this.redisClient.get(`socket:${socketId}`);
   }
 
   private async removeSocketIdFromUserId(userId: number, socketType: string) {
-    await this.redisClient.hdel(`${userId}`, socketType);
+    await this.redisClient.hdel(`user:${userId}`, socketType);
   }
 
   private async removeUserIdFromSocketId(socketId: string) {
-    await this.redisClient.del(`socketToUser:${socketId}`);
+    await this.redisClient.del(`socket:${socketId}`);
   }
 }

@@ -3,10 +3,11 @@ import { ClickAwayListener, MenuItem, MenuList, Paper, Popper } from '@mui/mater
 import ChatContext from '@/context/ChatContext';
 import { ChatUser } from '@/types/chat';
 import { useSocket } from '@/context/SocketContext';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import { useError } from '@/context/ErrorContext';
+import { fetchDM } from '@/api/API';
 
 interface AvatarPopperProps {
   anchorEl: HTMLElement | null;
@@ -29,9 +30,11 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   const { chatSocket } = useSocket();
   const { channelId } = useParams();
 
-  const { loggedUserId } = useContext(GlobalContext);
+  const { loggedUserId, channels, setChannels } = useContext(GlobalContext);
 
   const { handleError } = useError();
+
+  const navigate = useNavigate();
 
   const menuItemStyles = {
     fontSize: 'small',
@@ -59,30 +62,13 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   // 여기선 보내기만하고 상태 변경은 최상단에서
   function handleProfileClick(id: number) {
     console.log(id + ' is profile');
+    navigate('./profile/' + id); // 이렇게 해도 되고
     handleClose();
   }
 
   function handleDMClick(id: number) {
     console.log(id + ' is DM');
-    async function fetchDM() {
-      const response = await fetch(API_URL + '/chat/dm' + '?id=' + loggedUserId, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: id,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        handleError('Send DM', error.message);
-        return;
-      }
-      const parse = await response.json();
-      console.log(response);
-    }
-    fetchDM();
+    fetchDM(id, navigate, handleError, channels, setChannels);
     handleClose();
   }
 
@@ -140,7 +126,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleGrantClick(id: number) {
     console.log(id + ' is Grant');
     async function fetchGrant() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +148,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
   function handleRevokeClick(id: number) {
     console.log(id + ' is Revoke');
     async function fetchRevoke() {
-      const response = await fetch(API_URL + '/chat/'+ channelId +'/role' + '?id=' + loggedUserId, {
+      const response = await fetch(API_URL + '/chat/'+ channelId +'/role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

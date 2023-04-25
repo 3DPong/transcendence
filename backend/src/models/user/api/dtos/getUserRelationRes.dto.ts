@@ -1,8 +1,12 @@
+import { UserStatusEnum } from '../../../../common/enums';
+import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
+
 export class UserRelationAndInfo {
   target_id: number;
-  status: string;
   nickname: string;
   profile_url: string;
+  relation: RelationStatus;
+  status: UserStatusEnum;
 }
 
 export class GetUserRelationResDto {

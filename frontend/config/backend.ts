@@ -1,10 +1,11 @@
 
-export const API_PORT = 3000;
-export const API_URL = `http://localhost:${API_PORT}/api`;
+import {Assert} from '@/utils/Assert';
 
-export const ORIGIN_URL = `http://localhost:${API_PORT}`;
+const API_HOST = process.env.REACT_APP_EXTERNAL_HOST;
+const API_PORT = process.env.REACT_APP_EXTERNAL_PORT;
+Assert.NonNullish(API_HOST, "env variable REACT_APP_EXTERNAL_HOST not set");
+Assert.NonNullish(API_PORT, "env variable REACT_APP_EXTERNAL_PORT not set");
 
-export const SOCKET_PORT = 3000;
-export const SOCKET_URL = `http://localhost:${SOCKET_PORT}`;
-
-// TODO: LocalHost를 추후에 환경변수로 받아와서 ip 설정해주기 (그래야 다른 컴퓨터랑 대결 가능함)
+export const API_URL = `http://${API_HOST}:${API_PORT}/api`;
+export const ORIGIN_URL = `http://${API_HOST}:${API_PORT}`;
+export const SOCKET_URL = `http://${API_HOST}:${API_PORT}`;

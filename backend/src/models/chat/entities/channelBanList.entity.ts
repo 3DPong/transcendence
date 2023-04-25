@@ -6,7 +6,7 @@ import { Factory } from 'nestjs-seeder';
 export enum BanStatus {
   Ban = 0,
   NoneBan,
-  PassedBan
+  PassedBan,
 }
 
 @Entity()

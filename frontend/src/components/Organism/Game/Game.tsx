@@ -19,115 +19,83 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Renderer3D } from "@/components/Organism/Game/Renderer/Renderer";
+import Renderer3D from "@/components/Organism/Game/Renderer/Renderer";
 import GameStartButton from "@/components/Organism/Game/GameStartButton";
 import {useSocket} from "@/context/SocketContext";
 import * as gameType from "@/types/game";
 import {Avatar, Box, Skeleton, Typography} from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import GlobalContext from "@/context/GlobalContext";
+import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
+
+import { MatchDataContext } from "@/context/MatchDataContext";
+import { useError } from "@/context/ErrorContext";
+import { Navigate, useNavigate } from "react-router";
 
 export default function Game() {
+  const {gameSocket, notifySocket } = useSocket();
+  const {handleError} = useError();
+  const {loggedUserId} = useContext(GlobalContext);
+  const {clearInviteData} = useContext(MatchDataContext);
+  const navigate = useNavigate();
+  
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
-  const {loggedUserId} = useContext(GlobalContext);
-  const {gameSocket, gameConnect, notifySocket, notifyConnect} = useSocket();
-
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
-
+ 
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
+    clearInviteData();
   };
 
   useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
-    gameConnect();
-    console.log("[DEV] Connecting Notify Socket... at [Game.tsx]");
-    notifyConnect();
-  }, [loggedUserId])
-
-  /** ----------------------------------------
-   *              Game Socket
-   ------------------------------------------- */
-  useEffect(() => {
     if (!gameSocket) return;
-    gameSocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    gameSocket.on('connect', () => {
-      console.log('[gameSocket] 서버와 연결되었습니다.');
+    // 게임 도중 발생한 소켓 에러?
+    gameSocket.on('error', (message) => {
+      handleError('Socket Error', message.message);
+      clearInviteData();
+      navigate(-1);
     });
-    gameSocket.on('my_connect', () => {
-      console.log('[gameSocket] nest서버와 연결');
-    });
-    gameSocket.on('disconnect', () => {
-      console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    // if game finished
+     // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
       setMatchResult(matchResult);
+      clearInviteData();
     }
     gameSocket.on("matchEnd", handleGameEnd);
     return () => {
-      gameSocket.off("connect_error");
-      gameSocket.off("connect");
-      gameSocket.off("my_connect");
-      gameSocket.off("disconnect");
       gameSocket.off("matchEnd", handleGameEnd);
+      gameSocket.off('error');
     }
-  }, [gameSocket]);
-
-  /** ----------------------------------------
-   *              Notify Socket
-   ------------------------------------------- */
-  useEffect(() => {
-    if (!notifySocket) return;
-    notifySocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    notifySocket.on('connect', () => {
-      console.log('[notifySocket] 서버와 연결되었습니다.');
-    });
-    notifySocket.on('my_connect', () => {
-      console.log('[notifySocket] nest서버와 연결');
-    });
-    notifySocket.on('disconnect', () => {
-      console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    return () => {
-      notifySocket.off("connect_error");
-      notifySocket.off("connect");
-      notifySocket.off("my_connect");
-      notifySocket.off("disconnect");
-    }
-  }, [notifySocket]);
-
-
-
+  }, [gameSocket]); 
+  
   const playerData: gameType.PlayerData = {
     myNickName: myNickname,
-    myImage: myProfile,
     enemyNickName: enemyNickname,
-    enemyImage: enemyProfile,
   }
 
-  if (matchData) {
+  if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
+    return (
+        <div className=" flex items-center -z-49 justify-center h-screen">
+          <GameMatchingDialog
+              myProfile={myProfile} setMyProfile={setMyProfile}
+              myNickname={myNickname} setMyNickname={setMyNickname}
+              enemyProfile={enemyProfile} setEnemyProfile={setEnemyProfile}
+              enemyNickname={enemyNickname} setEnemyNickname={setEnemyNickname}
+              setMatchData={setMatchData}/>
+        </div>
+    );
+  } else { // 게임 매치 정보가 정해진 경우 (게임 시작, 게임 결과)
     return (
         <div>
           {/* 게임 렌더링 */}
           { !matchResult &&
-            <div className=" absolute -z-50 w-0 h-0">
-              <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
-            </div>
+              <div className=" absolute -z-50 w-0 h-0">
+                <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+              </div>
           }
 
           {/* 게임 결과 */}
@@ -199,18 +167,6 @@ export default function Game() {
               </Dialog>
           }
         </div>
-
-    );
-  } else {
-    return (
-      <div className=" flex items-center -z-49 justify-center h-screen">
-        <GameStartButton
-            myProfile={myProfile} setMyProfile={setMyProfile}
-            myNickname={myNickname} setMyNickname={setMyNickname}
-            enemyProfile={enemyProfile} setEnemyProfile={setEnemyProfile}
-            enemyNickname={enemyNickname} setEnemyNickname={setEnemyNickname}
-            setMatchData={setMatchData}/>
-      </div>
     );
   }
-}
+};

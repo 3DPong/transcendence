@@ -10,6 +10,7 @@ export class GetUserResDto {
     this.total = user.total;
     this.level = user.level;
   }
+
   user_id: number;
   nickname: string;
   profile_url: string;

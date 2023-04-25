@@ -16,6 +16,7 @@ export class FtStrategy extends PassportStrategy(Strategy, 'ft') {
       callbackURL: ftConfigService.callback,
     });
   }
+
   async validate(accessToken: string, refreshToken: string): Promise<FtDataInterface | boolean> {
     // get profile information from 42 api
     const { data } = await axios.get('https://api.intra.42.fr/v2/me', {

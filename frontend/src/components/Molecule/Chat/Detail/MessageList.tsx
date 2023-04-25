@@ -25,7 +25,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
   const { handleError } = useError();
 
   async function fetchMessagesByChannelId(skip: number) {
-    const response = await fetch(API_URL + '/chat/' + channelId + '/log?take=20&skip=' + skip + '&id=' + loggedUserId);
+    const response = await fetch(API_URL + '/chat/' + channelId + '/log?take=20&skip=' + skip);
     if (!response.ok) {
       const errorData = await response.json();
       handleError('Message Fetch', errorData.message);
@@ -35,6 +35,7 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
       id: msg.message_id,
       senderId: msg.user_id,
       content: msg.content,
+      type: msg.type || 'message',
       created_at: new Date(Date.parse(msg.created_at)).toISOString().replace('T', ' ').slice(0, -5),
     }));
     return msgs.reverse();

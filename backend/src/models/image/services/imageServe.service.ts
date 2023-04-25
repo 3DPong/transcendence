@@ -6,6 +6,7 @@ import { Response } from 'express';
 @Injectable()
 export class ImageServeService {
   constructor(private imageConfigService: ImageConfigService) {}
+
   serveImage(filename: string, res: Response) {
     const filePath = __dirname + '/../../../../' + this.imageConfigService.StoragePath + '/' + filename;
     const fileExists = fs.existsSync(filePath);

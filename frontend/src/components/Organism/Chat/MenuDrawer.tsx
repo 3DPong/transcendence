@@ -33,7 +33,8 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
   // console.log("Drawer b=> ", banList);
 
   async function leaveChannel() {
-    const response = await fetch(API_URL + '/chat/' + channel.id + '/out' + '?id=' + loggedUserId, {
+    // const addUrl = channel.type === 'dm' ? '/chat/' + channel.id + '/dm/out' : '/chat/' + channel.id + '/out';
+    const response = await fetch(API_URL + '/chat/' + channel.id + '/out', {
       method: 'PUT',
     });
     if (!response.ok) {
@@ -42,7 +43,7 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
       return;
     }
     setChannels(channels.filter((_channel) => _channel.id !== channel.id));
-    navigate('/channels');
+    navigate('/channels', { replace: true });
   }
 
   return (
@@ -81,15 +82,13 @@ const MenuDrawer: FC<MenuDrawerProps> = ({ open, users, setUsers, handleClose, c
             )}
           </div>
           <div className="flex-shrink-0 h-50">
-            {channel.type !== 'dm' && (
-              <MenuFooter
-                handleLeave={leaveChannel}
-                handleSetting={() => {
-                  setSettingOpen(!settingOpen);
-                }}
-                settingOpen={settingOpen}
-              />
-            )}
+            <MenuFooter
+              handleLeave={leaveChannel}
+              handleSetting={() => {
+                setSettingOpen(!settingOpen);
+              }}
+              settingOpen={settingOpen}
+            />
           </div>
         </div>
       </div>

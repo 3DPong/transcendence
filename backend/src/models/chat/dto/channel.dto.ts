@@ -26,8 +26,8 @@ export class ChannelDto {
   @ValidateIf((object, value) => value !== null)
   inviteList!: number[] | null;
 
-  @IsUrl()
   @ValidateIf((object, value) => value !== null)
+  @IsUrl({ require_tld: false })
   thumbnail_url!: string | null;
 }
 
@@ -46,14 +46,6 @@ export class JoinDto {
   password!: string | null;
 }
 
-// export class LogDto {
-
-// 	@IsNotEmpty()
-// 	@IsString()
-// 	@MaxLength(80)
-// 	content: string;
-// }
-
 export class UserIdDto {
   @IsNotEmpty()
   @IsNumber()
@@ -63,17 +55,3 @@ export class UserIdDto {
   @IsString()
   role: ChannelUserRoles;
 }
-
-// export class User {
-// 	@IsNotEmpty()
-// 	@IsNumber()
-//   user_id: number;
-
-// 	@IsNotEmpty()
-// 	@IsString()
-//   nickname: string;
-
-// 	@IsNotEmpty()
-// 	@IsNumber()
-//   socket_id: string;
-// }

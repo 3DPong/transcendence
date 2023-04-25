@@ -11,7 +11,16 @@ import { UserRelation } from 'src/models/user/entities';
 @Module({
   imports: [
     ChatSocketModule,
-    TypeOrmModule.forFeature([UserRelation, ChatChannel, User, ChannelUser, DmChannel, MessageLog, ChannelBanList, ChannelMuteList]),
+    TypeOrmModule.forFeature([
+      UserRelation,
+      ChatChannel,
+      User,
+      ChannelUser,
+      DmChannel,
+      MessageLog,
+      ChannelBanList,
+      ChannelMuteList,
+    ]),
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatUserService],

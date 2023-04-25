@@ -1,75 +1,50 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRelation } from '../../entities';
-import { Not, QueryFailedError, Repository } from 'typeorm';
+import { User, UserRelation } from '../../entities';
+import { FindOperator, Not, QueryFailedError, Repository } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { GetUserRelationResDto, UpdateUserRelationReqDto, UpdateUserRelationResDto, UserRelationDto } from '../dtos';
+import { GetUserRelationResDto, UpdateUserRelationReqDto, UpdateUserRelationResDto } from '../dtos';
 import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
 
 @Injectable()
 export class UserRelationService {
   constructor(@InjectRepository(UserRelation) private userRelationRepository: Repository<UserRelation>) {}
 
-  async getUserAllRelation(userId: number): Promise<GetUserRelationResDto> {
+  async getUserRelations(
+    userId: number,
+    status: RelationStatus | FindOperator<RelationStatus>
+  ): Promise<GetUserRelationResDto> {
     const relations: UserRelation[] = await this.userRelationRepository.find({
       where: {
         user_id: userId,
-        status: Not(RelationStatus.NONE),
+        status: status,
       },
       select: ['target_id', 'status'],
       relations: ['target'],
     });
     return {
       relations: relations.map((relation: UserRelation) => {
+        const user: User = relation.target;
         return {
-          target_id: relation.target_id,
-          status: relation.status,
-          nickname: relation.target.nickname,
-          profile_url: relation.target.profile_url,
+          target_id: user.user_id,
+          nickname: user.nickname,
+          profile_url: user.profile_url,
+          relation: relation.status,
+          status: user.status,
         };
       }),
     };
+  }
+
+  async getUserAllRelation(userId: number): Promise<GetUserRelationResDto> {
+    return this.getUserRelations(userId, Not(RelationStatus.NONE));
   }
 
   async getUserFriendRelation(userId: number): Promise<GetUserRelationResDto> {
-    const relations: UserRelationDto[] = await this.userRelationRepository.find({
-      where: {
-        user_id: userId,
-        status: RelationStatus.FRIEND,
-      },
-      select: ['target_id', 'status'],
-      relations: ['target'],
-    });
-    return {
-      relations: relations.map((relation: UserRelation) => {
-        return {
-          target_id: relation.target_id,
-          status: relation.status,
-          nickname: relation.target.nickname,
-          profile_url: relation.target.profile_url,
-        };
-      }),
-    };
+    return this.getUserRelations(userId, RelationStatus.FRIEND);
   }
 
   async getUserBlockRelation(userId: number): Promise<GetUserRelationResDto> {
-    const relations: UserRelationDto[] = await this.userRelationRepository.find({
-      where: {
-        user_id: userId,
-        status: RelationStatus.BLOCK,
-      },
-      select: ['target_id', 'status'],
-      relations: ['target'],
-    });
-    return {
-      relations: relations.map((relation: UserRelation) => {
-        return {
-          target_id: relation.target_id,
-          status: relation.status,
-          nickname: relation.target.nickname,
-          profile_url: relation.target.profile_url,
-        };
-      }),
-    };
+    return this.getUserRelations(userId, RelationStatus.BLOCK);
   }
 
   async updateUserRelation(userId: number, payload: UpdateUserRelationReqDto): Promise<UpdateUserRelationResDto> {

@@ -1,10 +1,8 @@
-// const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require("webpack");
-// const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
-// BundleAnalyzer는 Bundle 최적화 용도로 보통 저는 사용합니다.
+const dotenv = require("dotenv");
+dotenv.config();
 
 module.exports = {
   experiments: {
@@ -42,6 +40,7 @@ module.exports = {
       },
     ],
   },
+  // watch: NODE_ENV === 'prod',
   plugins: [
     new HtmlWebpackPlugin({
       template: "public/index.html",
@@ -50,9 +49,9 @@ module.exports = {
       React: "react",
       process: 'process/browser',
     }),
-    // new CopyWebpackPlugin({
-      // patterns: [{ from: 'src/assets', to: 'assets' }] // 브라우저 디렉토리에 파일을 복붙해줌.
-    // }),
+    new webpack.DefinePlugin({
+      'process.env' : JSON.stringify(process.env),
+    }),
   ],
   resolve: {
     fallback: {

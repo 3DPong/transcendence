@@ -1,3 +1,5 @@
+import { gameType } from "./game";
+
 export const kstOffset = 0; // 9 * 60 * 60 * 1000;
 export const defaultThumbnail = 'https://t1.daumcdn.net/cfile/tistory/216C553953FC27C335';
 
@@ -17,7 +19,13 @@ export interface Message {
   id: number;
   senderId: number;
   content: string;
+  type: MessageType;
   created_at: string;
+}
+
+export interface GameMessage {
+  gameId: string;
+  gameMode: gameType;
 }
 
 export interface Channel {
@@ -54,3 +62,4 @@ export const defaultChannel: Channel = {
 export type UserRole = 'owner' | 'admin' | 'user' | 'none';
 export type UserStatus = 'online' | 'offline' | 'ingame' | 'none';
 export type ChannelType = 'protected' | 'private' | 'public' | 'dm' | 'none';
+export type MessageType = 'message' | 'game';

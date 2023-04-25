@@ -10,6 +10,7 @@ import { API_URL } from '@/../config/backend';
 import { useNavigate } from 'react-router';
 import GlobalContext from '@/context/GlobalContext';
 import { useError } from '@/context/ErrorContext';
+import { uploadImageToServer } from '@/api/API';
 
 interface CreateChatRoomProps {
   //onCreate: (title: string, type: ChatType, password: string, invitedUsers: string[]) => void;
@@ -20,14 +21,33 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [type, setType] = useState<ChannelType>('public');
   const [password, setPassword] = useState('');
   const [inviteUsers, setInviteUsers] = useState<User[]>([]);
-  const [thumbnail, setThumbnail] = useState<string>(defaultThumbnail);
+  const [thumbnail, setThumbnail] = useState<string>('');
   const navigate = useNavigate();
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
   const { handleError } = useError();
+  const minLen = 1;
 
   const handleCreate = () => {
     async function createChat() {
-      const response = await fetch(API_URL + '/chat/' + '?id=' + loggedUserId, {
+      if (title.length < minLen) {
+        handleError('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
+        return;
+      }
+      if (type === 'protected' && password.length < minLen) {
+        handleError('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
+        return;
+      }
+
+      let imageToSubmit: string | undefined;
+      if (thumbnail) {
+        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        if (serverSideImageUrl) {
+          console.log("[DEV] uploadImage Success");
+          imageToSubmit = serverSideImageUrl;
+        }
+      }
+
+      const response = await fetch(API_URL + '/chat/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +57,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: thumbnail,
+          thumbnail_url: imageToSubmit || defaultThumbnail,
         }),
       });
       if (!response.ok) {
@@ -74,7 +94,13 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
         <ImageUpload width={200} height={200} thumbnail={thumbnail} setThumbnail={setThumbnail} />
         <Box component="form" sx={{ mt: 1 }}>
           <div className="mb-6">
-            <TextField label="채팅방 제목" placeholder="제목을 입력하세요" state={title} setState={setTitle} />
+            <TextField
+              label="채팅방 제목"
+              placeholder="제목을 입력하세요"
+              state={title}
+              setState={setTitle}
+              helperText={title.length < minLen ? `${minLen}글자 이상 입력하세요` : ''}
+            />
           </div>
           <CreateChatTypeToggle type={type} setType={setType} />
           {'protected' === type && (
@@ -85,6 +111,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
                 state={password}
                 setState={setPassword}
                 placeholder="비밀번호를 입력하세요"
+                helperText={password.length < minLen ? `${minLen}글자 이상 입력하세요` : ''}
               />
             </div>
           )}
