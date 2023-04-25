@@ -62,7 +62,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
-    const { user_id } = socket.data.user;
+    const user_id = socket.data.user;
     await this.socketMapService.deleteUserSocket(user_id, 'chat');
     const activeIndex = this.activeRooms.findIndex((u) => u.userId.toString() === user_id);
     if (activeIndex >= 0) this.activeRooms.splice(activeIndex, 1);
