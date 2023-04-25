@@ -1,4 +1,4 @@
-import { isNotEmpty, IsNotEmpty, IsNumber, isString, IsString, MaxLength, ValidateIf } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, MaxLength, ValidateIf } from 'class-validator';
 import { MessageType } from '../entities';
 
 export class MessageDto {

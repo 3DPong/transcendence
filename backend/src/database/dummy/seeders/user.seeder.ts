@@ -11,6 +11,7 @@ export class UserSeeder implements Seeder {
   seed(): Promise<any> {
     return this.userRepository.insert(DataFactory.createForClass(User).generate(100));
   }
+
   drop(): Promise<any> {
     return this.userRepository.delete({});
   }

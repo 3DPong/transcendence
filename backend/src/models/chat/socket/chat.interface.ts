@@ -1,4 +1,4 @@
-import { ChannelType, ChannelUserRoles } from "../entities";
+import { ChannelType, ChannelUserRoles } from '../entities';
 
 export interface User {
   userId: string;

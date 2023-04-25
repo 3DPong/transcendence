@@ -12,7 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { SocketException } from '../../../common/filters/socket/socket.filter';
 
 /**
- * NotifyGateway 의 경우 Entriy Point 로 사용하지 않기 때문에 특별한 행동을 하지 않습니다.
+ * NotifyGateway 의 경우 Entry Point 로 사용하지 않기 때문에 특별한 행동을 하지 않습니다.
  * Connect, Disconnect 경우에만 User 의 상태를 변경합니다.
  */
 // @UseGuards(SocketSessionGuard)
@@ -20,9 +20,11 @@ import { SocketException } from '../../../common/filters/socket/socket.filter';
 @WebSocketGateway({ namespace: 'notify' })
 export class NotifySocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly notifyService: NotifySocketService) {}
+
   private readonly logger = new Logger('NotifySocketGateway');
   @WebSocketServer()
   server: Server;
+
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       await this.notifyService.connect(socket);
@@ -37,6 +39,7 @@ export class NotifySocketGateway implements OnGatewayConnection, OnGatewayDiscon
       socket.disconnect();
     }
   }
+
   async handleDisconnect(@ConnectedSocket() socket: Socket) {
     try {
       await this.notifyService.disconnect(socket);

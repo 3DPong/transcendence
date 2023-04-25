@@ -3,6 +3,7 @@ import { DataFactory, Seeder } from 'nestjs-seeder';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChannelMuteList } from '../../../models/chat/entities';
+
 @Injectable()
 export class ChannelMuteListSeeder implements Seeder {
   constructor(
@@ -12,6 +13,7 @@ export class ChannelMuteListSeeder implements Seeder {
   seed(): Promise<any> {
     return this.channelBanListRepository.insert(DataFactory.createForClass(ChannelMuteList).generate(10));
   }
+
   drop(): Promise<any> {
     return this.channelBanListRepository.delete({});
   }

@@ -38,6 +38,7 @@ export class UserController {
   async verifyNickname(@Param('nickname') nickname: string): Promise<VerifyNicknameResponseDto> {
     return this.userService.verifyDuplicateNickname(nickname);
   }
+
   /**
    * 주의! GET /me 로 할경우 상위의 /user/:userId와 겹쳐서 사용할 수 없음.
    */

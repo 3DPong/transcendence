@@ -1,5 +1,17 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ChannelBanList, ChannelMuteList, ChannelUser, ChatChannel, DmChannel } from '../entities';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ChannelBanList, ChannelMuteList, ChannelUser, ChatChannel } from '../entities';
 import { JwtPayloadInterface } from '../../../common/interfaces/JwtUser.interface';
 import { JwtGuard } from '../../../common/guards/jwt/jwt.guard';
 import { GetGuardData } from '../../../common/decorators';
@@ -8,7 +20,6 @@ import { ChatService } from './services';
 import { ChannelDto, JoinDto, UserIdDto } from '../dto/channel.dto';
 import { DmDto } from '../dto/dm.dto';
 import { ChannelInterface, ChatUser } from '../socket/chat.interface';
-
 
 @UseGuards(JwtGuard)
 @Controller('/chat')
@@ -87,18 +98,12 @@ export class ChatController {
   }
 
   @Post('/join')
-  joinChannelUser(
-    @GetGuardData() data: JwtPayloadInterface,
-    @Body() joinDto: JoinDto
-  ): Promise<ChannelUser> {
+  joinChannelUser(@GetGuardData() data: JwtPayloadInterface, @Body() joinDto: JoinDto): Promise<ChannelUser> {
     return this.chatService.joinChannelUser(joinDto, data.user_id);
   }
 
   @Put('/:channelId/out')
-  leaveChannel(
-    @GetGuardData() data: JwtPayloadInterface,
-    @Param('channelId', ParseIntPipe) channelId: number
-  ) {
+  leaveChannel(@GetGuardData() data: JwtPayloadInterface, @Param('channelId', ParseIntPipe) channelId: number) {
     return this.chatService.leaveChannel(data.user_id, channelId);
   }
 
@@ -117,13 +122,10 @@ export class ChatController {
   }
 
   @Post('/dm')
-  async createDmRoom(
-    @GetGuardData() data: JwtPayloadInterface,
-    @Body() dmDto: DmDto
-  ): Promise<ChannelInterface> {
+  async createDmRoom(@GetGuardData() data: JwtPayloadInterface, @Body() dmDto: DmDto): Promise<ChannelInterface> {
     const first_user = await this.userService.getUser(data.user_id);
     const second_user = await this.userService.getUser(dmDto.user_id);
-    if (!second_user) throw new NotFoundException("Dm을 신청 할 수 없습니다!")
+    if (!second_user) throw new NotFoundException('Dm을 신청 할 수 없습니다!');
     return this.chatService.createDmRoom(first_user, second_user);
   }
 }
