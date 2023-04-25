@@ -11,8 +11,8 @@ export type ExceptionStatus =
   | 'InternalServerError';
 
 export class SocketException extends WsException {
-  status;
-  message;
+  status: string;
+  message: string;
   constructor(status: ExceptionStatus, message: string) {
     super({ status, message });
     this.status = status;
