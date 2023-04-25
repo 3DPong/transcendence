@@ -14,7 +14,6 @@ import * as API from '@/api/API';
 import { Assert } from '@/utils/Assert';
 import { Skeleton } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import LinearProgress from '@mui/material/LinearProgress';
 import { green } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
 import {useNavigate} from "react-router";
@@ -62,10 +61,8 @@ export default function GameMatchingDialog({
   const { inviteChannelId, inviteGameId, isObserve, clearInviteData } = useContext(MatchDataContext);
 
   const handleModeSelectDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
-    if (reason && reason === 'backdropClick') {
-      console.log("ModeSelectDialog Close");
-      navigate('/');
-    }
+    // if (reason && reason === 'backdropClick') { ... }
+    navigate('/');
     setModeSelectDialogOpen(false);
   };
 
