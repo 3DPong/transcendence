@@ -9,6 +9,14 @@ interface SocketMap {
 export class SocketMapService {
   private readonly redisClient;
 
+  getUserSocketKey(userId): string {
+    return `user:${userId}`;
+  }
+
+  getSocketUserKey(socketId): string {
+    return `socket:${socketId}`;
+  }
+
   constructor(private redisService: RedisService) {
     this.redisClient = this.redisService.getClient();
   }
@@ -27,7 +35,7 @@ export class SocketMapService {
   }
 
   async deleteUserSocket(userId: number, socketType: string) {
-    const socketId = await this.redisClient.hget(`${userId}`, socketType);
+    const socketId = await this.redisClient.hget(this.getUserSocketKey(userId), socketType);
     if (!socketId) return;
     await this.removeUserIdFromSocketId(socketId);
     await this.removeSocketIdFromUserId(userId, socketType);
@@ -46,7 +54,7 @@ export class SocketMapService {
    * @param socketId
    */
   private async setSocketIdToUserId(userId: number, socketType: string, socketId: string) {
-    return await this.redisClient.hmset(`user:${userId}`, socketType, socketId);
+    return await this.redisClient.hmset(this.getUserSocketKey(userId), socketType, socketId);
   }
 
   /**
@@ -54,7 +62,7 @@ export class SocketMapService {
    * @param userId
    */
   private async getSocketsFromUserId(userId: number): Promise<SocketMap | null> {
-    const result = await this.redisClient.hgetall(`user:${userId}`);
+    const result = await this.redisClient.hgetall(this.getUserSocketKey(userId));
     if (Object.keys(result).length === 0) return null;
     return result;
   }
@@ -67,7 +75,7 @@ export class SocketMapService {
    * @param userId
    */
   private async setUserIdToSocketId(socketId: string, userId: number) {
-    await this.redisClient.set(`socket:${socketId}`, userId);
+    await this.redisClient.set(this.getSocketUserKey(socketId), userId);
   }
 
   /**
@@ -75,14 +83,14 @@ export class SocketMapService {
    * @param socketId
    */
   private async getUserIdFromSocketId(socketId: string): Promise<string | null> {
-    return await this.redisClient.get(`socket:${socketId}`);
+    return await this.redisClient.get(this.getSocketUserKey(socketId));
   }
 
   private async removeSocketIdFromUserId(userId: number, socketType: string) {
-    await this.redisClient.hdel(`user:${userId}`, socketType);
+    await this.redisClient.hdel(this.getUserSocketKey(userId), socketType);
   }
 
   private async removeUserIdFromSocketId(socketId: string) {
-    await this.redisClient.del(`socket:${socketId}`);
+    await this.redisClient.del(this.getSocketUserKey(socketId));
   }
 }
