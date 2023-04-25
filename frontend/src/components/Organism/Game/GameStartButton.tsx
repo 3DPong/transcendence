@@ -97,13 +97,23 @@ export default function GameMatchingDialog({
     if (inviteGameId) {
       handleModeSelectDialogClose(); // 모드 선택 종료.
       handleMatchingDialogOpen(); // 매칭 시작.
+
+      const matchJoinData: gameType.InvitedJoinData = {
+        gameId: inviteGameId,
+      };      
+
       if (isObserve) {
         console.log('observe 로 들어온 사람');
-        gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('observeJoin', matchJoinData);
       }
       else {
+        // const matchJoinData: gameType.ChatJoinData = {
+        //   gameId: inviteGameId,
+        //   roomType: gameType.roomType.chat,
+        //   gameType: gameType.gameType.normal,
+        // };
         console.log('플레이어로 들어온 사람');
-        gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('chatJoin', matchJoinData);
       }
     }
   }, [inviteGameId, gameSocket])

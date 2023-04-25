@@ -107,7 +107,7 @@ export default function Controller() {
     gameSocket.on('onGameInvite', (data) => {
       const inviteMessage = JSON.stringify({
         gameId: data.gameId,
-        gameMode: data.gameMode || 'normal',
+        gameMode: data.gameType ? 'special' : 'normal',
       });
       if (chatSocket)
         chatSocket.emit('message-chat', { message: inviteMessage, type: 'game', channel_id: data.channelId });

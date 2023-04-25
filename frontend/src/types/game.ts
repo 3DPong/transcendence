@@ -21,6 +21,10 @@ export interface ChatJoinData {
 	gameType: gameType; // 게임 모드
 }
 
+export interface InvitedJoinData {
+	gameId : string;
+}
+
 export interface Vec2 {
   x: number;
   y: number;
