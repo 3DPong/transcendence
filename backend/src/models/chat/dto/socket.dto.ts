@@ -1,14 +1,19 @@
-import { IsNotEmpty, IsNumber, IsString, MaxLength } from 'class-validator';
+import { isNotEmpty, IsNotEmpty, IsNumber, isString, IsString, MaxLength, ValidateIf } from 'class-validator';
+import { MessageType } from '../entities';
 
 export class MessageDto {
-  @IsNotEmpty({ message: '내용을 입력해주세요' })
+  @ValidateIf((object, value) => value !== null)
   @MaxLength(500)
   @IsString()
-  message: string;
+  message!: string | null;
 
   @IsNotEmpty()
   @IsNumber()
   channel_id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  type: MessageType;
 }
 
 export class toggleTimeDto {

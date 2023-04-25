@@ -9,6 +9,7 @@ import {
   ChatChannel,
   DmChannel,
   MessageLog,
+  MessageType,
   MuteStatus,
 } from '../../entities';
 import { Repository } from 'typeorm';
@@ -17,10 +18,13 @@ import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/socket.dto';
 import { Server, Socket } from 'socket.io';
 import { SocketException } from '../../../../common/filters/socket/socket.filter';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
-import { UserRelation } from 'src/models/user/entities';
+import { User, UserRelation } from 'src/models/user/entities';
+import { SocketMapService } from 'src/providers/redis/socketMap.service';
+import { ChannelInterface } from '../chat.interface';
 
 @Injectable()
 export class ChatSocketService {
+
   constructor(
     @InjectRepository(ChatChannel)
     private channelRepository: Repository<ChatChannel>,
@@ -35,8 +39,9 @@ export class ChatSocketService {
     @InjectRepository(ChannelMuteList)
     private muteRepository: Repository<ChannelMuteList>,
     @InjectRepository(UserRelation)
-    private relationRepository: Repository<UserRelation>
+    private relationRepository: Repository<UserRelation>,
     
+    private readonly socketMapService: SocketMapService
   ) {}
 
   async joinAllChatRooms(socket: Socket, user_id: number) {
@@ -72,32 +77,31 @@ export class ChatSocketService {
 
   async sendChatMessage(server: Server, user_id: number, md: MessageDto, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
-    if (md.message === '' || isWhitespace(md.message)) throw new SocketException('BadRequest', `내용을 입력해주세요!`);
+    if ((md.type === MessageType.MESSAGE && md.message === null) || md.message === '' || isWhitespace(md.message))
+      throw new SocketException('BadRequest', `내용을 입력해주세요!`);
 
     let dmUser;
-    const channel = await this.getChannelType(md.channel_id);
+    const channel = await this.getChannel(md.channel_id);
     if (!channel) {
       throw new SocketException('NotFound', `채널을 찾을 수 없습니다!`);
-    } else if (channel.type === ChannelType.DM && !(dmUser = await this.getDmUser(md.channel_id, user_id))) {
+    } else if (channel.type === ChannelType.DM && !(dmUser = await this.getDmUsers(md.channel_id, user_id))) {
       throw new SocketException('NotFound', `디엠 유저를 찾을 수 없습니다!`);
     } else if (channel.type === ChannelType.DM && await this.checkBlocked(dmUser, user_id)) {
       throw new SocketException('Forbidden', `차단 상태 입니다!`);
     } else if (channel.type !== ChannelType.DM && !(await this.checkChannelUser(md.channel_id, user_id))) {
       throw new SocketException('NotFound', `채팅 유저를 찾을 수 없습니다!`);
-    }
-
-    if (await this.checkMuteUser(md.channel_id, user_id) === MuteStatus.Mute) {
-      throw new SocketException('Forbidden', `뮤트 상태입니다!`);
+    } else if (channel.type !== ChannelType.DM && await this.checkMuteUser(md.channel_id, user_id) === MuteStatus.Mute) {
+      throw new SocketException('Forbidden', `뮤트 상태 입니다!`);
     }
 
     try {
       const newMessage = await this.createMessageLog(user_id, md);
-      delete newMessage.channel;
 
-      if (channel.type === ChannelType.DM) await this.updateDmUser(dmUser);
-      
+      if (channel.type === ChannelType.DM)
+        await this.updateDmUser(user_id, dmUser, channel, server);
       server.to(`chat_active_${md.channel_id}`).emit('chat', newMessage);
-      server.to(`chat_alarm_${md.channel_id}`).except(socketIds).emit('alarm', {type: 'chat', newMessage});
+      server.to(`chat_alarm_${md.channel_id}`).except(socketIds)
+        .emit('alarm', {type: 'chat', channel_id: channel.channel_id}); //보류
     } catch (error) {
       throw new SocketException('InternalServerError', `${error.message}`);
     }
@@ -147,7 +151,6 @@ export class ChatSocketService {
       throw new SocketException('Forbidden', `권한이 없습니다!`);
     
     const banned = await this.checkBanUser(channel_id, user_id);
-    //const nickname = await this.getChannelUserName(channel_id, user_id);
 
     if (banned === BanStatus.Ban) {
       throw new SocketException('Forbidden', `이미 밴 상태입니다!`);
@@ -224,19 +227,45 @@ export class ChatSocketService {
       channel_id: md.channel_id,
       user_id,
       content: md.message,
+      type: md.type,
     });
     await this.messageLogRepository.save(newLog);
     return newLog;
   }
 
-  async updateDmUser(dmUser: DmChannel) {
-    await this.dmRepository.update(
-      {
-        first_user_id: dmUser.first_user_id,
-        second_user_id: dmUser.second_user_id,
-      },
-      { updated_at: new Date() }
-    );
+  async updateDmUser(user_id: number, dmChannel: DmChannel, channel: ChatChannel, server: Server) {
+    const {first_status, second_status} = dmChannel;
+
+    if (first_status === false || second_status === false ) {
+      await this.dmRepository.update(
+        {
+          first_user_id : dmChannel.first_user.user_id,
+          second_user_id: dmChannel.second_user.user_id,
+        },
+        { first_status: true,
+          second_status: true }
+      );
+
+      if (first_status === false) {
+        const userSocket = await this.getSocketIdByUserId(dmChannel.first_user.user_id);
+        if (userSocket) {
+          server.in(userSocket).socketsJoin(`chat_alarm_${channel.channel_id}`);
+          if (dmChannel.first_user.user_id !== user_id) {
+            server.in(userSocket).emit('alarm', { type: 'invite', message: this.channelResult(channel, dmChannel.second_user)});
+          }
+        }
+      } 
+
+      if (second_status === false) {
+        const userSocket = await this.getSocketIdByUserId(dmChannel.second_user.user_id);
+        if (userSocket) {
+          server.in(userSocket).socketsJoin(`chat_alarm_${channel.channel_id}`);
+          if (dmChannel.second_user.user_id !== user_id) {
+            server.in(userSocket).emit('alarm', { type: 'invite', message: this.channelResult(channel, dmChannel.first_user)});
+          }
+        }
+      }
+    }
   }
 
   async createMuteUser(muteDto: toggleTimeDto): Promise<ChannelMuteList> {
@@ -390,8 +419,43 @@ export class ChatSocketService {
     return dmChannel;
   }
 
-  async getChannelType(channel_id: number): Promise<ChatChannel> {
-    const channel = await this.channelRepository.findOne({ select: { type: true }, where: { channel_id } });
+  async getDmUsers(channel_id: number, user_id: number) {
+    let dmChannel = await this.dmRepository
+    .createQueryBuilder('dm')
+    .innerJoin('dm.first_user', 'first')
+    .innerJoin('dm.second_user', 'second')
+    .select([
+      'first.user_id', 'first.nickname', 'first.profile_url', 'dm.first_status',
+      'second.user_id', 'second.nickname', 'second.profile_url', 'dm.second_status'
+    ])
+    .where('dm.channel_id = :channel_id', { channel_id })
+    .getRawOne();
+
+    if (dmChannel.first_user_id !== user_id && dmChannel.second_user_id !== user_id) return null;
+
+    return {
+      first_status: dmChannel.dm_first_status,
+      first_user: {
+        user_id: dmChannel.first_user_id,
+        nickname: dmChannel.first_nickname,
+        profile_url: dmChannel.first_profile_url,
+      },
+      second_status: dmChannel.dm_second_status,
+      second_user: {
+        user_id: dmChannel.second_user_id,
+        nickname: dmChannel.second_nickname,
+        profile_url: dmChannel.second_profile_url,
+      }
+    };
+  
+  }
+
+  async getChannel(channel_id: number): Promise<ChatChannel> {
+    const channel = await this.channelRepository.findOne(
+      { 
+        select: { channel_id: true, name: true, type: true, thumbnail_url: true },
+        where: { channel_id } 
+      });
     if (!channel) return null;
     return channel;
   }
@@ -402,6 +466,26 @@ export class ChatSocketService {
     return channel.name;
   }
 
+  async getSocketIdByUserId(userId: number) {
+    const socketMap = await this.socketMapService.getUserSockets(userId);
+    if (socketMap !== null)
+      return socketMap.chat;
+    return null;
+  }
+
+  channelResult(channel: ChatChannel, second_user: User) : ChannelInterface {
+    return {
+      channel_id: channel.channel_id,
+      name: channel.name,
+      type: channel.type,
+      thumbnail_url: channel.thumbnail_url,
+      owner: {
+        user_id: second_user.user_id,
+        nickname: second_user.nickname,
+        profile_url: second_user.profile_url,
+      },
+    };
+  }
 }
 
 function isWhitespace(value: string): boolean {

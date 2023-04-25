@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../models/user/entities';
 import { Repository } from 'typeorm';
@@ -27,7 +27,15 @@ export class AuthController {
   @UseGuards(FtGuard)
   @Get('/redirect/42')
   async ftRedirect(@GetGuardData() data: FtDataInterface, @Res() res: Response): Promise<void> {
-    return this.authService.redirect(data, res);
+    try {
+      return await this.authService.redirect(data, res);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        res.redirect('/signin_duplicated');
+      } else {
+        res.redirect('/signin_fail');
+      }
+    }
   }
 
   // will be redirected to /

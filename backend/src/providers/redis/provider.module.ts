@@ -14,7 +14,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
           port: redisConfigService.port,
           password: redisConfigService.password,
           db: redisConfigService.socketDB,
-          keyPrefix: 'socket::',
+          keyPrefix: 'SocketDB:',
           lazyConnect: true, // 서버 첫 시작에서 connect 가 꼬이는 과정을 방지함.
         },
       }),
