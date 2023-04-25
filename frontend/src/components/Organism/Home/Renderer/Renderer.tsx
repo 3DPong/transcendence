@@ -14,18 +14,20 @@
 import * as BABYLON from 'babylonjs';
 import { MeshBuilder, Scene, Vector3, Color3 } from 'babylonjs';
 import 'babylonjs-loaders';
-
-import * as GUI from 'babylonjs-gui';
 import SceneComponent from './SceneComponent'; // uses above component in same directory
 import { Assert } from '@/utils/Assert';
 import React, {useContext, useEffect, useRef} from 'react';
-import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
-import * as gameType from '@/types/game';
-import { useSocket } from '@/context/SocketContext';
-import { useError } from '@/context/ErrorContext';
-import HOCKEY_TABLE_3D from '@/assets/air_hockey_table.glb';
-import {attachGameEventToCanvas} from "@/components/Organism/Game/Renderer/KeyInput";
-import GlobalContext from "@/context/GlobalContext";
+
+// import * as GUI from 'babylonjs-gui';
+// import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
+// import * as gameType from '@/types/game';
+// import { useSocket } from '@/context/SocketContext';
+// import { useError } from '@/context/ErrorContext';
+// import HOCKEY_TABLE_3D from '@/assets/air_hockey_table.glb';
+// import {attachGameEventToCanvas} from "@/components/Organism/Game/Renderer/KeyInput";
+// import GlobalContext from "@/context/GlobalContext";
+import PONG_LOGO_3D from '@/assets/3D_PONG.obj';
+// import  from "@/assets/air_hockey_table.glb";
 
 // camera class for extension function
 class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
@@ -103,6 +105,11 @@ function HomeScreen3D({ width, height }: RenderSceneProps) {
     light.specular = new BABYLON.Color3(0, 1, 0);
     light.groundColor = new BABYLON.Color3(0, 1, 0);
 
+    function degrees_to_radians(degrees: number)
+    {
+      const pi = Math.PI;
+      return degrees * (pi/180);
+    }
 
     const vertexArray3D: Vector3[] = [];
     vertexArray3D.push(new Vector3(50, 25, 0));
@@ -120,15 +127,20 @@ function HomeScreen3D({ width, height }: RenderSceneProps) {
     lines.color = new Color3(1, 0, 0);
 
 
+    // (3) Home Screen 3D Object
+    const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, PONG_LOGO_3D, '', scene3D);
+    importPromise.then((result) => {
+      const logo = new BABYLON.TransformNode("logo");
+      result.meshes.forEach(mesh => {
+        if (!mesh.parent) {
+          mesh.parent = logo;
+        }
+      });
+      logo.position = new Vector3(-20, -5, 0);
+      logo.rotation = new Vector3(degrees_to_radians(90), 0, 0);
+      logo.scaling = new Vector3(10, 10, 10);
+    });
   }; // onSceneReady
-
-  // https://doc.babylonjs.com/features/featuresDeepDive/animation/animation_introduction
-  // const onRender = (scene: Scene) => {
-  //   for (const [obj2D, mesh] of m_MeshMap.entries()) {
-  //     mesh.position = new Vector3(obj2D.position.x, obj2D.position.y, 0);
-  //     mesh.rotation = new Vector3(0, 0, obj2D.angle); // only z-axis rotation
-  //   }
-  // };
 
   return (
     <div>
