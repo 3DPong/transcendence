@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Seeder } from 'nestjs-seeder';
 import { DataSource } from 'typeorm';
+
 @Injectable()
 export class CorrectionSeeder implements Seeder {
   constructor(private dataSource: DataSource) {}
@@ -19,6 +20,7 @@ export class CorrectionSeeder implements Seeder {
           'UPDATE public."user" SET total = wins + losses;'
       );
   }
+
   drop(): Promise<any> {
     return;
   }

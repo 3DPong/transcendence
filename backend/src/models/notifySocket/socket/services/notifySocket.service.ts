@@ -20,6 +20,7 @@ import { SocketException } from '../../../../common/filters/socket/socket.filter
 @Injectable()
 export class NotifySocketService {
   private readonly logger = new Logger('NotifySocketService');
+
   constructor(
     private readonly socketMapService: SocketMapService,
     private readonly notifier: Notifier,

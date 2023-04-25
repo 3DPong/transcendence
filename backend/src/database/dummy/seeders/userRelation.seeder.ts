@@ -11,6 +11,7 @@ export class UserRelationSeeder implements Seeder {
   seed(): Promise<any> {
     return this.userRelationRepository.insert(DataFactory.createForClass(UserRelation).generate(10));
   }
+
   drop(): Promise<any> {
     return this.userRelationRepository.delete({});
   }

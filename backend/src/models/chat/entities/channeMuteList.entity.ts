@@ -6,7 +6,7 @@ import { Factory } from 'nestjs-seeder';
 export enum MuteStatus {
   Mute = 0,
   NoneMute,
-  PassedMute
+  PassedMute,
 }
 
 @Entity()

@@ -133,7 +133,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   /*
-      Func From Api Reqeust
+      Func From Api Request
   */
   handleEmitRoom(channel_id: number, user: ChannelUser[]) {
     this.server.to(`chat_active_${channel_id}`).emit('user', {

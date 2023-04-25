@@ -9,6 +9,7 @@ import { Socket } from 'socket.io';
 @Catch(WsException)
 export class WsExceptionFilter extends BaseWsExceptionFilter {
   private readonly logger = new Logger();
+
   catch(exception: WsException, host: ArgumentsHost) {
     super.catch(exception, host);
     const ctx = host.switchToWs();

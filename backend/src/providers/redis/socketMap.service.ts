@@ -8,6 +8,7 @@ interface SocketMap {
 @Injectable()
 export class SocketMapService {
   private readonly redisClient;
+
   constructor(private redisService: RedisService) {
     this.redisClient = this.redisService.getClient();
   }
