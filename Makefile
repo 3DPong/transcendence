@@ -28,13 +28,18 @@ wait-for-docker:
 backend:
 	@make create-volume-directory
 	@make wait-for-docker
-	@cd backend && docker-compose up -d
+	@cd backend && docker-compose up
 
 .PHONY: all
 all:
 	@make create-volume-directory
 	@make wait-for-docker
-	@docker-compose up -d
+	@docker-compose up
+
+.PHONY: rebuild
+rebuild:
+	@make wait-for-docker
+	@docker-compose up --build
 
 .PHONY: fclean
 fclean:
@@ -50,7 +55,7 @@ re:
 	@make fclean
 	@make create-volume-directory
 	@make wait-for-docker
-	@docker-compose up -d --build
+	@docker-compose up --build
 
 .PHONY: down
 down:
