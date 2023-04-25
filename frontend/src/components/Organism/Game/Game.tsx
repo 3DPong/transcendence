@@ -33,21 +33,19 @@ import { useError } from "@/context/ErrorContext";
 import { Navigate, useNavigate } from "react-router";
 
 export default function Game() {
+  const {gameSocket, notifySocket } = useSocket();
+  const {handleError} = useError();
+  const {loggedUserId} = useContext(GlobalContext);
+  const {clearInviteData} = useContext(MatchDataContext);
+  const navigate = useNavigate();
+  
   const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
-  const {loggedUserId} = useContext(GlobalContext);
-  const {gameSocket, gameConnect, notifySocket, notifyConnect, chatSocket } = useSocket();
-
-  const {handleError} = useError();
-  const navigate = useNavigate();
-
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
-
-  const {clearInviteData} = useContext(MatchDataContext);
-
+ 
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
@@ -55,89 +53,25 @@ export default function Game() {
   };
 
   useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Game Socket... at [Game.tsx]");
-    gameConnect();
-  }, [loggedUserId])
-
-  /** ----------------------------------------
-   *              Game Socket
-   ------------------------------------------- */
-  useEffect(() => {
     if (!gameSocket) return;
-    gameSocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    gameSocket.on('connect', () => {
-      console.log('[gameSocket] 서버와 연결되었습니다.');
-    });
-    gameSocket.on('my_connect', () => {
-      console.log('[gameSocket] nest서버와 연결');
-    });
-    gameSocket.on('disconnect', () => {
-      console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    // if game finished
-    function handleGameEnd(matchResult: gameType.matchResult) {
-      setMatchResult(matchResult);
-      clearInviteData();
-    }
+    // 게임 도중 발생한 소켓 에러?
     gameSocket.on('error', (message) => {
       handleError('Socket Error', message.message);
       clearInviteData();
       navigate(-1);
     });
+     // if game finished
+    function handleGameEnd(matchResult: gameType.matchResult) {
+      setMatchResult(matchResult);
+      clearInviteData();
+    }
     gameSocket.on("matchEnd", handleGameEnd);
-    gameSocket.on('onGameInvite', (data) => {
-      const inviteMessage = JSON.stringify({
-        gameId: data.gameId,
-        gameMode: data.gameMode || 'normal',
-      });
-      if (chatSocket)
-        chatSocket.emit('message-chat', { message: inviteMessage, type: 'game', channel_id: data.channelId });
-    });
     return () => {
-      gameSocket.off("connect_error");
-      gameSocket.off("connect");
-      gameSocket.off("my_connect");
-      gameSocket.off("disconnect");
       gameSocket.off("matchEnd", handleGameEnd);
-      gameSocket.off('onGameInvite');
       gameSocket.off('error');
     }
-  }, [gameSocket]);
-
-  /** ----------------------------------------
-   *              Notify Socket
-   ------------------------------------------- */
-  useEffect(() => {
-    if (!notifySocket) return;
-    notifySocket.on("connect_error", (err: Error)=>{
-      console.log(`connect error due to ${err.message}`);
-      console.log(`error cause : ${err.cause}`);
-      console.log(`error name : ${err.name}`);
-    })
-    notifySocket.on('connect', () => {
-      console.log('[notifySocket] 서버와 연결되었습니다.');
-    });
-    notifySocket.on('my_connect', () => {
-      console.log('[notifySocket] nest서버와 연결');
-    });
-    notifySocket.on('disconnect', () => {
-      console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
-    });
-    return () => {
-      notifySocket.off("connect_error");
-      notifySocket.off("connect");
-      notifySocket.off("my_connect");
-      notifySocket.off("disconnect");
-    }
-  }, [notifySocket]);
-
-
-
+  }, [gameSocket]); 
+  
   const playerData: gameType.PlayerData = {
     myNickName: myNickname,
     enemyNickName: enemyNickname,

@@ -89,6 +89,7 @@
     "babylonjs-loaders": "^5.57.0",
     "babylonjs-materials": "^6.0.0",
     "box2d-wasm": "^7.0.0",
+    "dotenv": "^16.0.3",
     "latest": "^0.2.0",
     "mui-one-time-password-input": "^1.1.0",
     "process": "^0.11.10",

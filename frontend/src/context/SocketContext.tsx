@@ -100,14 +100,17 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     if (gameSocket) {
       console.log("[DEV] game socket disconnecting...");
       gameSocket.disconnect();
+      setGameSocket(null);
     }
     if (chatSocket) {
       console.log("[DEV] chat socket disconnecting...");
       chatSocket.disconnect();
+      setChatSocket(null);
     }
     if (notifySocket) {
       console.log("[DEV] notify socket disconnecting...");
       notifySocket.disconnect();
+      setNotifySocket(null);
     }
   }
 

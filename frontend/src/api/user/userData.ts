@@ -45,7 +45,7 @@ export async function getUserDataById(handleError: handleErrorFunction, userId: 
     handleError(
         "UserData",
         errorData.message,
-        "/login"
+        errorData.status === 401 ? '/login' : null
     ); // redirect to /login page
     return ;
   }
