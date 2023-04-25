@@ -18,10 +18,9 @@ import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
 import { SocketMapService } from 'src/providers/redis/socketMap.service';
 import { ChannelInterface } from './chat.interface';
 
-
 @UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
-  namespace : 'chat',
+  namespace: 'chat',
 })
 export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -34,14 +33,12 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     private readonly socketMapService: SocketMapService,
     private chatSocketService: ChatSocketService,
     private readonly jwtService: JwtService
-    ) {}
+  ) {}
 
   async handleConnection(@ConnectedSocket() socket: Socket): Promise<void> {
-
     try {
       const cookie = socket.handshake.headers.cookie;
-      if (!cookie)
-        throw new Error('cookie is invalid');
+      if (!cookie) throw new Error('cookie is invalid');
       const token = cookie
         .split(';')
         .find((c) => c.trim().startsWith('Authentication='))
@@ -49,13 +46,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
         .trim();
       if (!token) throw new Error('token is required');
       const decoded = this.jwtService.verify(token);
-      if (!decoded || !decoded.user_id || decoded.status !== TokenStatusEnum.SUCCESS) 
+      if (!decoded || !decoded.user_id || decoded.status !== TokenStatusEnum.SUCCESS)
         throw new Error('token is invalid');
       const { user_id } = decoded;
-      const userId: string = user_id.toString();
-      socket.data.user = userId;
-      // const { user_id } = socket.handshake.query;
-      // socket.data.user = user_id as string;
+      socket.data.user = user_id.toString();
+      if (await this.isOnline(user_id, socket.id)) throw new Error('already online');
 
       await this.socketMapService.setUserSocket(parseInt(socket.data.user), 'chat', socket.id);
       await this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
@@ -74,7 +69,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
     this.logger.log(`Socket disconnected: ${user_id}`);
   }
-  
+
   @SubscribeMessage('enter-chat')
   async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
     const userId = await this.getUserIdBySocketId(socket.id);
@@ -83,12 +78,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userIndex = this.activeRooms.findIndex((u) => u.userId === parseInt(userId));
     if (userIndex >= 0) {
       socket.leave(`chat_active_${this.activeRooms[userIndex].channelId}`);
-      this.activeRooms[userIndex].channelId =  dto.channel_id;
+      this.activeRooms[userIndex].channelId = dto.channel_id;
     } else {
       this.activeRooms.push({ userId: parseInt(userId), channelId: dto.channel_id });
     }
     socket.join(`chat_active_${dto.channel_id}`);
-
   }
 
   @SubscribeMessage('leave-chat')
@@ -96,13 +90,15 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     const userId = await this.getUserIdBySocketId(socket.id);
     if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
 
-    const userIndex = this.activeRooms.findIndex((u) => u.userId === parseInt(userId) && u.channelId === dto.channel_id);
+    const userIndex = this.activeRooms.findIndex(
+      (u) => u.userId === parseInt(userId) && u.channelId === dto.channel_id
+    );
     if (userIndex >= 0) {
       this.activeRooms.splice(userIndex, 1);
       socket.leave(`chat_active_${dto.channel_id}`);
     }
   }
- 
+
   @SubscribeMessage('message-chat')
   async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
     const userId = await this.getUserIdBySocketId(socket.id);
@@ -136,26 +132,23 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     return this.chatSocketService.kickUser(this.server, parseInt(adminId), kickDto, userSocket);
   }
 
-
   /*
       Func From Api Reqeust
   */
   handleEmitRoom(channel_id: number, user: ChannelUser[]) {
     this.server.to(`chat_active_${channel_id}`).emit('user', {
       type: 'join',
-      user 
+      user,
     });
   }
 
   async handleJoinUsers(userIds: number[], owner_id: number, channel_id: number, channel: ChannelInterface) {
- 
     if (userIds !== null) {
       for (const userId of userIds) {
         const userSocket = await this.getSocketIdByUserId(userId);
         if (userSocket) {
           this.server.in(userSocket).socketsJoin(`chat_alarm_${channel_id}`);
-          if (userId !== owner_id)
-            this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
+          if (userId !== owner_id) this.server.in(userSocket).emit('alarm', { type: 'invite', message: channel });
         }
       }
     }
@@ -170,15 +163,13 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     if (type !== ChannelType.DM) {
       this.server.to(`chat_active_${channel_id}`).emit('user', {
         type: 'leave',
-        user_id
+        user_id,
       });
     }
   }
 
   handleAdminRoleUpdate(user_id: number, channel_id: number, changedRole: ChannelUserRoles) {
-    this.server
-      .to(`chat_active_${channel_id}`)
-      .emit('role', { type: changedRole, user_id: user_id });
+    this.server.to(`chat_active_${channel_id}`).emit('role', { type: changedRole, user_id: user_id });
   }
 
   async handleDmJoinUser(first_user_id: number, channel_id: number) {
@@ -195,7 +186,7 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   */
   async getSocketIdByUserId(userId: number) {
     const socketMap = await this.socketMapService.getUserSockets(userId);
-    if (socketMap === null) return null; 
+    if (socketMap === null) return null;
     return socketMap.chat;
   }
 
@@ -203,14 +194,22 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
     return await this.socketMapService.getSocketUser(socketId);
   }
 
-  async getActiveChannelUsersSocketIds(channel_id: number): Promise<string[]>{
-    const userIds = this.activeRooms
-      .filter(room => room.channelId === channel_id).map(room => room.userId);
+  async getActiveChannelUsersSocketIds(channel_id: number): Promise<string[]> {
+    const userIds = this.activeRooms.filter((room) => room.channelId === channel_id).map((room) => room.userId);
     const socketIds = [];
     for (const user of userIds) {
       const sockets = await this.socketMapService.getUserSockets(+user);
       if (sockets !== null) socketIds.push(sockets.chat);
     }
     return socketIds;
+  }
+
+  async isOnline(userId: number, socketId: string): Promise<boolean> {
+    // check user is online in db and sockets
+    const sockets = await this.socketMapService.getUserSockets(userId);
+    // offline case
+    if (!sockets || !sockets.chat) return false;
+    // 동일 소켓 접속 케이스는 무시
+    return sockets.chat !== socketId;
   }
 }
