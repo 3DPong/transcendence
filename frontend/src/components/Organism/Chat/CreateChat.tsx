@@ -72,6 +72,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           id: createChannel.channel_id,
           title: createChannel.name,
           type: createChannel.type,
+          thumbnail: createChannel.thumbnail_url,
           owner: {
             id: createChannel.owner.user_id,
             nickname: createChannel.owner.nickname,
