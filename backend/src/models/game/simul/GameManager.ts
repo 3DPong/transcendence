@@ -83,6 +83,17 @@ export class GameManager {
           gameService.gameEndToClient(gameManager, server);
           clearInterval(timeEndCheck);
           await gameService
+            .updateMatchRecode(gameManager)
+            .catch(() =>{
+              this.logger.error(
+                `database update user_match failed : ${gameManager.gameId} ` +
+                  `player1 score: ${gameManager.player1.score} ` +
+                  `player2 score: ${gameManager.player2.score} ` +
+                  `player1 dbId: ${gameManager.player1.dbId} ` +
+                  `player2 dbId: ${gameManager.player2.dbId}`
+              );
+            })
+          await gameService
             .createMatch(gameManager)
             .then(() => {
               gameRooms.delete(gameManager.gameId);
