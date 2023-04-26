@@ -86,9 +86,11 @@ export class Validator extends AbstractValidator<ConfigStruct> {
    *
    * @param ruleType config.ts에서 설정한 규칙타입. (ex-@Name)
    * @param value 검사를 수행할 대상 문자열.
+   * @param originalValue 비교후 다를 경우에만 Acceptable
    * @returns 규칙에 통과했다면 true, 규칙에 어긋난다면 false를 반환.
    */
-  public isAcceptable(ruleType: string, value: string): boolean {
+  public isAcceptable(ruleType: string, value: string, originalValue?: string): boolean {
+    if (originalValue && (value === originalValue)) return false; // no change.
     const regex_rule = this._getRegex(ruleType);
     if (value.match(regex_rule) === null) {
       // invalid

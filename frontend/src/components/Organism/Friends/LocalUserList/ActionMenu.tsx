@@ -23,7 +23,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { friendData_t, globalUserData_t } from '@/types/user';
 import { Assert } from '@/utils/Assert';
 import * as API from '@/api/API';
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 
 interface userActionMenuProps {
   user: friendData_t;
@@ -34,7 +34,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const currentUrl = useLocation().pathname;
-  const {handleError} = useError();
+  const {handleAlert} = useAlert();
 
   // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
   // DM 보내기 버튼
   const handleSendMessageRoute = () => {
     setAnchorEl(null);
-    API.fetchDM(user.user_id, navigate, handleError, channels, setChannels);
+    API.fetchDM(user.user_id, navigate, handleAlert, channels, setChannels);
     console.log('DM 보내기');
     // ...
   };
@@ -63,7 +63,7 @@ export default function UserActionMenu({ user }: userActionMenuProps) {
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, API.PUT_RelationActionType.blockUser);
+      const RESPONSE = await API.changeUserRelation(handleAlert, user.user_id, API.PUT_RelationActionType.blockUser);
       if (RESPONSE?.status === 'friend') {
         // server handle error
         alert('[SERVER]: 친구가 삭제 되지 않았습니다.');

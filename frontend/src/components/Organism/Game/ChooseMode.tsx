@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import GlobalContext from '@/context/GlobalContext';
 import { Assert } from '@/utils/Assert';
 import { ChatJoinData, gameType, MatchJoinData, roomType } from '@/types/game';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { MatchDataContext } from '@/context/MatchDataContext';
 
 // https://mui.com/material-ui/react-button/
@@ -96,14 +96,14 @@ interface ChooseModeButtonProps {
 
 export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButtonProps) {
   const { gameSocket } = useSocket();
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const { loggedUserId } = useContext(GlobalContext);
 
   const { inviteChannelId } = useContext(MatchDataContext);
 
   const handleNormalModeClick = () => {
     if (!gameSocket) {
-      handleError('gameSocket', 'gameSocket is currently null', '/');
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
     console.log('NormalMode selected');
@@ -128,7 +128,7 @@ export default function ChooseModeButton({ setIsModeSelected }: ChooseModeButton
   };
   const handleSpecialModeClick = () => {
     if (!gameSocket) {
-      handleError('gameSocket', 'gameSocket is currently null', '/');
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
     Assert.NonNullish(loggedUserId, 'UserId is null');

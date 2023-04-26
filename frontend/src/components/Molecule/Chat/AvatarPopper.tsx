@@ -6,7 +6,7 @@ import { useSocket } from '@/context/SocketContext';
 import { useNavigate, useParams } from 'react-router';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { fetchDM } from '@/api/API';
 
 interface AvatarPopperProps {
@@ -32,7 +32,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
 
   const { loggedUserId, channels, setChannels } = useContext(GlobalContext);
 
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   const navigate = useNavigate();
 
@@ -68,7 +68,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
 
   function handleDMClick(id: number) {
     console.log(id + ' is DM');
-    fetchDM(id, navigate, handleError, channels, setChannels);
+    fetchDM(id, navigate, handleAlert, channels, setChannels);
     handleClose();
   }
 
@@ -138,7 +138,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
       });
       if (!response.ok) {
         const error = await response.json();
-        handleError('Grant Admin', error.message);
+        handleAlert('Grant Admin', error.message);
         return;
       }
     }
@@ -160,7 +160,7 @@ const AvatarPopper: FC<AvatarPopperProps> = ({ anchorEl, handleClose, target, sc
       });
       if (!response.ok) {
         const error = await response.json();
-        handleError('Revoke Admin', error.message);
+        handleAlert('Revoke Admin', error.message);
         return;
       }
     }

@@ -1,12 +1,12 @@
 import { API_URL } from '../../../config/backend';
-import { handleErrorFunction, useError } from '@/context/ErrorContext';
+import { handleAlertFunction, useAlert } from '@/context/AlertContext';
 
 export interface POST_uploadImageResponseFormat {
   body: string;
 }
 
 // 최종 편집이 완료된 이미지 바이너리를 보냄.
-export async function uploadImageToServer(handleError: handleErrorFunction, clientSideImageUrl: string) {
+export async function uploadImageToServer(handleAlert: handleAlertFunction, clientSideImageUrl: string) {
 
   // Base64 image를 binary로 바꿔서 전송하는 방법.
   // https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
@@ -24,11 +24,11 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
   if (!uploadResponse.ok) {
     if (uploadResponse.status === 401) {
       const errorData = await uploadResponse.json();
-      handleError('Image Upload', errorData.message, 'signin');
+      handleAlert('Image Upload', errorData.message, 'signin');
       return ; // null on error
     } else {
       const errorData = await uploadResponse.json();
-      handleError('Image Upload', errorData.message);
+      handleAlert('Image Upload', errorData.message);
       return ; // null on error
     }
   }
@@ -46,14 +46,14 @@ export async function uploadImageToServer(handleError: handleErrorFunction, clie
 interface verifyResponse {
   isDuplicate: boolean;
 }
-export async function verifyNickname(handleError: handleErrorFunction, name: string) {
+export async function verifyNickname(handleAlert: handleAlertFunction, name: string) {
   const requestUrl = `${API_URL}/user/verify/nickname/${name}`;
   const response = await fetch(requestUrl, {
     method: 'GET'
   })
   if (!response.ok) {
     const errorData = await response.json();
-    handleError('Verify Nickname', errorData.message);
+    handleAlert('Verify Nickname', errorData.message);
     return ; // null on error
   }
   const responsePayload: verifyResponse = await response.json();

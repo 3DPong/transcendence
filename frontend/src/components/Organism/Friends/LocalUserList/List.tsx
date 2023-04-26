@@ -19,12 +19,12 @@ import {Assert} from '@/utils/Assert';
 import ActionMenu from '@/components/Organism/Friends/LocalUserList/ActionMenu';
 import GlobalContext from '@/context/GlobalContext';
 import * as API from '@/api/API';
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 import {useSocket} from "@/context/SocketContext";
 import {userStatus, UserStatusNotifyData} from "@/types/notify";
 
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { grey, green } from '@mui/material/colors';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
+import {green, grey} from '@mui/material/colors';
 
 const theme = createTheme({
   palette: {
@@ -49,12 +49,10 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
         <ListItem style={style} key={index} divider={true}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between'}}>
             <Badge
-                // invisible={ friend.status === undefined }
                 color={
                   friend.status === userStatus.ONLINE ? "primary" : "secondary"
                 }
-                // variant="dot"
-                badgeContent="eqwewqe"
+                badgeContent={ friend.status === userStatus.ONLINE ? "online" : "offline" }
                 anchorOrigin={{
                   vertical: "top",
                   horizontal: "right",
@@ -78,7 +76,7 @@ export interface UserListProps {
 export default function VirtualizedUserList(props: UserListProps) {
   const { friends, setFriends } = useContext(GlobalContext);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const { notifySocket } = useSocket();
 
   useEffect(() => {
@@ -102,12 +100,11 @@ export default function VirtualizedUserList(props: UserListProps) {
 
   // on first render
   useEffect(() => {
-
     (async () => {
       // 0. load start (used at MUI Skeleton)
       setIsLoading(true);
       // 1. 일단 userId를 불러와야 함.
-      const userList = await API.getUserListByRelationType(handleError, API.GET_RelationType.friend);
+      const userList = await API.getUserListByRelationType(handleAlert, API.GET_RelationType.friend);
       if (!userList) {
         return;
       }
@@ -116,7 +113,7 @@ export default function VirtualizedUserList(props: UserListProps) {
           user_id: relation.target_id,
           nickname: relation.nickname,
           profile_url: relation.profile_url,
-          status: relation.status ? relation.status : 1
+          status: (relation.status === userStatus.ONLINE) ? userStatus.ONLINE : userStatus.OFFLINE,
         };
       });
       setFriends(friendsList);
@@ -128,7 +125,7 @@ export default function VirtualizedUserList(props: UserListProps) {
   const ROW_WIDTH = '100%';
   const ROW_HEIGHT = 100;
 
-  let searchedArray: Array<friendData_t> | null = null;
+  let searchedArray: Array<friendData_t> | null;
   if (props.searchString) {
     searchedArray = friends.filter((user) => {
       Assert.NonNullish(props.searchString, 'search string is null');

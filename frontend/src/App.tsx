@@ -26,7 +26,7 @@ import { SignIn } from "./components/Organism/Login/SignIn";
 import { SignUp } from "./components/Organism/Login/SignUp";
 import { SignInDuplicatedError } from "./components/Organism/Login/SignInDuplicatedError";
 import { Auth2FaInput } from "./components/Organism/Login/2FA";
-import { ErrorProvider } from "@/context/ErrorContext";
+import { AlertProvider } from "@/context/AlertContext";
 import AlertSnackbar from "@/components/Molecule/AlertSnackbar";
 import Game from "@/components/Organism/Game/Game";
 import {SocketProvider} from "@/context/SocketContext";
@@ -35,6 +35,7 @@ import ChatProfileTemplate from "./components/ChatProfileTemplate";
 import {SignInError} from "@/components/Organism/Login/SignInError";
 import {ServerError} from "@/components/Organism/Login/ServerError";
 import { MatchProvider } from "./context/MatchDataContext";
+import SettingDialog from "@/components/Organism/Setting/SettingDialog";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -121,6 +122,10 @@ const router = createBrowserRouter([
         element: <Game />
       },
       {
+        path: "setting",
+        element: <SettingDialog/>,
+      },
+      {
         path: "profile",
         element: <L1Template organism={<Profile />} />,
       },
@@ -193,7 +198,7 @@ function App() {
     <div>
       <MatchProvider>
         <SocketProvider>
-          <ErrorProvider>
+          <AlertProvider>
             <div className="App">
               <header className="App-header">
                 <GlobalContext.Provider
@@ -203,7 +208,7 @@ function App() {
                 </GlobalContext.Provider>
               </header>
             </div>
-          </ErrorProvider>
+          </AlertProvider>
         </SocketProvider>
       </MatchProvider>
     </div>

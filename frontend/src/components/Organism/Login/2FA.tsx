@@ -4,7 +4,7 @@ import ImageUpload from "@/components/Molecule/ImageUpload";
 import {LoadingButton} from "@mui/lab";
 import {TextFieldWrapper} from "./SignUp";
 import * as API from "@/api/API";
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 import {useNavigate} from "react-router";
 import { MuiOtpInput } from 'mui-one-time-password-input'
 import Box from "@mui/material/Box";
@@ -13,7 +13,7 @@ import { Card, Typography } from '@mui/material';
 
 export function Auth2FaInput() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const navigate = useNavigate();
 
   const [token, setToken] = useState<string>('');
@@ -22,7 +22,7 @@ export function Auth2FaInput() {
     (async () => {
       // 1. 서버에 토큰 전송
       setIsLoading(true);
-      const response = await API.submit2FaTokenToServer(handleError, token);
+      const response = await API.submit2FaTokenToServer(handleAlert, token);
       setIsLoading(false);
       if (response) {
         console.log('[DEV] Login Success!');
