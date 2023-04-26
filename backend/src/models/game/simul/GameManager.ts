@@ -71,8 +71,8 @@ export class GameManager {
         server: Server
       ) => {
         if (
-          simulator.ball.GetUserData().player1_score === MATCH_SCORE ||
-          simulator.ball.GetUserData().player2_score === MATCH_SCORE ||
+          simulator.ball.GetUserData().player1_score >= MATCH_SCORE ||
+          simulator.ball.GetUserData().player2_score >= MATCH_SCORE ||
           simulator.matchInterrupt.isInterrupt
         ) {
           clearInterval(timeStep);
@@ -110,7 +110,7 @@ export class GameManager {
             gameRooms.delete(gameManager.gameId);
         }
       },
-      1000,
+      100,
       this.simulator,
       gameRooms,
       this,
