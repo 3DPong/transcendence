@@ -109,7 +109,7 @@ const LocalChatList: FC<ChatListProps> = () => {
         id: ch.channel_id,
         type: ch.type,
         title: ch.type === 'dm' ? ch.owner.nickname + '님과의 DM' : ch.name,
-        thumbnail: ch.type === 'dm' ? ch.owner.profile_url : ch.thumbnale_url,
+        thumbnail: ch.type === 'dm' ? ch.owner.profile_url : ch.thumbnail_url,
         owner: {
           id: ch.owner.user_id,
           nickname: ch.owner.nickname,

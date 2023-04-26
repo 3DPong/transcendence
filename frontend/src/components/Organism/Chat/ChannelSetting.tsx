@@ -5,7 +5,7 @@ import { Box, Button, Container, Typography } from '@mui/material';
 import { FC, useContext, useEffect, useState } from 'react';
 import { Channel, ChannelType, ChatUser, User, defaultThumbnail } from '@/types/chat';
 import GlobalContext from '@/context/GlobalContext';
-import { API_URL } from '@/../config/backend';
+import { API_URL, ORIGIN_URL } from '@/../config/backend';
 import { useAlert } from '@/context/AlertContext';
 import InviteList from '@/components/Molecule/Chat/InviteList';
 import { uploadImageToServer } from '@/api/API';
@@ -21,7 +21,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ChannelType>('none');
   const [password, setPassword] = useState('');
-  const [thumbnail, setThumbnail] = useState<string>('');
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [inviteUsers, setInviteUsers] = useState<User[]>([]);
 
   const { setChannels, loggedUserId } = useContext(GlobalContext);
@@ -31,7 +31,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
   useEffect(() => {
     setTitle(channel.title);
     setType(channel.type);
-    setThumbnail(channel.thumbnail || defaultThumbnail);
+    setThumbnail(channel.thumbnail);
   }, [channel]);
 
   function handleSave() {
@@ -51,7 +51,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
         const serverSideImageUrl = await uploadImageToServer(handleAlert, thumbnail);
         if (serverSideImageUrl) {
           console.log("[DEV] uploadImage Success");
-          imageToSubmit = serverSideImageUrl;
+          imageToSubmit = ORIGIN_URL + serverSideImageUrl;
         }
       }
       const response = await fetch(API_URL + '/chat/' + channel.id + '/update', {
@@ -64,7 +64,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: imageToSubmit || defaultThumbnail,
+          thumbnail_url: imageToSubmit || null,
         }),
       });
       if (!response.ok) {
@@ -107,7 +107,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
       <Typography variant="h6" component="h3" gutterBottom>
         채팅방 설정
       </Typography>
-      <ImageUpload width={100} height={100} thumbnail={thumbnail} setThumbnail={setThumbnail} />
+      <ImageUpload width={100} height={100} thumbnail={thumbnail || ''} setThumbnail={setThumbnail} />
       <Box component="form" sx={{ mt: 1 }}>
         <div className="mb-6">
           <TextField

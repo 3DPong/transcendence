@@ -6,7 +6,7 @@ import InviteList from '@/components/Molecule/Chat/InviteList';
 import ImageUpload from '@/components/Molecule/ImageUpload';
 
 import { TextField } from '@/components/Molecule/Chat/TextField';
-import { API_URL } from '@/../config/backend';
+import { API_URL, ORIGIN_URL } from '@/../config/backend';
 import { useNavigate } from 'react-router';
 import GlobalContext from '@/context/GlobalContext';
 import { useAlert } from '@/context/AlertContext';
@@ -43,7 +43,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
         const serverSideImageUrl = await uploadImageToServer(handleAlert, thumbnail);
         if (serverSideImageUrl) {
           console.log("[DEV] uploadImage Success");
-          imageToSubmit = serverSideImageUrl;
+          imageToSubmit = ORIGIN_URL + serverSideImageUrl;
         }
       }
 
@@ -57,7 +57,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: imageToSubmit || defaultThumbnail,
+          thumbnail_url: imageToSubmit || null,
         }),
       });
       if (!response.ok) {
@@ -72,6 +72,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           id: createChannel.channel_id,
           title: createChannel.name,
           type: createChannel.type,
+          thumbnail: createChannel.thumbnail_url,
           owner: {
             id: createChannel.owner.user_id,
             nickname: createChannel.owner.nickname,
