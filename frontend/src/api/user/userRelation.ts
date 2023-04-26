@@ -16,9 +16,8 @@
 
 import { Assert } from '@/utils/Assert';
 import { globalUserData_t } from '@/types/user';
-import { useNavigate } from 'react-router';
 import { API_URL } from '../../../config/backend';
-import { handleAlertFunction, useAlert } from '@/context/AlertContext';
+import { handleAlertFunction } from '@/context/AlertContext';
 import {userStatus} from "@/types/notify";
 
 /*----------------------------------------*
@@ -101,6 +100,7 @@ export async function getUserListByRelationType(handleAlert: handleAlertFunction
   // on success
 
   const userData: GET_RelationResponseFormat = await validatedResponse.json();
+  console.log(userData.relations);
   return userData.relations;
 }
 

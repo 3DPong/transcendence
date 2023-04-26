@@ -23,8 +23,8 @@ import {useAlert} from "@/context/AlertContext";
 import {useSocket} from "@/context/SocketContext";
 import {userStatus, UserStatusNotifyData} from "@/types/notify";
 
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { grey, green } from '@mui/material/colors';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
+import {green, grey} from '@mui/material/colors';
 
 const theme = createTheme({
   palette: {
@@ -49,11 +49,9 @@ const Row = (props: { index: number; style: React.CSSProperties; data: { isLoadi
         <ListItem style={style} key={index} divider={true}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between'}}>
             <Badge
-                // invisible={ friend.status === undefined }
                 color={
                   friend.status === userStatus.ONLINE ? "primary" : "secondary"
                 }
-                // variant="dot"
                 badgeContent={ friend.status === userStatus.ONLINE ? "online" : "offline" }
                 anchorOrigin={{
                   vertical: "top",
@@ -102,7 +100,6 @@ export default function VirtualizedUserList(props: UserListProps) {
 
   // on first render
   useEffect(() => {
-
     (async () => {
       // 0. load start (used at MUI Skeleton)
       setIsLoading(true);
@@ -116,7 +113,7 @@ export default function VirtualizedUserList(props: UserListProps) {
           user_id: relation.target_id,
           nickname: relation.nickname,
           profile_url: relation.profile_url,
-          status: relation.status ? relation.status : 1
+          status: (relation.status === userStatus.ONLINE) ? userStatus.ONLINE : userStatus.OFFLINE,
         };
       });
       setFriends(friendsList);
@@ -128,7 +125,7 @@ export default function VirtualizedUserList(props: UserListProps) {
   const ROW_WIDTH = '100%';
   const ROW_HEIGHT = 100;
 
-  let searchedArray: Array<friendData_t> | null = null;
+  let searchedArray: Array<friendData_t> | null;
   if (props.searchString) {
     searchedArray = friends.filter((user) => {
       Assert.NonNullish(props.searchString, 'search string is null');
