@@ -76,12 +76,12 @@ export class GameManager {
           simulator.matchInterrupt.isInterrupt
         ) {
           clearInterval(timeStep);
+          clearInterval(timeEndCheck);
+          
           if (!simulator.matchInterrupt.isInterrupt) {
             gameManager.player1.score = simulator.ball.GetUserData().player1_score;
             gameManager.player2.score = simulator.ball.GetUserData().player2_score;
           }
-          gameService.gameEndToClient(gameManager, server);
-          clearInterval(timeEndCheck);
           await gameService
             .updateMatchRecode(gameManager)
             .catch(() =>{
@@ -95,11 +95,7 @@ export class GameManager {
             })
           await gameService
             .createMatch(gameManager)
-            .then(() => {
-              gameRooms.delete(gameManager.gameId);
-            })
             .catch(() => {
-              gameRooms.delete(gameManager.gameId);
               this.logger.error(
                 `database save match failed : ${gameManager.gameId} ` +
                   `gameType: ${gameManager.gameType} ` +
@@ -110,6 +106,8 @@ export class GameManager {
                   `player2 dbId: ${gameManager.player2.dbId}`
               );
             });
+            gameService.gameEndToClient(gameManager, server);
+            gameRooms.delete(gameManager.gameId);
         }
       },
       1000,
