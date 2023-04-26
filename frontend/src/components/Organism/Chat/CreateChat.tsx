@@ -9,7 +9,7 @@ import { TextField } from '@/components/Molecule/Chat/TextField';
 import { API_URL } from '@/../config/backend';
 import { useNavigate } from 'react-router';
 import GlobalContext from '@/context/GlobalContext';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { uploadImageToServer } from '@/api/API';
 
 interface CreateChatRoomProps {
@@ -24,23 +24,23 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [thumbnail, setThumbnail] = useState<string>('');
   const navigate = useNavigate();
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const minLen = 1;
 
   const handleCreate = () => {
     async function createChat() {
       if (title.length < minLen) {
-        handleError('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
+        handleAlert('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
         return;
       }
       if (type === 'protected' && password.length < minLen) {
-        handleError('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
+        handleAlert('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
         return;
       }
 
       let imageToSubmit: string | undefined;
       if (thumbnail) {
-        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        const serverSideImageUrl = await uploadImageToServer(handleAlert, thumbnail);
         if (serverSideImageUrl) {
           console.log("[DEV] uploadImage Success");
           imageToSubmit = serverSideImageUrl;
@@ -62,7 +62,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
       });
       if (!response.ok) {
         const error = await response.json();
-        handleError('Channel Create', error.message);
+        handleAlert('Channel Create', error.message);
         return;
       }
 

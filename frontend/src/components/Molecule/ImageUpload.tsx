@@ -25,19 +25,19 @@ const ALLOWED_FILE_FORMAT = ['jpg', 'jpeg', 'png'];
 interface ImageUploadProps {
   thumbnail: string;
   setThumbnail: (path: string) => void;
+  setIsImageChanged?: (state: boolean) => void;
   width?: number;
   height?: number;
   // 아래 props를 추가한 이유는, 이미 설정된 프로필이 있을 때 그 데이터를 보여줌 + 이미지 Editor를 띄우지 않기 위함.
   initialThumbnail?: string; // 이 값은 처음에 세팅될 이미지. (editor open 관계없는 이미지)
+
 }
 
-const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThumbnail, width, height }) => {
+const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, setIsImageChanged, initialThumbnail, width, height }) => {
   const editor = useRef<AvatarEditor>(null);
   const [openEditor, setOpenEditor] = useState<boolean>(false);
-  // const [isEditDone, setIsEditDone] = useState<boolean>(false);
   const [isResizeDone, setIsResizeDone] = useState<boolean>(true);
   const [scale, setScale] = useState<number>(1);
-  // const [ isInputBtnClicked, setIsInputBtnClicked ]
 
   const handleClickSave = () => {
     if (editor.current) {
@@ -60,8 +60,8 @@ const ImageUpload: FC<ImageUploadProps> = ({ thumbnail, setThumbnail, initialThu
           localFileUrl = canvas.toDataURL('image/jpeg', 0.5);
         }
         setThumbnail(localFileUrl);
-        // setIsEditDone(true);
         setIsResizeDone(true);
+        setIsImageChanged && setIsImageChanged(true);
         handleEditorClose();
       });
       // If you want the image resized to the canvas size (also a HTMLCanvasElement)

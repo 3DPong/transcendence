@@ -4,7 +4,7 @@
 import React, { ReactNode, createContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { SOCKET_URL } from '@/../config/backend';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 
 interface SocketContextProps {
   gameSocket: Socket | null;

@@ -5,7 +5,7 @@ import { NavigateOptions } from "react-router-dom";
 export async function fetchDM(
   id: number,
   navigate: (path: string, options?: NavigateOptions) => void,
-  handleError: (title: string, errorMessage: string) => void,
+  handleAlert: (title: string, errorMessage: string) => void,
   channels: Channel[],
   setChannels: (channels: Channel[]) => void
 ) {
@@ -20,7 +20,7 @@ export async function fetchDM(
   });
   if (!response.ok) {
     const error = await response.json();
-    handleError('Send DM', error.message);
+    handleAlert('Send DM', error.message);
     return;
   }
   const ch = await response.json();
