@@ -14,13 +14,12 @@ import {
 } from '../../entities';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageDto, toggleDto, toggleTimeDto } from '../../dto/socket.dto';
+import { ChannelInterface, messageInterface, toggleInterface, basicsInterface} from '../chat.interface';
 import { Server, Socket } from 'socket.io';
 import { SocketException } from '../../../../common/filters/socket/socket.filter';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
 import { User, UserRelation } from 'src/models/user/entities';
 import { SocketMapService } from 'src/providers/redis/socketMap.service';
-import { ChannelInterface } from '../chat.interface';
 
 @Injectable()
 export class ChatSocketService {
@@ -73,7 +72,7 @@ export class ChatSocketService {
     }
   }
 
-  async sendChatMessage(server: Server, user_id: number, md: MessageDto, socketIds: string[]) {
+  async sendChatMessage(server: Server, user_id: number, md: messageInterface, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
     if ((md.type === MessageType.MESSAGE && md.message === null) || md.message === '' || isWhitespace(md.message))
       throw new SocketException('BadRequest', `내용을 입력해주세요!`);
@@ -109,8 +108,8 @@ export class ChatSocketService {
     }
   }
 
-  async muteUser(server: Server, adminId: number, muteDto: toggleTimeDto) {
-    const { user_id, channel_id } = muteDto;
+  async muteUser(server: Server, adminId: number, muteData: toggleInterface) {
+    const { user_id, channel_id } = muteData;
 
     if (
       !adminId ||
@@ -124,22 +123,22 @@ export class ChatSocketService {
       await this.unmuteUser(channel_id, user_id);
       server.to(`chat_active_${channel_id}`).emit('mute', { type: 'unmute', user_id: user_id, channel_id: channel_id });
     } else {
-      if (muteDto.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
+      if (muteData.end_at === null) throw new SocketException('BadRequest', `뮤트 해제 시간을 추가하세요!`);
       try {
-        if (muted === MuteStatus.PassedMute) await this.updateMuteUser(muteDto);
-        else if (muted === MuteStatus.NoneMute) await this.createMuteUser(muteDto);
+        if (muted === MuteStatus.PassedMute) await this.updateMuteUser(muteData);
+        else if (muted === MuteStatus.NoneMute) await this.createMuteUser(muteData);
 
         server
           .to(`chat_active_${channel_id}`)
-          .emit('mute', { type: 'mute', user_id: user_id, channel_id: channel_id, end_at: `${muteDto.end_at}` });
+          .emit('mute', { type: 'mute', user_id: user_id, channel_id: channel_id, end_at: `${muteData.end_at}` });
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
       }
     }
   }
 
-  async banUser(server: Server, adminId: number, banDto: toggleTimeDto, banUserSocket: string) {
-    const { user_id, channel_id } = banDto;
+  async banUser(server: Server, adminId: number, banData: toggleInterface, banUserSocket: string) {
+    const { user_id, channel_id } = banData;
 
     if (
       !adminId ||
@@ -153,11 +152,11 @@ export class ChatSocketService {
     if (banned === BanStatus.Ban) {
       throw new SocketException('Forbidden', `이미 밴 상태입니다!`);
     } else {
-      if (banDto.end_at === null) throw new SocketException('BadRequest', `밴 해제 시간을 추가하세요!`);
+      if (banData.end_at === null) throw new SocketException('BadRequest', `밴 해제 시간을 추가하세요!`);
 
       try {
-        if (banned === BanStatus.PassedBan) await this.updateBanUser(banDto);
-        else if (banned === BanStatus.NoneBan) await this.createBanUser(banDto);
+        if (banned === BanStatus.PassedBan) await this.updateBanUser(banData);
+        else if (banned === BanStatus.NoneBan) await this.createBanUser(banData);
 
         await this.deleteChannelUser(channel_id, user_id);
 
@@ -171,15 +170,15 @@ export class ChatSocketService {
         server
           .to(`chat_active_${channel_id}`)
           .except(banUserSocket)
-          .emit('ban', { type: 'ban', user_id: user_id, channel_id: channel_id, end_at: `${banDto.end_at}` }); //일반 유저들
+          .emit('ban', { type: 'ban', user_id: user_id, channel_id: channel_id, end_at: `${banData.end_at}` }); //일반 유저들
       } catch (error) {
         throw new SocketException('InternalServerError', `${error.message}`);
       }
     }
   }
 
-  async unBanUser(server: Server, adminId: number, unbanDto: toggleDto) {
-    const { user_id, channel_id } = unbanDto;
+  async unBanUser(server: Server, adminId: number, unbanData: basicsInterface) {
+    const { user_id, channel_id } = unbanData;
 
     if (!adminId || !(await this.checkAdminUser(channel_id, adminId)))
       throw new SocketException('Forbidden', `권한이 없습니다!`);
@@ -193,8 +192,8 @@ export class ChatSocketService {
     }
   }
 
-  async kickUser(server: Server, adminId: number, kickDto: toggleDto, userSocket: string) {
-    const { user_id, channel_id } = kickDto;
+  async kickUser(server: Server, adminId: number, kickData: basicsInterface, userSocket: string) {
+    const { user_id, channel_id } = kickData;
 
     if (
       !adminId ||
@@ -220,7 +219,7 @@ export class ChatSocketService {
     }
   }
 
-  async createMessageLog(user_id: number, md: MessageDto): Promise<MessageLog> {
+  async createMessageLog(user_id: number, md: messageInterface): Promise<MessageLog> {
     const newLog = this.messageLogRepository.create({
       channel_id: md.channel_id,
       user_id,
@@ -274,43 +273,43 @@ export class ChatSocketService {
     }
   }
 
-  async createMuteUser(muteDto: toggleTimeDto): Promise<ChannelMuteList> {
+  async createMuteUser(muteData: toggleInterface): Promise<ChannelMuteList> {
     const muteUser = this.muteRepository.create({
-      user_id: muteDto.user_id,
-      channel_id: muteDto.channel_id,
-      end_at: muteDto.end_at,
+      user_id: muteData.user_id,
+      channel_id: muteData.channel_id,
+      end_at: muteData.end_at,
     });
     await this.muteRepository.save(muteUser);
     return muteUser;
   }
 
-  async updateMuteUser(muteDto: toggleTimeDto) {
+  async updateMuteUser(muteData: toggleInterface) {
     await this.muteRepository.update(
       {
-        user_id: muteDto.user_id,
-        channel_id: muteDto.channel_id,
+        user_id: muteData.user_id,
+        channel_id: muteData.channel_id,
       },
-      { end_at: muteDto.end_at }
+      { end_at: muteData.end_at }
     );
   }
 
-  async createBanUser(banDto: toggleTimeDto): Promise<ChannelBanList> {
+  async createBanUser(banData: toggleInterface): Promise<ChannelBanList> {
     const banUser = this.banRepository.create({
-      user_id: banDto.user_id,
-      channel_id: banDto.channel_id,
-      end_at: banDto.end_at,
+      user_id: banData.user_id,
+      channel_id: banData.channel_id,
+      end_at: banData.end_at,
     });
     await this.banRepository.save(banUser);
     return banUser;
   }
 
-  async updateBanUser(banDto: toggleTimeDto) {
+  async updateBanUser(banData: toggleInterface) {
     await this.banRepository.update(
       {
-        user_id: banDto.user_id,
-        channel_id: banDto.channel_id,
+        user_id: banData.user_id,
+        channel_id: banData.channel_id,
       },
-      { end_at: banDto.end_at }
+      { end_at: banData.end_at }
     );
   }
 
