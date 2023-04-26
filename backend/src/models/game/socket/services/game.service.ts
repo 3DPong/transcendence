@@ -112,7 +112,10 @@ export class GameService {
       gameRooms.delete(client.data.gameId);
       this.socketLeaveRoom(client, gameManager.gameId);
       this.logger.log(`${client.id} is disconnect game socket and delete ${gameManager.gameId}`);
-    } else if (gameManager.playerCount === 2 && gameManager.simulator.matchInterrupt.isInterrupt === false) {
+    } else if (
+      gameManager.playerCount === 2 && 
+      gameManager.simulator.matchInterrupt.isInterrupt === false
+    ) {
       if (this.isGamePlayer(gameManager, client.id)) {
         //player
         this.matchGiveUp(gameManager, client.id);
@@ -161,14 +164,14 @@ export class GameService {
       wins : winner.wins + 1,
       total : winner.total + 1,
       losses : winner.losses,
-      level : Number((MAX_LEVEL * (1 - Math.pow(0.995, winner.total))).toFixed(2)),
+      level : Number((MAX_LEVEL * (1 - Math.pow(0.995, winner.total + 1))).toFixed(2)),
     }
 
     const loserData : GameMatchUpdateDto = {
       wins : loser.wins,
       total : loser.total + 1,
       losses : loser.losses + 1,
-      level :   Number((MAX_LEVEL * (1 - Math.pow(0.995, loser.total))).toFixed(2)),
+      level : Number((MAX_LEVEL * (1 - Math.pow(0.995, loser.total + 1))).toFixed(2)),
     }
     try {
       await this.userRepository.update({user_id : winerId}, winnerData);
