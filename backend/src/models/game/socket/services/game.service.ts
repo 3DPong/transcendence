@@ -54,7 +54,7 @@ export class GameService {
     }
     //gameId는 있는데 아래 get에서 실패하면 이미 끝난게임에 접근하려하므로 에러처리
     const gameManager: GameManager = gameRooms.get(chatJoinData.gameId);
-    if (gameManager.playerCount === 1) {
+    if (gameManager?.playerCount === 1) {
       return gameManager;
     }
     throw new SocketException('BadRequest', '사라진 방 입니다.');
