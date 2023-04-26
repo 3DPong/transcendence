@@ -21,7 +21,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ChannelType>('none');
   const [password, setPassword] = useState('');
-  const [thumbnail, setThumbnail] = useState<string>('');
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [inviteUsers, setInviteUsers] = useState<User[]>([]);
 
   const { setChannels, loggedUserId } = useContext(GlobalContext);
@@ -31,7 +31,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
   useEffect(() => {
     setTitle(channel.title);
     setType(channel.type);
-    setThumbnail(channel.thumbnail || defaultThumbnail);
+    setThumbnail(channel.thumbnail);
   }, [channel]);
 
   function handleSave() {
@@ -64,7 +64,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: imageToSubmit || defaultThumbnail,
+          thumbnail_url: imageToSubmit || null,
         }),
       });
       if (!response.ok) {
@@ -107,7 +107,7 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
       <Typography variant="h6" component="h3" gutterBottom>
         채팅방 설정
       </Typography>
-      <ImageUpload width={100} height={100} thumbnail={thumbnail} setThumbnail={setThumbnail} />
+      <ImageUpload width={100} height={100} thumbnail={thumbnail || ''} setThumbnail={setThumbnail} />
       <Box component="form" sx={{ mt: 1 }}>
         <div className="mb-6">
           <TextField

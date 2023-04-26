@@ -57,7 +57,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: imageToSubmit || defaultThumbnail,
+          thumbnail_url: imageToSubmit || null,
         }),
       });
       if (!response.ok) {

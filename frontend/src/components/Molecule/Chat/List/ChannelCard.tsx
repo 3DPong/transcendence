@@ -3,6 +3,7 @@ import { Badge, Box, ListItemButton, Skeleton } from '@mui/material';
 import { ChannelType, Channel, defaultThumbnail } from '@/types/chat';
 import { Lock, LockOpen, Person, Public, Sms } from '@mui/icons-material';
 import { RiVipCrown2Fill } from 'react-icons/ri';
+import { BsFillPersonFill } from 'react-icons/bs';
 
 interface ChannelCardProps {
   channel: Channel;
@@ -47,12 +48,21 @@ const LoadedCard: FC<LoadedCardProps> = ({ channel }) => {
 
   return (
     <>
-      <img
-        src={channel.thumbnail || defaultThumbnail}
-        alt="thumbnail"
-        className="w-12 h-12 rounded-full relative"
-        style={{ border: '2px solid gray' }}
-      />
+      {channel.thumbnail ? (
+        <img
+          src={channel.thumbnail}
+          alt="thumbnail"
+          className="w-12 h-12 rounded-full relative"
+          style={{ border: '2px solid gray', minWidth: '48px' }}
+        />
+      ) : (
+        <div
+        className="rounded-full flex justify-center items-center relative"
+        style={{ width: '48px', height: '48px', border: '2px solid gray',  minWidth: '48px' }}
+      >
+        <BsFillPersonFill className="w-6 h-6" />
+      </div>
+      )}
       <div className="flex flex-col pl-2 pr-2 w-full">
         <div className="flex items-center justify-between">
           <span
