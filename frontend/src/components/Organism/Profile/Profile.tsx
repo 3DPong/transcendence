@@ -17,13 +17,13 @@ import { useLocation, useParams } from 'react-router';
 import * as API from '@/api/API';
 import GlobalContext from '@/context/GlobalContext';
 import { Assert } from '@/utils/Assert';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 
 export default function Profile() {
   const [profileState, setProfileState] = useState<API.GET_UserDataResponseFormat>();
   const { pathname } = useLocation();
   const { loggedUserId } = useContext(GlobalContext);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   // (1) initial data loading
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function Profile() {
       }
       // (2) load data
       Assert.NonNullish(user_id);
-      const myData = await API.getUserDataById(handleError, user_id);
+      const myData = await API.getUserDataById(handleAlert, user_id);
       if (myData) {
         setProfileState(myData);
       }

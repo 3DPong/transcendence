@@ -10,7 +10,7 @@ import ButtonLink from '@/components/Molecule/Link/ButtonLink';
 import GlobalContext from '@/context/GlobalContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { API_URL } from '@/../config/backend';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { useSocket } from '@/context/SocketContext';
 
 interface ChatListProps {}
@@ -21,7 +21,7 @@ const LocalChatList: FC<ChatListProps> = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>('');
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   // 나중에 컨트롤바로 넘겨야되고, 세션쿠키를 이용해서 연결할 예정
   const { chatSocket, chatConnect } = useSocket();
@@ -64,7 +64,7 @@ const LocalChatList: FC<ChatListProps> = () => {
             // 겹치지 않는 채널만 추가 
             if (-1 === channelsRef.current.findIndex((channel) => (channel.id === ch.id)))
               setChannels([ch, ...channelsRef.current]);
-            // 이건 로그인이후. handleError => handleAlarm 같은걸로 변경해야함. 
+            // 이건 로그인이후. handleAlert => handleAlarm 같은걸로 변경해야함. 
             break;
           case 'chat':
             console.log(message.message);
@@ -79,7 +79,7 @@ const LocalChatList: FC<ChatListProps> = () => {
             if (channelIdRef.current === message.channel_id)
               navigate(`/channels`);
             // 이건 로그인이후.
-            handleError('Ban ' + message.channel_id, message.message);
+            handleAlert('Ban ' + message.channel_id, message.message);
             break;
           case 'kick':
             // 채널리스트에 들어와있을때
@@ -90,7 +90,7 @@ const LocalChatList: FC<ChatListProps> = () => {
             if (channelIdRef.current === message.channel_id)
               navigate(`/channels`);
             // 이건 로그인이후.
-            handleError('Kick ' + message.channel_id, message.message);
+            handleAlert('Kick ' + message.channel_id, message.message);
             console.log(message.message);
             break;
           default:
@@ -124,7 +124,7 @@ const LocalChatList: FC<ChatListProps> = () => {
       setChannels([...filteredChannels, ...newChannels]);
       if (!response.ok) {
         const errorData = await response.json();
-        handleError('Fetch MyChannels', errorData.message);
+        handleAlert('Fetch MyChannels', errorData.message);
         return;
       }
       setIsLoading(false);

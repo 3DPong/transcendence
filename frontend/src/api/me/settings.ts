@@ -2,7 +2,7 @@
  * 세션을 바탕으로 나에 대한 정보를 요청할 수 있는 API 입니다.
  * */
 
-import { handleErrorFunction } from '@/context/ErrorContext';
+import { handleAlertFunction } from '@/context/AlertContext';
 import {API_URL} from "../../../config/backend";
 
 interface GET_responseFormat {
@@ -12,7 +12,7 @@ interface GET_responseFormat {
   two_factor: boolean;
 }
 
-export async function getMySettings(handleError?: handleErrorFunction, navigateFunction?: (url:string)=>void ) {
+export async function getMySettings(handleAlert?: handleAlertFunction, navigateFunction?: (url:string)=>void ) {
   const requestUri = `${API_URL}/user/me/settings`;
   const settingResponse = await fetch(requestUri, { method: "GET" });
 
@@ -23,8 +23,8 @@ export async function getMySettings(handleError?: handleErrorFunction, navigateF
       console.log("[DEV] redirect to signIn...");
       navigateFunction("/signin"); // 401일 경우 세션에러임으로 로그인 페이지로 이동.
       return ;
-    } else if (handleError) { // handleError가 존재할 경우에만 세팅.
-      handleError(
+    } else if (handleAlert) { // handleAlert가 존재할 경우에만 세팅.
+      handleAlert(
           "Get User Settings", // 그게 아니라면 그냥 API 에러알림 띄워주기
           errorData.message,
       );

@@ -29,12 +29,12 @@ import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
 import { MatchDataContext } from "@/context/MatchDataContext";
-import { useError } from "@/context/ErrorContext";
+import { useAlert } from "@/context/AlertContext";
 import { Navigate, useNavigate } from "react-router";
 
-export default function Game() {
-  const {gameSocket, notifySocket } = useSocket();
-  const {handleError} = useError();
+export function Game() {
+  const {gameSocket } = useSocket();
+  const {handleAlert} = useAlert();
   const {loggedUserId} = useContext(GlobalContext);
   const {clearInviteData} = useContext(MatchDataContext);
   const navigate = useNavigate();
@@ -45,7 +45,8 @@ export default function Game() {
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
- 
+
+
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
@@ -56,9 +57,10 @@ export default function Game() {
     if (!gameSocket) return;
     // 게임 도중 발생한 소켓 에러?
     gameSocket.on('error', (message) => {
-      handleError('Socket Error', message.message);
+      handleAlert('Socket Error', message.message);
       clearInviteData();
-      navigate(-1);
+      gameSocket.emit('exit');
+      navigate('/');
     });
      // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
@@ -170,3 +172,5 @@ export default function Game() {
     );
   }
 };
+
+export default React.memo(Game);

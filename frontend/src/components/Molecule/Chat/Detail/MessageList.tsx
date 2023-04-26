@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Message, ChatUser, defaultChatUser } from '@/types/chat';
 import MessageCard from '@/components/Molecule/Chat/Detail/MessageCard';
 import { API_URL } from '@/../config/backend';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import GlobalContext from '@/context/GlobalContext';
 
 interface MessageListProps {
@@ -22,13 +22,13 @@ const MessageList: React.FC<MessageListProps> = ({ channelId, users, messages, s
 
   const { loggedUserId } = useContext(GlobalContext);
 
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   async function fetchMessagesByChannelId(skip: number) {
     const response = await fetch(API_URL + '/chat/' + channelId + '/log?take=20&skip=' + skip);
     if (!response.ok) {
       const errorData = await response.json();
-      handleError('Message Fetch', errorData.message);
+      handleAlert('Message Fetch', errorData.message);
     }
     const fetchMessages = await response.json();
     const msgs: Message[] = fetchMessages.map((msg: any) => ({

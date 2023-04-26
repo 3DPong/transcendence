@@ -28,7 +28,7 @@ import GlobalContext from '@/context/GlobalContext';
 import { UpdateFunctionOverload } from '@/utils/CustomHooks/useArray';
 import { Assert } from '@/utils/Assert';
 import * as API from '@/api/API';
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 
 interface userActionMenuProps {
   user: globalUserData_t;
@@ -40,7 +40,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
   const open = Boolean(anchorEl);
   const navigate = useNavigate(); // React Router useNavigate hook (프로필 보기 클릭시 이동)
   const { setFriends, channels, setChannels } = useContext(GlobalContext);
-  const {handleError} = useError();
+  const {handleAlert} = useAlert();
 
   // 프로필 보기 버튼
   const handleProfileRoute = () => {
@@ -51,7 +51,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
   // DM 보내기 버튼
   const handleSendMessageRoute = () => {
     setAnchorEl(null);
-    API.fetchDM(user.user_id, navigate, handleError, channels, setChannels);
+    API.fetchDM(user.user_id, navigate, handleAlert, channels, setChannels);
     console.log('DM 보내기');
     // ...
   };
@@ -62,7 +62,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
     setAnchorEl(null);
     (async () => {
       // (1) call API POST "add friend". https://github.com/3DPong/transcendence/issues/43
-      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, API.PUT_RelationActionType.addFriend);
+      const RESPONSE = await API.changeUserRelation(handleAlert, user.user_id, API.PUT_RelationActionType.addFriend);
       if (RESPONSE?.status !== 'friend') {
         // server handle error
         alert('[SERVER]: 친구가 추가 되지 않았습니다.');
@@ -102,7 +102,7 @@ export default function UserActionMenu({ user, setGlobalUsers }: userActionMenuP
         action = API.PUT_RelationActionType.blockUser;
       }
       // (2) check API response
-      const RESPONSE = await API.changeUserRelation(handleError, user.user_id, action);
+      const RESPONSE = await API.changeUserRelation(handleAlert, user.user_id, action);
       if (action === API.PUT_RelationActionType.unBlockUser && RESPONSE?.status === 'block') {
         // block handle error (no change)
         alert('[SERVER]: 유저의 차단관계 처리 에러');

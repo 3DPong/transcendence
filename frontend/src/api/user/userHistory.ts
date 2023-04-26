@@ -1,4 +1,4 @@
-import {handleErrorFunction} from "@/context/ErrorContext";
+import {handleAlertFunction} from "@/context/AlertContext";
 import {API_URL} from "../../../config/backend";
 
 
@@ -15,14 +15,14 @@ export interface GET_UserHistoryResponseFormat {
   history: History[];
 }
 
-export async function getUserHistoryById(handleError: handleErrorFunction, userId: number) {
+export async function getUserHistoryById(handleAlert: handleAlertFunction, userId: number) {
   const requestUrl = `${API_URL}/user/${userId}/history`;
   const userHistoryResponse = await fetch(requestUrl, { method: "GET" });
 
   // on error
   if (!userHistoryResponse.ok) {
     const errorData = await userHistoryResponse.json();
-    handleError(
+    handleAlert(
         "UserData",
         errorData.message,
         errorData.status === 401 ? '/login' : null,

@@ -8,7 +8,7 @@ import EnterProtectedModal from '@/components/Molecule/Chat/List/EnterProtectedM
 
 import GlobalContext from '@/context/GlobalContext';
 import { API_URL } from '@/../config/backend';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 
 interface ChatListProps {}
 
@@ -25,7 +25,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
 
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   useEffect(() => {
     if (searchString.length < searchMin) {
@@ -42,7 +42,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
       const response = await fetch(API_URL + '/chat/search/' + searchString);
       if (!response.ok) {
         const error = await response.json();
-        handleError('Search Channels', error.message);
+        handleAlert('Search Channels', error.message);
         return;
       }
       const fetchChannels = await response.json();
@@ -81,7 +81,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
       });
       if (!response.ok) {
         const error = await response.json();
-        handleError('Channel Join', error.message);
+        handleAlert('Channel Join', error.message);
         return;
       }
 

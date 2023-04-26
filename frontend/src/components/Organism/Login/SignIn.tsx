@@ -18,7 +18,7 @@ import LOGO_42 from '@/assets/42_logo.svg';
 import { requestSignIn } from '@/api/login/signIn';
 import {useSocket} from "@/context/SocketContext";
 import * as API from "@/api/API";
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 import {useNavigate} from "react-router";
 
 function Icon42() {
@@ -32,7 +32,7 @@ function Icon42() {
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const {disconnectAll} = useSocket();
-  const {handleError} = useError();
+  const {handleAlert} = useAlert();
   const navigate = useNavigate();
 
   useEffect(() => {
