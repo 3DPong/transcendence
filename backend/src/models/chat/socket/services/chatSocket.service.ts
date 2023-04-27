@@ -74,8 +74,10 @@ export class ChatSocketService {
 
   async sendChatMessage(server: Server, user_id: number, md: messageInterface, socketIds: string[]) {
     if (!user_id) throw new SocketException('Forbidden', `권한이 없습니다!`);
-    if ((md.type === MessageType.MESSAGE && md.message === null) || md.message === '' || isWhitespace(md.message))
-      throw new SocketException('BadRequest', `내용을 입력해주세요!`);
+    if (md.type === MessageType.MESSAGE && (md.message === null || md.message === '' || isWhitespace(md.message)))
+      throw new SocketException('BadRequest', `내용을 입력 해 주세요!`);
+    if (md.type === MessageType.MESSAGE && md.message.length >= 500)
+      throw new SocketException('BadRequest', `내용은 500자 이내로 작성 해 주세요!`);
 
     let dmUser;
     const channel = await this.getChannel(md.channel_id);
