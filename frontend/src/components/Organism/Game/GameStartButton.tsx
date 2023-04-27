@@ -194,8 +194,8 @@ export default function GameMatchingDialog({
       (async () => {
         const left = await API.getUserDataById(handleAlert, data.leftPlayerId);
         if (left) {
-          setEnemyProfile(left.profile_url);
-          setEnemyNickname(left.nickname);
+          setMyProfile(left.profile_url);
+          setMyNickname(left.nickname);
         }
         const right = await API.getUserDataById(handleAlert, data.rightPlayerId);
         if (right) {

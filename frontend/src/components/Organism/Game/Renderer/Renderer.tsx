@@ -103,20 +103,29 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     gameSocket.on('render', onFrameSentFromSever);
 
     function onScoreSentFromServer(scoreData: gameType.scoreData) {
-      // 스코어보드 업데이트.
-      console.log(`[DEV] gameScore --> LEFT:${scoreData.leftScore} RIGHT:${scoreData.rightScore}`);
-      if (m_Gui) {
-        let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
-        let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
-        if (matchData && matchData.playerLocation === gameType.PlayerLocation.LEFT) {
+
+      if (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) {
+        if (m_Gui) {
+          let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
+          let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
+          if (matchData && matchData.playerLocation === gameType.PlayerLocation.LEFT) {
+            UserA_Score.text = `${scoreData.leftScore}`;
+            UserB_Score.text = `${scoreData.rightScore}`;
+          } else {
+            UserA_Score.text = `${scoreData.rightScore}`;
+            UserB_Score.text = `${scoreData.leftScore}`;
+          }
+        }
+      } else { // Observer
+        if (m_Gui) {
+          let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
+          let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
           UserA_Score.text = `${scoreData.leftScore}`;
           UserB_Score.text = `${scoreData.rightScore}`;
-        } else {
-          UserA_Score.text = `${scoreData.rightScore}`;
-          UserB_Score.text = `${scoreData.leftScore}`;
         }
       }
     }
+
     gameSocket.on('score', onScoreSentFromServer);
 
     return () => {

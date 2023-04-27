@@ -74,11 +74,6 @@ export function Game() {
     }
   }, [gameSocket]); 
   
-  const playerData: gameType.PlayerData = {
-    leftPlayerNickName: myNickname,
-    rightPlayerNickName: enemyNickname,
-  }
-
   if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
     return (
         <div className=" flex items-center -z-49 justify-center h-screen">
@@ -96,7 +91,10 @@ export function Game() {
           {/* 게임 렌더링 */}
           { !matchResult &&
               <div className=" absolute -z-50 w-0 h-0">
-                <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+                <Renderer3D playerData={{
+                  leftPlayerNickName: myNickname,
+                  rightPlayerNickName: enemyNickname,
+                }} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
               </div>
           }
 
@@ -128,7 +126,7 @@ export function Game() {
                       <Typography display="block" variant="h5" color="text.primary"> {myNickname} </Typography>
                       { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
                           <div> {/* Player */}
-                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>A
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>
                           </div>
                         ) : (
                           <div> {/* Observer */}
@@ -160,11 +158,11 @@ export function Game() {
                       </Typography>
                       { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
                           <div> {/* Player */}
-                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>A
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.rightScore : matchResult.leftScore} </Typography>
                           </div>
                       ) : (
                           <div> {/* Observer */}
-                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.leftScore} </Typography>
+                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.rightScore} </Typography>
                           </div>)
                       }
                     </Box>
