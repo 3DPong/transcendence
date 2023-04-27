@@ -41,10 +41,6 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
         handleAlert('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
         return;
       }
-      if (type === 'protected' && password.length < minLen) {
-        handleAlert('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
-        return;
-      }
 
       let imageToSubmit: string | undefined;
       if (thumbnail) {
@@ -127,7 +123,6 @@ const ChannelSetting: FC<ChannelSettingProps> = ({ handleClose, channel, userLis
               state={password}
               setState={setPassword}
               placeholder="비밀번호를 입력하세요"
-              helperText={password.length < minLen ? `${minLen}글자 이상 입력하세요` : ''}
             />
           </div>
         )}
