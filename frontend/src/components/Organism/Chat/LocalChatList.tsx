@@ -163,7 +163,7 @@ const LocalChatList: FC<ChatListProps> = () => {
         </ButtonLink>
       </div>
 
-      <div className=" border m-0 p-4">
+      <div className=" border m-0 p-4 bg-white">
         <SearchTextField state={searchString} setState={setSearchString} placeholder={'참여채팅 검색'} />
       </div>
 

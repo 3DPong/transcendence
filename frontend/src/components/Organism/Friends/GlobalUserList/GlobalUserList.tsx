@@ -67,7 +67,7 @@ export default function GlobalUserList() {
       />
 
       {/* https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp */}
-      <div className=" border m-0 p-4 pb-6">
+      <div className=" border m-0 p-4 pb-6 bg-white">
         <SearchTextField
           state={searchString}
           setState={setSearchString}
