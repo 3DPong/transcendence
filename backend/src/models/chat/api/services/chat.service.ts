@@ -26,7 +26,7 @@ import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
 import { UserRelation } from 'src/models/user/entities';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
-import { ChannelInterface, ChatUser } from '../../socket/chat.interface';
+import { ChannelInterface, ChatUserInterface } from '../../socket/chat.interface';
 
 @Injectable()
 export class ChatService {
@@ -51,14 +51,7 @@ export class ChatService {
     private chatGateway: ChatSocketGateway
   ) {}
 
-  /*
-    id: number;
-    name: string;
-    profileURL: string;
-    role: RoleType;         
-    status: UserStatus; //현재 없음
 
-  */
   async getChatUsers(channel_id: number) {
     const channel = await this.channelRepository.findOne({ where: { channel_id }, select: { type: true } });
     if (channel.type === ChannelType.DM) return this.getDmUsers(channel_id);
@@ -72,7 +65,7 @@ export class ChatService {
       .getMany();
   }
 
-  async getDmUsers(channel_id: number): Promise<ChatUser[]> {
+  async getDmUsers(channel_id: number): Promise<ChatUserInterface[]> {
     let dm = await this.dmRepository
       .createQueryBuilder('dm')
       .innerJoin('dm.first_user', 'first')
@@ -172,7 +165,6 @@ export class ChatService {
 
   /*
     **changeDmOwner**
-
     dm 객체의 owner 는 클라이언트에게, 상대방의 정보를 전달 할 수 있어야 하기 때문에,
     데이터 베이스 안에 저장된 owner의 정보와 클라이언트 당사자와 중복되면, 
     해당 dm owner를 상대 유저의 정보로 바꾸어야 한다.
@@ -243,14 +235,6 @@ export class ChatService {
     return await Promise.all(promises);
   }
 
-  /*
-    id : number;               // MessageId
-    sender : number;       // Sender UserId 
-    content: string;          // 메시지 내용
-    createdAt: ???;           // 메시지 생성 시각. 타입을 어떻게 넣을지 협의 필요.
-    type : ChatType; 
-
-  */
   async getMessageLogs(take = 10, skip = 0, channel_id: number, user_id: number): Promise<MessageLog[]> {
     const channel = await this.channelRepository.findOne({ where: { channel_id } });
     if (!channel) throw new NotFoundException(`채널을 찾을 수 없습니다.`);

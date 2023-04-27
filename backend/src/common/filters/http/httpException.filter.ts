@@ -1,9 +1,9 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 /**
  * Global HTTP exception filter
- * 현재는 아무 기능 없습니다.
+ * dto 내부 class-validator error message 반영
  */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -11,14 +11,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
-    const message = status >= 500 ? 'Internal Server Error' : exception.message;
+    const status = exception instanceof HttpException
+      ? exception.getStatus()
+      : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    response.status(status).json({
-      statusCode: status,
-      message: message,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    });
+    const message = exception instanceof HttpException
+      ? (exception.getResponse())['message'].toString()
+      : 'Internal Server Error';
+
+    response
+      .status(status)
+      .json({
+        statusCode: status,
+        message: message,
+        timestamp: new Date().toISOString(),
+        path: request.url
+      });
   }
 }

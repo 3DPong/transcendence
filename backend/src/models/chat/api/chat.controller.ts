@@ -19,7 +19,7 @@ import { ChatUserService } from './services/chatUser.service';
 import { ChatService } from './services';
 import { ChannelDto, JoinDto, UserIdDto } from '../dto/channel.dto';
 import { DmDto } from '../dto/dm.dto';
-import { ChannelInterface, ChatUser } from '../socket/chat.interface';
+import { ChannelInterface, ChatUserInterface } from '../socket/chat.interface';
 
 @UseGuards(JwtGuard)
 @Controller('/chat')
@@ -58,7 +58,7 @@ export class ChatController {
   }
 
   @Get('/:channelId/dm/users')
-  getDmUsersInfo(@Param('channelId', ParseIntPipe) channelId: number): Promise<ChatUser[]> {
+  getDmUsersInfo(@Param('channelId', ParseIntPipe) channelId: number): Promise<ChatUserInterface[]> {
     return this.chatService.getDmUsers(channelId);
   }
 
