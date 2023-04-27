@@ -149,6 +149,7 @@ export class UserService {
     return {
       users: foundUsers
         .map((user: User) => {
+          user.relatedOf = user.relatedOf.filter((user) => user.target_id === userId);
           return new SearchedUser(user);
         })
         .filter((user: SearchedUser) => user.user_id !== userId),
