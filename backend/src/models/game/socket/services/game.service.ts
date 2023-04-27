@@ -14,6 +14,7 @@ import { RoomType } from '../../enum/GameEnum';
 import { SocketException } from 'src/common/filters/socket/socket.filter';
 import { User } from 'src/models/user/entities';
 import { GameMatchUpdateDto } from '../../dto/gameMatchUpdate.dto';
+import { OnSceneObserverData } from '../../gameData/OnSceneObserverData';
 
 @Injectable()
 export class GameService {
@@ -92,8 +93,8 @@ export class GameService {
   }
 
   public initObserver(gameManager: GameManager, server: Server, sid: string) {
-    const onSceneData: OnSceneData = this.gameDataMaker.makeObserverData(gameManager);
-    server.to(sid).emit('onSceneReady', onSceneData);
+    const onSceneObserverData : OnSceneObserverData = this.gameDataMaker.makeObserverData(gameManager);
+    server.to(sid).emit('onSceneReady', onSceneObserverData);
   }
 
   
