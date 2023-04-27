@@ -1,7 +1,9 @@
 import { gameType } from "./game";
 
 export const kstOffset = 0; // 9 * 60 * 60 * 1000;
-export const defaultThumbnail = 'https://t1.daumcdn.net/cfile/tistory/216C553953FC27C335';
+export const defaultThumbnail = '';
+
+
 
 export interface User {
   id: number;
@@ -30,7 +32,7 @@ export interface GameMessage {
 
 export interface Channel {
   id: number;
-  thumbnail?: string;
+  thumbnail: string | null;
   title: string;
   type: ChannelType;
   owner: User;

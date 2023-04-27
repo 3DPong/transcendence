@@ -1,6 +1,6 @@
 import { uploadImageToServer, verifyNickname } from '@/api/upload/upload';
 import {API_URL, ORIGIN_URL} from '../../../config/backend';
-import { handleErrorFunction } from '@/context/ErrorContext';
+import { handleAlertFunction } from '@/context/AlertContext';
 
 export interface POST_SignUpRequestFormat {
   nickname: string;
@@ -17,19 +17,23 @@ type user_id = number;
  *    회원 가입
  *******************/
 export async function requestSignUp(
-  handleError: handleErrorFunction,
+  handleAlert: handleAlertFunction,
   nickname: string,
   clientSideImageUrl: string
 ) {
   // 0. 닉네임 중복 검사.
-  const isNicknameOk = await verifyNickname(handleError, nickname);
-  if (!isNicknameOk) return; // 여기서 에러나면 걍 끝
-  console.log("[DEV] verifyNickname Success");
+  const isNicknameOk = await verifyNickname(handleAlert, nickname);
+  if (!isNicknameOk) {
+    handleAlert("Invalid Nickname", "이미 존재하는 닉네임입니다.");
+    return ;
+  }
 
   // 1. 서버에 프로필 이미지부터 전송.
-  const serverSideImageUrl = await uploadImageToServer(handleError, clientSideImageUrl);
-  if (!serverSideImageUrl) return; // 여기서 에러나면 걍 끝
-  console.log("[DEV] uploadImage Success");
+  const serverSideImageUrl = await uploadImageToServer(handleAlert, clientSideImageUrl);
+  if (!serverSideImageUrl) {
+    handleAlert("Image Upload", "서버에 이미지를 업로드하지 못했습니다.");
+    return ;
+  }
 
   // 2. 서버의 이미지 src를 받은 후 그걸로 회원가입 처리 진행.
   const requestUrl = `${API_URL}/user`;
@@ -50,11 +54,11 @@ export async function requestSignUp(
   if (!signUpResponse.ok) {
     if (signUpResponse.status === 401) {
       const errorData = await signUpResponse.json();
-      handleError('Sign Up', errorData.message, 'signin');
+      handleAlert('Sign Up', errorData.message, 'signin');
       return;
     } else {
       const errorData = await signUpResponse.json();
-      handleError('Sign Up', errorData.message);
+      handleAlert('Sign Up', errorData.message);
       return;
     }
   }

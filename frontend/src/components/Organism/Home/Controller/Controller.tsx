@@ -25,8 +25,10 @@ import SettingDialog from '@/components/Organism/Setting/SettingDialog';
 import {useContext, useEffect} from "react";
 import GlobalContext from "@/context/GlobalContext";
 import {useSocket} from "@/context/SocketContext";
-import { useError } from '@/context/ErrorContext';
-import {useNavigate} from "react-router";
+import { useAlert } from '@/context/AlertContext';
+import {useNavigate, useLocation} from "react-router";
+import {gameType} from "@/types/game";
+import * as API from "@/api/API";
 
 export enum eClickedBtn {
   NONE,
@@ -34,15 +36,16 @@ export enum eClickedBtn {
   PROFILE,
   FRIENDS,
   ROOMS,
+  SETTING
 }
 
 export default function Controller() {
   const [clickState, setClickState] = React.useState<eClickedBtn>(0);
-  const [openSetting, setOpenSetting] = React.useState<boolean>(false);
-  const {loggedUserId} = useContext(GlobalContext);
+  const {loggedUserId, setLoggedUserId} = useContext(GlobalContext);
   const {gameSocket, gameConnect, notifySocket, notifyConnect, chatSocket, chatConnect} = useSocket();
-  const {handleError} = useError();
+  const {handleAlert} = useAlert();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ---------------------------------------------------------------
   // 첫 렌더시에 userId가 세팅이 되어 있는지 검증! 여기서 userID가 세팅이 안되면 강제 signin 리다이렉트로 감.
@@ -61,7 +64,7 @@ export default function Controller() {
       if (prev !== srcState) {
         finalState = srcState;
       }
-      if (srcState === eClickedBtn.GAME) {
+      if (srcState === eClickedBtn.GAME || srcState === eClickedBtn.SETTING) {
         finalState = eClickedBtn.NONE;
       }
       return finalState;
@@ -71,17 +74,25 @@ export default function Controller() {
   const BUTTON_STYLE = '';
   const sx: SxProps = { width: '100%', aspectRatio: '1/1', border: 0.5, borderColor: 'gray' };
 
-
  /** ----------------------------------------
    *             Socket Connect
    ------------------------------------------- */
-  useEffect(() => {
-    if (!loggedUserId) return;
-    console.log("[DEV] Connecting Sockets... at [Controller.tsx]");
-    notifyConnect();
-    chatConnect();
-    gameConnect();
-  }, [loggedUserId]);
+ // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
+ useEffect(() => {
+   console.log("[DEV] Connecting Sockets... at [Controller.tsx]");
+   notifyConnect();
+   chatConnect();
+   gameConnect();
+
+   (async () => {
+     const loadedSettings = await API.getMySettings(handleAlert, navigate);
+     if (loadedSettings) {
+       setLoggedUserId(loadedSettings.user_id);
+     }
+   })(/* IIFE */)
+ }, []);
+
+
 
 
   /** ----------------------------------------
@@ -102,12 +113,16 @@ export default function Controller() {
     });
     gameSocket.on('disconnect', () => {
       console.log('[gameSocket] 서버와의 연결이 끊어졌습니다.');
-      handleError('GameSocket', '서버와의 연결이 끊어졌습니다.', '/signin');
+      handleAlert('GameSocket', '서버와의 연결이 끊어졌습니다.', '/signin');
     });
     gameSocket.on('onGameInvite', (data) => {
+      if (data.gameType === undefined || data.gameId === undefined) {
+        console.log("[DEV] gameType or gameId is undefined (Socket onGameInvite())");
+        return ;
+      }
       const inviteMessage = JSON.stringify({
         gameId: data.gameId,
-        gameMode: data.gameMode || 'normal',
+        gameMode: (data.gameType === gameType.special) ? 'special' : 'normal',
       });
       if (chatSocket)
         chatSocket.emit('message-chat', { message: inviteMessage, type: 'game', channel_id: data.channelId });
@@ -144,7 +159,7 @@ export default function Controller() {
     });
     notifySocket.on('disconnect', () => {
       console.log('[notifySocket] 서버와의 연결이 끊어졌습니다.');
-      handleError('NotifySocket', '서버와의 연결이 끊어졌습니다.', '/server_error');
+      handleAlert('NotifySocket', '서버와의 연결이 끊어졌습니다.', '/server_error');
     });
     return () => {
       notifySocket.off("connect_error");
@@ -155,80 +170,75 @@ export default function Controller() {
     }
   }, [notifySocket]);
 
-
-
   return (
     <>
-      <Box>
-        <CssBaseline />
-        <Drawer
-          sx={{
-            width: 'fit-content',
-            // flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: 'fit-content',
-              boxSizing: 'border-box',
-            },
-          }}
-          variant="permanent"
-          anchor="left"
-        >
-          <Toolbar />
-          <Divider />
-          <List sx={{ padding: 0, margin: 0 }}>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                  sx={sx}
-                  to={clickState !== eClickedBtn.GAME ? './game' : '/'}
-                  tooltipTitle="Random Match"
-                  children={<GamesIcon fontSize="large" />}
-                  onClick={() => toggleClickState(eClickedBtn.GAME)}
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.PROFILE ? './profile' : '/'}
-                tooltipTitle="Profile"
-                children={<AccountBox fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.PROFILE)}
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.FRIENDS ? './friends' : '/'}
-                tooltipTitle="Friends"
-                children={<Group fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                to={clickState !== eClickedBtn.ROOMS ? './channels ' : '/'}
-                tooltipTitle="Rooms"
-                children={<Chat fontSize="large" />}
-                onClick={() => toggleClickState(eClickedBtn.ROOMS)}
-              />
-            </div>
-            <div className={BUTTON_STYLE}>
-              <ListItemButtonLink
-                sx={sx}
-                tooltipTitle={'Settings'}
-                to={'/'}
-                onClick={() => {
-                  console.log(openSetting);
-                  setOpenSetting(true);
+      { location.pathname !== '/game' &&
+          <Box>
+            <CssBaseline />
+            <Drawer
+                sx={{
+                  width: 'fit-content',
+                  // flexShrink: 0,
+                  '& .MuiDrawer-paper': {
+                    width: 'fit-content',
+                    boxSizing: 'border-box',
+                  },
                 }}
-                children={<Settings fontSize="large" />}
-              />
-              {/* Dialog */}
-              <SettingDialog open={openSetting} setOpen={setOpenSetting} />
-            </div>
-          </List>
-        </Drawer>
-      </Box>
+                variant="permanent"
+                anchor="left"
+            >
+              <Toolbar />
+              <Divider />
+              <List sx={{ padding: 0, margin: 0 }}>
+                <div className={BUTTON_STYLE}>
+                  <ListItemButtonLink
+                      sx={sx}
+                      to={clickState !== eClickedBtn.GAME ? './game' : '/'}
+                      tooltipTitle="Random Match"
+                      children={<GamesIcon fontSize="large" />}
+                      onClick={() => toggleClickState(eClickedBtn.GAME)}
+                  />
+                </div>
+                <div className={BUTTON_STYLE}>
+                  <ListItemButtonLink
+                      sx={sx}
+                      to={clickState !== eClickedBtn.PROFILE ? './profile' : '/'}
+                      tooltipTitle="Profile"
+                      children={<AccountBox fontSize="large" />}
+                      onClick={() => toggleClickState(eClickedBtn.PROFILE)}
+                  />
+                </div>
+                <div className={BUTTON_STYLE}>
+                  <ListItemButtonLink
+                      sx={sx}
+                      to={clickState !== eClickedBtn.FRIENDS ? './friends' : '/'}
+                      tooltipTitle="Friends"
+                      children={<Group fontSize="large" />}
+                      onClick={() => toggleClickState(eClickedBtn.FRIENDS)}
+                  />
+                </div>
+                <div className={BUTTON_STYLE}>
+                  <ListItemButtonLink
+                      sx={sx}
+                      to={clickState !== eClickedBtn.ROOMS ? './channels ' : '/'}
+                      tooltipTitle="Rooms"
+                      children={<Chat fontSize="large" />}
+                      onClick={() => toggleClickState(eClickedBtn.ROOMS)}
+                  />
+                </div>
+                <div className={BUTTON_STYLE}>
+                  <ListItemButtonLink
+                      sx={sx}
+                      to={clickState !== eClickedBtn.SETTING ? './setting' : '/'}
+                      tooltipTitle={'Settings'}
+                      children={<Settings fontSize="large" />}
+                      onClick={() => {toggleClickState(eClickedBtn.SETTING)}}
+                  />
+                </div>
+              </List>
+            </Drawer>
+          </Box>
+      }
     </>
   );
 }

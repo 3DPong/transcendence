@@ -22,7 +22,7 @@ import React, {useContext, useEffect, useRef} from 'react';
 // import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
 // import * as gameType from '@/types/game';
 // import { useSocket } from '@/context/SocketContext';
-// import { useError } from '@/context/ErrorContext';
+// import { useError } from '@/context/AlertContext';
 // import HOCKEY_TABLE_3D from '@/assets/air_hockey_table.glb';
 // import {attachGameEventToCanvas} from "@/components/Organism/Game/Renderer/KeyInput";
 // import GlobalContext from "@/context/GlobalContext";
@@ -86,14 +86,14 @@ function HomeScreen3D({ width, height }: RenderSceneProps) {
     const camera = new CustomArchRotateCamera(
       'camera',
       -Math.PI / 2,
-      0.01,
+      Math.PI / 2,
       150, // Distance from Target
       Vector3.Zero(),
       scene3D
     );
     camera.attachControl(true); // TODO: Delete later
     camera.inputs.attached.keyboard.detachControl(); // 카메라 키보드 반영 수정
-    camera.upVector = new BABYLON.Vector3(0, 0, -1);
+    // camera.upVector = new BABYLON.Vector3(0, 0, -1);
     const canvas = scene3D.getEngine().getRenderingCanvas();
     Assert.NonNullish(canvas, 'canvas is null');
 

@@ -1,4 +1,4 @@
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { User } from '@/types/chat';
 import {
   Avatar,
@@ -26,7 +26,7 @@ const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
   const [searchString, setSearchString] = useState('');
   const [searchUsers, setSearchUsers] = useState<User[]>([]);
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false)
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
 
   function searchButtonClick() {
@@ -35,7 +35,7 @@ const SearchList: FC<SearchListProps> = ({ inviteUsers, setInviteUsers }) => {
       const response = await fetch(API_URL + '/user/search/' + searchString);
       if (!response.ok) {
         const error = await response.json();
-        handleError('Search User', error.message);
+        handleAlert('Search User', error.message);
         return;
       }
       const fetchUsers = await response.json();

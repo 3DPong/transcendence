@@ -19,7 +19,7 @@ import GlobalContext from '@/context/GlobalContext';
 import ImageUpload from '@/components/Molecule/ImageUpload';
 import * as Utils from '@/utils/Validator';
 import * as API from '@/api/API';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -59,22 +59,24 @@ export function SignUp() {
   const [nickname, setNickname] = useState<string>('');
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (submitDisabled) return;
+    if (!imageFile) {
+      handleAlert("SignUp", "회원가입시 프로필 이미지는 반드시 설정되어야 합니다.", null, 'warning');
+      return ;
+    }
+
     (async () => {
       console.log('handle submit');
       setIsLoading(true);
-      const res = await API.requestSignUp(handleError, nickname, imageFile);
+      const res = await API.requestSignUp(handleAlert, nickname, imageFile);
       setIsLoading(false);
       if (res) {
-        alert("Sign-Up success. Please login again.");
-      } else { // signUp error
-        alert("Whoops! Sign-Up failure! Please sign-up again");
+        handleAlert('SignUp', '회원 가입이 완료되었습니다. 재로그인 해주시기 바랍니다.', '/signin', 'success');
       }
-      navigate('/signin');
     })(/* IIFE */);
   };
 
