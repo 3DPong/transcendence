@@ -49,15 +49,20 @@ export default function UserListRow(props: UserCardProps) {
           </Typography>
         </div>
         {/* (3) 차단 여부 등 상태 표기. */}
-        {props.user.status === 'block' && (
-          <Tooltip title="User is blocked. [Add description here]">
+        {props.user.relationWithMe === 'block' && (
+          <Tooltip title="User is blocked.">
             <Chip label="Blocked" size="small" color="error" variant="outlined" />
           </Tooltip>
         )}
-        {props.user.status === 'friend' && (
-          <Tooltip title="User is friend. [Add description here]">
-            <Chip label="Friend" size="small" color="success" variant="outlined" />
+        {props.user.relationWithMe === 'friend' && (
+          <Tooltip title="User is friend.">
+            <Chip label="Friend" size="small" color="primary" variant="outlined" />
           </Tooltip>
+        )}
+        {props.user.relationWithMe === 'none' && (
+            <Tooltip title="no relation">
+              <Chip label="none" size="small" color="secondary" variant="outlined" />
+            </Tooltip>
         )}
       </div>
     </div>
