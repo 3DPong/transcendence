@@ -10,13 +10,13 @@ import {
 import { Logger, UseFilters } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './services';
-import { ChannelIdDto, MessageDto, toggleDto, toggleTimeDto } from '../dto/socket.dto';
+import { ChannelInterface, idInterface, messageInterface, basicsInterface, toggleInterface } from './chat.interface';
 import { ChannelType, ChannelUser, ChannelUserRoles } from '../entities';
 import { SocketException, SocketExceptionFilter } from '../../../common/filters/socket/socket.filter';
 import { JwtService } from '@nestjs/jwt';
 import { TokenStatusEnum } from 'src/common/enums/tokenStatusEnum';
 import { SocketMapService } from 'src/providers/redis/socketMap.service';
-import { ChannelInterface } from './chat.interface';
+
 
 @UseFilters(new SocketExceptionFilter())
 @WebSocketGateway({
@@ -71,65 +71,65 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
   }
 
   @SubscribeMessage('enter-chat')
-  async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
+  async handleEnterRoom(@ConnectedSocket() socket: Socket, @MessageBody() data: idInterface) {
     const userId = await this.getUserIdBySocketId(socket.id);
     if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     const userIndex = this.activeRooms.findIndex((u) => u.userId === parseInt(userId));
     if (userIndex >= 0) {
       socket.leave(`chat_active_${this.activeRooms[userIndex].channelId}`);
-      this.activeRooms[userIndex].channelId = dto.channel_id;
+      this.activeRooms[userIndex].channelId = data.channel_id;
     } else {
-      this.activeRooms.push({ userId: parseInt(userId), channelId: dto.channel_id });
+      this.activeRooms.push({ userId: parseInt(userId), channelId: data.channel_id });
     }
-    socket.join(`chat_active_${dto.channel_id}`);
+    socket.join(`chat_active_${data.channel_id}`);
   }
 
   @SubscribeMessage('leave-chat')
-  async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() dto: ChannelIdDto) {
+  async handleLeaveRoom(@ConnectedSocket() socket: Socket, @MessageBody() data: idInterface) {
     const userId = await this.getUserIdBySocketId(socket.id);
     if (!userId) throw new SocketException('Forbidden', `권한이 없습니다!`);
 
     const userIndex = this.activeRooms.findIndex(
-      (u) => u.userId === parseInt(userId) && u.channelId === dto.channel_id
+      (u) => u.userId === parseInt(userId) && u.channelId === data.channel_id
     );
     if (userIndex >= 0) {
       this.activeRooms.splice(userIndex, 1);
-      socket.leave(`chat_active_${dto.channel_id}`);
+      socket.leave(`chat_active_${data.channel_id}`);
     }
   }
 
   @SubscribeMessage('message-chat')
-  async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() md: MessageDto) {
+  async handleChatEvent(@ConnectedSocket() socket: Socket, @MessageBody() data: messageInterface) {
     const userId = await this.getUserIdBySocketId(socket.id);
-    const socketIds = await this.getActiveChannelUsersSocketIds(md.channel_id);
-    return this.chatSocketService.sendChatMessage(this.server, parseInt(userId), md, socketIds);
+    const socketIds = await this.getActiveChannelUsersSocketIds(data.channel_id);
+    return this.chatSocketService.sendChatMessage(this.server, parseInt(userId), data, socketIds);
   }
 
   @SubscribeMessage('mute-chat')
-  async muteChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() muteDto: toggleTimeDto) {
+  async muteChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() muteData: toggleInterface) {
     const adminId = await this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.muteUser(this.server, parseInt(adminId), muteDto);
+    return this.chatSocketService.muteUser(this.server, parseInt(adminId), muteData);
   }
 
   @SubscribeMessage('ban-chat')
-  async banChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() banDto: toggleTimeDto) {
+  async banChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() banData: toggleInterface) {
     const adminId = await this.getUserIdBySocketId(socket.id);
-    const userSocket = await this.getSocketIdByUserId(banDto.user_id);
-    return this.chatSocketService.banUser(this.server, parseInt(adminId), banDto, userSocket);
+    const userSocket = await this.getSocketIdByUserId(banData.user_id);
+    return this.chatSocketService.banUser(this.server, parseInt(adminId), banData, userSocket);
   }
 
   @SubscribeMessage('unban-chat')
-  async unbanChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() unbanDto: toggleDto) {
+  async unbanChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() unbanData: basicsInterface) {
     const adminId = await this.getUserIdBySocketId(socket.id);
-    return this.chatSocketService.unBanUser(this.server, parseInt(adminId), unbanDto);
+    return this.chatSocketService.unBanUser(this.server, parseInt(adminId), unbanData);
   }
 
   @SubscribeMessage('kick-chat')
-  async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickDto: toggleDto) {
+  async kickChannelUser(@ConnectedSocket() socket: Socket, @MessageBody() kickData: basicsInterface) {
     const adminId = await this.getUserIdBySocketId(socket.id);
-    const userSocket = await this.getSocketIdByUserId(kickDto.user_id);
-    return this.chatSocketService.kickUser(this.server, parseInt(adminId), kickDto, userSocket);
+    const userSocket = await this.getSocketIdByUserId(kickData.user_id);
+    return this.chatSocketService.kickUser(this.server, parseInt(adminId), kickData, userSocket);
   }
 
   /*

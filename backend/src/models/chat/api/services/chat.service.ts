@@ -26,7 +26,7 @@ import { ChatUserService } from './chatUser.service';
 import { ChatSocketGateway } from '../../socket';
 import { UserRelation } from 'src/models/user/entities';
 import { RelationStatus } from 'src/common/enums/relationStatus.enum';
-import { ChannelInterface, ChatUser } from '../../socket/chat.interface';
+import { ChannelInterface, ChatUserInterface } from '../../socket/chat.interface';
 
 @Injectable()
 export class ChatService {
@@ -72,7 +72,7 @@ export class ChatService {
       .getMany();
   }
 
-  async getDmUsers(channel_id: number): Promise<ChatUser[]> {
+  async getDmUsers(channel_id: number): Promise<ChatUserInterface[]> {
     let dm = await this.dmRepository
       .createQueryBuilder('dm')
       .innerJoin('dm.first_user', 'first')
