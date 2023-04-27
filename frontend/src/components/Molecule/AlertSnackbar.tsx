@@ -37,7 +37,6 @@ function AlertSnackbar() {
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert /*onClose={handleClose}*/ severity={alertType} sx={{ width: '100%' }}>
-          {/*hi*/}
           <AlertTitle>{alertTitle}</AlertTitle>
           <strong>{alertMessage}</strong>
         </Alert>

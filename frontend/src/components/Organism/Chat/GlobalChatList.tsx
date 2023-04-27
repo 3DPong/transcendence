@@ -112,7 +112,7 @@ const GlobalChatList: FC<ChatListProps> = () => {
         body="body2 text"
       />
 
-      <div className=" border m-0 p-4">
+      <div className=" border m-0 p-4 bg-white">
         <SearchTextField
           state={searchString}
           setState={setSearchString}
