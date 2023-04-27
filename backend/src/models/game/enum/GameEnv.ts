@@ -9,3 +9,4 @@ export const PADDLE_HEIGHT = 5;
 export const PADDLE_SPEED = 0.1;
 export const BALL_MAX_ANGLE = 0.785398 / 2; //45degree / 2
 export const BALL_PI = 3.14159; //180degree
+export const MAX_LEVEL = 100;

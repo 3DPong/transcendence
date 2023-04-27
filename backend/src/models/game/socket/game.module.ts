@@ -7,10 +7,11 @@ import { GameDataMaker } from './services';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigModule } from 'src/config/jwt/config.module';
 import { JwtConfigService } from 'src/config/jwt/config.service';
+import { User } from 'src/models/user/entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Match]),
+    TypeOrmModule.forFeature([Match, User]),
     JwtModule.registerAsync({
       imports: [JwtConfigModule],
       useFactory: async (jwtConfigService: JwtConfigService) => ({

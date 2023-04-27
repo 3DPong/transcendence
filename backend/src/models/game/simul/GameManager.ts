@@ -71,24 +71,31 @@ export class GameManager {
         server: Server
       ) => {
         if (
-          simulator.ball.GetUserData().player1_score === MATCH_SCORE ||
-          simulator.ball.GetUserData().player2_score === MATCH_SCORE ||
+          simulator.ball.GetUserData().player1_score >= MATCH_SCORE ||
+          simulator.ball.GetUserData().player2_score >= MATCH_SCORE ||
           simulator.matchInterrupt.isInterrupt
         ) {
           clearInterval(timeStep);
+          clearInterval(timeEndCheck);
+          
           if (!simulator.matchInterrupt.isInterrupt) {
             gameManager.player1.score = simulator.ball.GetUserData().player1_score;
             gameManager.player2.score = simulator.ball.GetUserData().player2_score;
           }
-          gameService.gameEndToClient(gameManager, server);
-          clearInterval(timeEndCheck);
+          await gameService
+            .updateMatchRecode(gameManager)
+            .catch(() =>{
+              this.logger.error(
+                `database update user_match failed : ${gameManager.gameId} ` +
+                  `player1 score: ${gameManager.player1.score} ` +
+                  `player2 score: ${gameManager.player2.score} ` +
+                  `player1 dbId: ${gameManager.player1.dbId} ` +
+                  `player2 dbId: ${gameManager.player2.dbId}`
+              );
+            })
           await gameService
             .createMatch(gameManager)
-            .then(() => {
-              gameRooms.delete(gameManager.gameId);
-            })
             .catch(() => {
-              gameRooms.delete(gameManager.gameId);
               this.logger.error(
                 `database save match failed : ${gameManager.gameId} ` +
                   `gameType: ${gameManager.gameType} ` +
@@ -99,9 +106,11 @@ export class GameManager {
                   `player2 dbId: ${gameManager.player2.dbId}`
               );
             });
+            gameService.gameEndToClient(gameManager, server);
+            gameRooms.delete(gameManager.gameId);
         }
       },
-      1000,
+      100,
       this.simulator,
       gameRooms,
       this,
