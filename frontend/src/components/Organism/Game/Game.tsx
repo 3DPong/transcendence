@@ -39,7 +39,7 @@ export function Game() {
   const {clearInviteData} = useContext(MatchDataContext);
   const navigate = useNavigate();
   
-  const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
+  const [matchData, setMatchData] = useState<gameType.matchStartData  | gameType.onSceneObserverData| null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
@@ -75,8 +75,8 @@ export function Game() {
   }, [gameSocket]); 
   
   const playerData: gameType.PlayerData = {
-    myNickName: myNickname,
-    enemyNickName: enemyNickname,
+    leftPlayerNickName: myNickname,
+    rightPlayerNickName: enemyNickname,
   }
 
   if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
@@ -109,7 +109,7 @@ export function Game() {
                   aria-describedby="match Result description"
               >
                 <DialogTitle id="alert-dialog-title">
-                  {(matchResult.winner === loggedUserId) ? "👑You Win" : "😥You Lose" }
+                  { 'Match Result' }
                 </DialogTitle>
                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   {/* (1) 내 프로필 정보 */}
@@ -125,12 +125,16 @@ export function Game() {
                       />
                     </Box>
                     <Box sx={{ m: 1, position: 'relative' }}>
-                      <Typography display="block" variant="h5" color="text.primary">
-                        {myNickname}
-                      </Typography>
-                      <Typography display="block" variant="h3" color="text.primary">
-                        {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore}
-                      </Typography>
+                      <Typography display="block" variant="h5" color="text.primary"> {myNickname} </Typography>
+                      { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
+                          <div> {/* Player */}
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>A
+                          </div>
+                        ) : (
+                          <div> {/* Observer */}
+                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.leftScore} </Typography>
+                          </div>)
+                      }
                     </Box>
                   </Box>
 
@@ -154,9 +158,15 @@ export function Game() {
                       <Typography display="block" variant="h5" color="text.primary">
                         {enemyNickname}
                       </Typography>
-                      <Typography display="block" variant="h3" color="text.primary">
-                        {(matchResult.leftPlayerId === loggedUserId) ? matchResult.rightScore : matchResult.leftScore}
-                      </Typography>
+                      { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
+                          <div> {/* Player */}
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>A
+                          </div>
+                      ) : (
+                          <div> {/* Observer */}
+                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.leftScore} </Typography>
+                          </div>)
+                      }
                     </Box>
                   </Box>
                 </Box>

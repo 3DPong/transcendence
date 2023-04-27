@@ -31,7 +31,7 @@ interface GameStartButtonProps {
   enemyNickname: string;
   setEnemyNickname: React.Dispatch<React.SetStateAction<string>>;
 
-  setMatchData: (matchData: gameType.matchStartData) => void;
+  setMatchData: (matchData: (gameType.matchStartData | gameType.onSceneObserverData)) => void;
 }
 
 export default function GameMatchingDialog({
@@ -53,7 +53,7 @@ export default function GameMatchingDialog({
   const [matchingDialogOpen, setMatchingDialogOpen] = useState<boolean>(false);
   const [isMatched, setIsMatched] = useState<boolean>(false);
   // 부모의 state을 set하기 전에, 데이터 임시 저장용 state. (로딩 된 이후 바로 게임 시작되는 것 방지)
-  const [__matchDataCache, __setMatchDataCache] = useState<gameType.matchStartData>();
+  const [__matchDataCache, __setMatchDataCache] = useState<gameType.matchStartData | gameType.onSceneObserverData>();
   // 로딩중 내 정보와 상대방 정보 보여주기 버튼.
   const { handleAlert } = useAlert();
   const navigate = useNavigate();
@@ -137,9 +137,15 @@ export default function GameMatchingDialog({
   useEffect(() => {
     if (!gameSocket) return;
     // (2) Match가 성사되어 SceneData를 전달받음. 이를 이용해서 게임 로딩.
-    function onSceneReady(matchStartData: gameType.matchStartData) {
+    function onSceneReady(matchData: (gameType.matchStartData | gameType.onSceneObserverData)) {
       setIsMatched(true);
-      __setMatchDataCache(matchStartData);
+      __setMatchDataCache(matchData);
+      console.log(matchData);
+      // if (matchStartData.playerLocation === gameType.PlayerLocation.OBSERVER) {
+      //   __setMatchDataCache(matchStartData)
+      // } else {
+      //   __setMatchDataCache(matchStartData)
+      // }
     }
     gameSocket.on('onSceneReady', onSceneReady);
     return () => {
@@ -164,18 +170,40 @@ export default function GameMatchingDialog({
   // ---------------------------------------
 
   // ---------------------------------------
-  // 매칭 데이터 캐싱 완료, 적의 프로필 정보 보여주기.
+  // 옵저버가 아닐 때만 해당 정보를 로드할 것!
+  // ---------------------------------------
   useEffect(() => {
     if (!__matchDataCache) return;
-    (async () => {
-      console.log('[DEV] 게임 대결 상대의 프로필을 불러오는 중입니다.', __matchDataCache.enemyUserId);
-      const loadedSettings = await API.getUserDataById(handleAlert, __matchDataCache.enemyUserId);
-      if (loadedSettings) {
-        setEnemyProfile(loadedSettings.profile_url);
-        setEnemyNickname(loadedSettings.nickname);
-      }
-    })(/* IIFE */);
-    // ...
+    // if Normal Game
+    if (__matchDataCache.playerLocation !== gameType.PlayerLocation.OBSERVER)
+    {
+      console.log('[DEV] ----------- Player Data ----------------');
+      const data = __matchDataCache as gameType.matchStartData;
+      (async () => {
+        const loadedSettings = await API.getUserDataById(handleAlert, data.enemyUserId);
+        if (loadedSettings) {
+          setEnemyProfile(loadedSettings.profile_url);
+          setEnemyNickname(loadedSettings.nickname);
+        }
+      })(/* IIFE */);
+    }
+    else
+    { // if Observer Mode
+      console.log('[DEV] ----------- Observer Data ----------------');
+      const data = __matchDataCache as gameType.onSceneObserverData;
+      (async () => {
+        const left = await API.getUserDataById(handleAlert, data.leftPlayerId);
+        if (left) {
+          setEnemyProfile(left.profile_url);
+          setEnemyNickname(left.nickname);
+        }
+        const right = await API.getUserDataById(handleAlert, data.rightPlayerId);
+        if (right) {
+          setEnemyProfile(right.profile_url);
+          setEnemyNickname(right.nickname);
+        }
+      })(/* IIFE */);
+    }
   }, [__matchDataCache]);
 
   // ---------------------------------------
@@ -191,7 +219,6 @@ export default function GameMatchingDialog({
       handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    alert('[DEV] gameSocket.emit(exit) called');
     gameSocket.emit('exit');
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화

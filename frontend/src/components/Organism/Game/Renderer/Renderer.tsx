@@ -59,7 +59,7 @@ class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
 
 export interface RenderSceneProps {
   playerData: gameType.PlayerData;
-  matchData: gameType.matchStartData;
+  matchData: (gameType.matchStartData | gameType.onSceneObserverData);
   width: number;
   height: number;
 }
@@ -266,11 +266,11 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       // https://gui.babylonjs.com/#7YQSCB#2
       await m_Gui.parseFromSnippetAsync("7YQSCB#3", false)
       let UserA_Nickname = m_Gui.getControlByName('UserA_Nickname') as GUI.TextBlock;
-      UserA_Nickname.text = `${playerData.myNickName}`
+      UserA_Nickname.text = `${playerData.leftPlayerNickName}`
       let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
       UserA_Score.text = `${0}`;
       let UserB_Nickname = m_Gui.getControlByName('UserB_Nickname') as GUI.TextBlock;
-      UserB_Nickname.text = `${playerData.enemyNickName}`
+      UserB_Nickname.text = `${playerData.rightPlayerNickName}`
       let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
       UserB_Score.text = `${0}`;
     })(/* IIFE */);
