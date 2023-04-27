@@ -19,6 +19,7 @@ import { ChannelEnum } from '../../../notifier/enums/channel.enum';
 import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
 import { GameHistoryDto, GetUserHistoryResDto } from '../dtos/getUserHistoryRes.dto';
 import { Match } from '../../../game/entities';
+import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
 
 @Injectable()
 export class UserService {
@@ -137,20 +138,24 @@ export class UserService {
   }
 
   async searchUser(userId: number, nickname: string): Promise<SearchUserResDto> {
-    const user: User = await this.userRepository.findOne({ where: { user_id: userId } });
+    const user: User = await this.userRepository.findOne({ where: { user_id: userId }, relations: ['relationships'] });
     if (!user) throw new UnauthorizedException('invalid user (session is not valid)');
     const foundUsers: User[] = await this.userRepository.find({
       where: {
         nickname: Like(`%${nickname}%`),
       },
       select: ['user_id', 'nickname', 'profile_url'],
-      relations: ['relatedOf'],
     });
     return {
       users: foundUsers
-        .map((user: User) => {
-          user.relatedOf = user.relatedOf.filter((user) => user.target_id === userId);
-          return new SearchedUser(user);
+        .map((targetUser: User) => {
+          const targetStatusArr = user.relationships.filter(
+            (userRelations) => userRelations.target_id === targetUser.user_id
+          ); // array -> 1, 0
+          let status: RelationStatus;
+          if (targetStatusArr[0]) status = targetStatusArr[0].status;
+          else status = RelationStatus.NONE;
+          return new SearchedUser(targetUser, status);
         })
         .filter((user: SearchedUser) => user.user_id !== userId),
     };

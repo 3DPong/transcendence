@@ -2,15 +2,11 @@ import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
 import { User } from '../../entities';
 
 export class SearchedUser {
-  constructor(user: User) {
+  constructor(user: User, status: RelationStatus) {
     this.user_id = user.user_id;
     this.nickname = user.nickname;
     this.profile_url = user.profile_url;
-    if (user.relatedOf[0]?.status) {
-      this.relationWithMe = user.relatedOf[0].status;
-    } else {
-      this.relationWithMe = RelationStatus.NONE;
-    }
+    this.relationWithMe = status;
   }
 
   user_id: number;
