@@ -88,7 +88,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
 
   return (
     <>
-      <Container sx={{ pb: 2, pt: 2 }} maxWidth="sm" className={'border border-gray-200'}>
+      <Container sx={{ pb: 2, pt: 2 }} maxWidth="sm" className={'border border-gray-200 bg-white'}>
         <Typography variant="h6" component="h3" gutterBottom>
           채팅방 생성
         </Typography>
