@@ -36,15 +36,7 @@ export function SignIn() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
-      const res = await API.getMySettings();
-      if (res) { // login session is alive. go back to '/' home.
-        alert("User is already logged in. Going back to home page...");
-        navigate('/');
-      } else { // no login session. close every socket.
-        disconnectAll(); // disconnect every socket.
-      }
-    })(/* IIFE */);
+
   }, []);
 
   const handleClick = () => {
