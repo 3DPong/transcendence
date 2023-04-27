@@ -6,8 +6,8 @@ export class ChannelDto {
   @IsString()
   @MinLength(1)
   @MaxLength(25, {message:'제목은 25자 이내 입니다.'})
-  @Matches(/^[가-힣a-zA-Z\s]+$/, {
-    message: '제목은 영어, 한글(초성 금지), 숫자 만 가능합니다.',
+  @Matches(/^[ㄱ-ㅎ가-힣a-zA-Z0-9\s]+$/, {
+    message: '제목은 영어, 한글, 숫자 만 가능합니다.',
   })
   name: string;
 
