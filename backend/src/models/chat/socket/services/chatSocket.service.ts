@@ -353,10 +353,10 @@ export class ChatSocketService {
 
   async checkBlocked(dm: DmChannel, target_id: number): Promise<boolean> {
     let user_id;
-    if (dm.first_user_id == target_id) {
-      user_id = dm.second_user_id;
+    if (dm.first_user.user_id == target_id) {
+      user_id = dm.second_user.user_id;
     } else {
-      user_id = dm.first_user_id;
+      user_id = dm.first_user.user_id;
     }
 
     const relation = await this.relationRepository.findOne({
