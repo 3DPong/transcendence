@@ -40,4 +40,9 @@ export class ImageController {
   serveImage(@Param('filename') filename: string, @Res() res: Response): void {
     return this.imageServeService.serveImage(filename, res);
   }
+
+  @Get('/')
+  getDefaultImage(@Res() res: Response): void {
+    return this.imageServeService.serveImage('default.png', res);
+  }
 }
