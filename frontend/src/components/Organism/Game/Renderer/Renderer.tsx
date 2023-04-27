@@ -209,6 +209,8 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     ground.receiveShadows = true;
     */
 
+
+
     const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
     importPromise.then((result) => {
       const table = new BABYLON.TransformNode("Table");
@@ -273,7 +275,7 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     m_Gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("SCORE_GUI", true, scene3D);
     (async () => {
       // https://gui.babylonjs.com/#7YQSCB#2
-      await m_Gui.parseFromSnippetAsync("7YQSCB#3", false)
+      await m_Gui.parseFromSnippetAsync("7YQSCB#4", false)
       let UserA_Nickname = m_Gui.getControlByName('UserA_Nickname') as GUI.TextBlock;
       UserA_Nickname.text = `${playerData.leftPlayerNickName}`
       let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
