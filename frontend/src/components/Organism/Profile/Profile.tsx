@@ -24,6 +24,7 @@ export default function Profile() {
   const { pathname } = useLocation();
   const { loggedUserId } = useContext(GlobalContext);
   const { handleAlert } = useAlert();
+  const { userId } = useParams();
 
   // (1) initial data loading
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function Profile() {
         setProfileState(myData);
       }
     })(/* IIFE */);
-  }, [loggedUserId]); // call useEffect if pathname changes
+  }, [userId]); // call useEffect if pathname changes
 
   return (
     <div>
