@@ -52,10 +52,11 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
       socket.data.user = user_id.toString();
       if (await this.isOnline(user_id, socket.id)) throw new Error('already online');
 
-      await this.socketMapService.setUserSocket(parseInt(socket.data.user), 'chat', socket.id);
+      await this.socketMapService.setUserSocket(user_id, 'chat', socket.id);
       await this.chatSocketService.joinAllChatRooms(socket, socket.data.user);
       this.logger.log(`Socket connected: ${user_id}'s ${socket.id}`);
     } catch (error) {
+      this.logger.error(`${error} on connecting`);
       socket.disconnect();
       this.logger.log(`Socket disconnect: ${socket.id} ` + error);
     }
@@ -63,6 +64,10 @@ export class ChatSocketGateway implements OnGatewayConnection, OnGatewayDisconne
 
   async handleDisconnect(@ConnectedSocket() socket: Socket): Promise<void> {
     const user_id = socket.data.user;
+    if (await this.isOnline(user_id, socket.id)) {
+      this.logger.log(`Duplicate user ${user_id} disconnect with socket id: ${socket.id}`);
+      return;
+    }
     await this.socketMapService.deleteUserSocket(user_id, 'chat');
     const activeIndex = this.activeRooms.findIndex((u) => u.userId.toString() === user_id);
     if (activeIndex >= 0) this.activeRooms.splice(activeIndex, 1);
