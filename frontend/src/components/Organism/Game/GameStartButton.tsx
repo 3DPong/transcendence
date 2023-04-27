@@ -9,7 +9,7 @@ import ChooseModeButton from '@/components/Organism/Game/ChooseMode';
 import * as gameType from '@/types/game';
 import { useSocket } from '@/context/SocketContext';
 import { Avatar, Box, Typography } from '@mui/material';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import * as API from '@/api/API';
 import { Assert } from '@/utils/Assert';
 import { Skeleton } from '@mui/material';
@@ -31,7 +31,7 @@ interface GameStartButtonProps {
   enemyNickname: string;
   setEnemyNickname: React.Dispatch<React.SetStateAction<string>>;
 
-  setMatchData: (matchData: gameType.matchStartData) => void;
+  setMatchData: (matchData: (gameType.matchStartData | gameType.onSceneObserverData)) => void;
 }
 
 export default function GameMatchingDialog({
@@ -53,9 +53,9 @@ export default function GameMatchingDialog({
   const [matchingDialogOpen, setMatchingDialogOpen] = useState<boolean>(false);
   const [isMatched, setIsMatched] = useState<boolean>(false);
   // 부모의 state을 set하기 전에, 데이터 임시 저장용 state. (로딩 된 이후 바로 게임 시작되는 것 방지)
-  const [__matchDataCache, __setMatchDataCache] = useState<gameType.matchStartData>();
+  const [__matchDataCache, __setMatchDataCache] = useState<gameType.matchStartData | gameType.onSceneObserverData>();
   // 로딩중 내 정보와 상대방 정보 보여주기 버튼.
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const navigate = useNavigate();
 
   const { inviteChannelId, inviteGameId, isObserve, clearInviteData } = useContext(MatchDataContext);
@@ -97,13 +97,23 @@ export default function GameMatchingDialog({
     if (inviteGameId) {
       handleModeSelectDialogClose(); // 모드 선택 종료.
       handleMatchingDialogOpen(); // 매칭 시작.
+
+      const matchJoinData: gameType.InvitedJoinData = {
+        gameId: inviteGameId,
+      };      
+
       if (isObserve) {
         console.log('observe 로 들어온 사람');
-        gameSocket.emit('observeJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('observeJoin', matchJoinData);
       }
       else {
+        // const matchJoinData: gameType.ChatJoinData = {
+        //   gameId: inviteGameId,
+        //   roomType: gameType.roomType.chat,
+        //   gameType: gameType.gameType.normal,
+        // };
         console.log('플레이어로 들어온 사람');
-        gameSocket.emit('chatJoin', JSON.stringify({ gameId: inviteGameId }));
+        gameSocket.emit('chatJoin', matchJoinData);
       }
     }
   }, [inviteGameId, gameSocket])
@@ -114,7 +124,7 @@ export default function GameMatchingDialog({
     // (1) 사용자 데이터 로드
     (async () => {
       console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
-      const loadedSettings = await API.getMySettings(handleError, navigate);
+      const loadedSettings = await API.getMySettings(handleAlert, navigate);
       if (loadedSettings) {
         console.log(loadedSettings);
         setMyProfile(loadedSettings.profile_url);
@@ -127,9 +137,15 @@ export default function GameMatchingDialog({
   useEffect(() => {
     if (!gameSocket) return;
     // (2) Match가 성사되어 SceneData를 전달받음. 이를 이용해서 게임 로딩.
-    function onSceneReady(matchStartData: gameType.matchStartData) {
+    function onSceneReady(matchData: (gameType.matchStartData | gameType.onSceneObserverData)) {
       setIsMatched(true);
-      __setMatchDataCache(matchStartData);
+      __setMatchDataCache(matchData);
+      console.log(matchData);
+      // if (matchStartData.playerLocation === gameType.PlayerLocation.OBSERVER) {
+      //   __setMatchDataCache(matchStartData)
+      // } else {
+      //   __setMatchDataCache(matchStartData)
+      // }
     }
     gameSocket.on('onSceneReady', onSceneReady);
     return () => {
@@ -143,7 +159,7 @@ export default function GameMatchingDialog({
     if (!isModeSelected) return;
     console.log("[DEV] Mode selected.")
     if (!gameSocket) {
-      handleError('gameSocket', 'gameSocket is currently null', '/');
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
     // 모드 선택이 된 경우 이미 socket으로 emit한 상태임. (ChooseMode 버튼 내부에서 처리함)
@@ -154,18 +170,40 @@ export default function GameMatchingDialog({
   // ---------------------------------------
 
   // ---------------------------------------
-  // 매칭 데이터 캐싱 완료, 적의 프로필 정보 보여주기.
+  // 옵저버가 아닐 때만 해당 정보를 로드할 것!
+  // ---------------------------------------
   useEffect(() => {
     if (!__matchDataCache) return;
-    (async () => {
-      console.log('[DEV] 게임 대결 상대의 프로필을 불러오는 중입니다.', __matchDataCache.enemyUserId);
-      const loadedSettings = await API.getUserDataById(handleError, __matchDataCache.enemyUserId);
-      if (loadedSettings) {
-        setEnemyProfile(loadedSettings.profile_url);
-        setEnemyNickname(loadedSettings.nickname);
-      }
-    })(/* IIFE */);
-    // ...
+    // if Normal Game
+    if (__matchDataCache.playerLocation !== gameType.PlayerLocation.OBSERVER)
+    {
+      console.log('[DEV] ----------- Player Data ----------------');
+      const data = __matchDataCache as gameType.matchStartData;
+      (async () => {
+        const loadedSettings = await API.getUserDataById(handleAlert, data.enemyUserId);
+        if (loadedSettings) {
+          setEnemyProfile(loadedSettings.profile_url);
+          setEnemyNickname(loadedSettings.nickname);
+        }
+      })(/* IIFE */);
+    }
+    else
+    { // if Observer Mode
+      console.log('[DEV] ----------- Observer Data ----------------');
+      const data = __matchDataCache as gameType.onSceneObserverData;
+      (async () => {
+        const left = await API.getUserDataById(handleAlert, data.leftPlayerId);
+        if (left) {
+          setMyProfile(left.profile_url);
+          setMyNickname(left.nickname);
+        }
+        const right = await API.getUserDataById(handleAlert, data.rightPlayerId);
+        if (right) {
+          setEnemyProfile(right.profile_url);
+          setEnemyNickname(right.nickname);
+        }
+      })(/* IIFE */);
+    }
   }, [__matchDataCache]);
 
   // ---------------------------------------
@@ -178,10 +216,9 @@ export default function GameMatchingDialog({
   useEffect(() => {
     if (!cancelMatching) return;
     if (!gameSocket) {
-      handleError('gameSocket', 'gameSocket is currently null', '/');
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
-    alert('[DEV] gameSocket.emit(exit) called');
     gameSocket.emit('exit');
     handleMatchingDialogClose();
     setCancelMatching(false); // 초기화

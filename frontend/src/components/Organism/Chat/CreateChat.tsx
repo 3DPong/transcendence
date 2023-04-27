@@ -6,10 +6,10 @@ import InviteList from '@/components/Molecule/Chat/InviteList';
 import ImageUpload from '@/components/Molecule/ImageUpload';
 
 import { TextField } from '@/components/Molecule/Chat/TextField';
-import { API_URL } from '@/../config/backend';
+import { API_URL, ORIGIN_URL } from '@/../config/backend';
 import { useNavigate } from 'react-router';
 import GlobalContext from '@/context/GlobalContext';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { uploadImageToServer } from '@/api/API';
 
 interface CreateChatRoomProps {
@@ -24,26 +24,26 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
   const [thumbnail, setThumbnail] = useState<string>('');
   const navigate = useNavigate();
   const { channels, setChannels, loggedUserId } = useContext(GlobalContext);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const minLen = 1;
 
   const handleCreate = () => {
     async function createChat() {
       if (title.length < minLen) {
-        handleError('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
+        handleAlert('Channel Setting', `채팅방 제목은 ${minLen}자 이상이어야 합니다.`);
         return;
       }
       if (type === 'protected' && password.length < minLen) {
-        handleError('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
+        handleAlert('Channel Setting', `비밀번호는 ${minLen}자 이상이어야 합니다.`);
         return;
       }
 
       let imageToSubmit: string | undefined;
       if (thumbnail) {
-        const serverSideImageUrl = await uploadImageToServer(handleError, thumbnail);
+        const serverSideImageUrl = await uploadImageToServer(handleAlert, thumbnail);
         if (serverSideImageUrl) {
           console.log("[DEV] uploadImage Success");
-          imageToSubmit = serverSideImageUrl;
+          imageToSubmit = ORIGIN_URL + serverSideImageUrl;
         }
       }
 
@@ -57,12 +57,12 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           password: password === '' ? null : password,
           type: type,
           inviteList: inviteUsers.map((user) => user.id),
-          thumbnail_url: imageToSubmit || defaultThumbnail,
+          thumbnail_url: imageToSubmit || null,
         }),
       });
       if (!response.ok) {
         const error = await response.json();
-        handleError('Channel Create', error.message);
+        handleAlert('Channel Create', error.message);
         return;
       }
 
@@ -72,6 +72,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
           id: createChannel.channel_id,
           title: createChannel.name,
           type: createChannel.type,
+          thumbnail: createChannel.thumbnail_url,
           owner: {
             id: createChannel.owner.user_id,
             nickname: createChannel.owner.nickname,
@@ -87,7 +88,7 @@ const CreateChatRoom: React.FC<CreateChatRoomProps> = ({}) => {
 
   return (
     <>
-      <Container sx={{ pb: 2, pt: 2 }} maxWidth="sm" className={'border border-gray-200'}>
+      <Container sx={{ pb: 2, pt: 2 }} maxWidth="sm" className={'border border-gray-200 bg-white'}>
         <Typography variant="h6" component="h3" gutterBottom>
           채팅방 생성
         </Typography>

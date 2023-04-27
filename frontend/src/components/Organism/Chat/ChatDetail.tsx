@@ -10,7 +10,7 @@ import MenuDrawer from '@/components/Organism/Chat/MenuDrawer';
 import { API_URL } from '@/../config/backend';
 import GlobalContext from '@/context/GlobalContext';
 import ChatContext from '@/context/ChatContext';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import { useSocket } from '@/context/SocketContext';
 import { MatchDataContext } from '@/context/MatchDataContext';
 
@@ -32,7 +32,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
 
   const { chatSocket } = useSocket();
 
@@ -186,7 +186,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
       });
 
       chatSocket.on('error', (message) => {
-        handleError('Socket Error', message.message);
+        handleAlert('Socket Error', message.message);
       });
 
       chatSocket.on('kick', (message) => {
@@ -331,7 +331,7 @@ const ChatDetail: FC<ChatDetailProps> = () => {
           }
         }
       } catch (error) {
-        handleError('Init Fetch', (error as Error).message);
+        handleAlert('Init Fetch', (error as Error).message);
       }
     }
     if (channel.id !== 0 && loggedUserId) {

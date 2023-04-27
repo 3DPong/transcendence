@@ -32,7 +32,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ channel, memberCount, han
   };
 
   return (
-    <div className=" flex-shrink-0 p-2 pl-4 pr-4 border border-gray-200 flex items-center">
+    <div className=" flex-shrink-0 p-2 pl-4 pr-4 border border-gray-200 flex items-center bg-gray-100">
       <IconButton onClick={handleGoBack} edge="start" color="inherit" aria-label="back">
         <ArrowBack />
       </IconButton>

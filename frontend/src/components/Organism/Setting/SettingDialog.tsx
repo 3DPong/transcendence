@@ -36,8 +36,7 @@ import * as API from '@/api/API';
 import GlobalContext from '@/context/GlobalContext';
 import { Container, Stack } from '@mui/material';
 import { Typography } from '@mui/material';
-import { useError } from '@/context/ErrorContext';
-import { useSocket } from '@/context/SocketContext';
+import { useAlert } from '@/context/AlertContext';
 import {useNavigate} from "react-router";
 
 /**
@@ -105,20 +104,24 @@ const CustomSwitch = styled(Switch)(({ theme }) => ({
 
 const label = { inputProps: { 'aria-label': 'Color switch demo' } };
 
-interface settingDialogProps {
-  open: boolean;
-  setOpen: (v: boolean) => void;
-}
 
-export default function SettingDialog({ open, setOpen }: settingDialogProps) {
+export default function SettingDialog() {
+
+  const [openSetting, setOpenSetting] = useState<boolean>(true);
+
   const { setLoggedUserId } = useContext(GlobalContext);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isNicknameOk, setIsNicknameOk] = useState<boolean>(false);
 
   const [nickname, setNickname] = useState<string>('');
+  const [isNicknameOk, setIsNicknameOk] = useState<boolean>(false);
+  const [originalNickname, setOriginalNickname] = useState<string>('');
+
   const [imageFile, setImageFile] = useState<string>('');
+  const [isImageChanged, setIsImageChanged] = useState<boolean>(false);
+
+  const [disableSaveButton, setDisableSaveButton] = useState<boolean>(true);
   const [twoFactorAuth, setTwoFactorAuth] = useState<boolean>(false);
 
   // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
@@ -127,11 +130,12 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
       setIsLoading(true);
       console.log('[DEV] 사용자의 세팅을 불러오는 중입니다.');
       // TODO: 아래 코드는 테스트 코드이며, SessionStorage 부분은 지워야 한다.
-      const loadedSettings = await API.getMySettings(handleError, navigate);
+      const loadedSettings = await API.getMySettings(handleAlert, navigate);
       if (loadedSettings) {
         setLoggedUserId(loadedSettings.user_id);
         setImageFile(loadedSettings.profile_url);
         setNickname(loadedSettings.nickname);
+        setOriginalNickname(loadedSettings.nickname);
         setTwoFactorAuth(loadedSettings.two_factor);
         setIsLoading(false);
       }
@@ -149,12 +153,24 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
     if (!nickname) return;
     if (_validator.isAcceptable('@Nickname', nickname)) {
       setIsNicknameOk(true);
+      if (isImageChanged || (originalNickname !== nickname)) {
+        setDisableSaveButton(false)
+      } else {
+        setDisableSaveButton(true);
+      }
     } else {
       setIsNicknameOk(false);
+      setDisableSaveButton(true);
     }
   }, [nickname]);
   // ---------------------------------------------------------------------
 
+  useEffect(() => {
+    if (!isImageChanged) return;
+    if (isNicknameOk) {
+      setDisableSaveButton(false);
+    }
+  }, [isImageChanged]);
 
   // Profile Change Submit Button Handle
   // ---------------------------------------------------------------------
@@ -162,11 +178,25 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
     (async () => {
       // 1. 서버에 변경 요청
       setIsLoading(true);
-      const response = await API.updateUserData(handleError, nickname, imageFile);
-      setIsLoading(false);
+      // 만약 이미지가 변경되지 않았다면, 굳이 이미지는 제출하지 말기
+      let response;
+      if (isImageChanged && (originalNickname === nickname)) { // 이미지는 바뀌었으나 닉네임은 그대로인 경우
+        console.log('이미지만 바뀌었습니다.');
+        response = await API.updateUserData(handleAlert, null, imageFile);
+      } else if (!isImageChanged && (originalNickname !== nickname)) { // 이미지는 안바뀌고 닉네님이 바뀐 경우
+        console.log(originalNickname, nickname);
+        console.log('닉네임만 바뀌었습니다.');
+        response = await API.updateUserData(handleAlert, nickname, null);
+      } else if (isImageChanged && (originalNickname !== nickname)) { // 둘 다 바뀐 경우
+        console.log('이미지와 닉네임이 모두 바뀌었습니다.');
+        response = await API.updateUserData(handleAlert, nickname, imageFile);
+      }
+
       if (response) {
         setLoggedUserId(response.user_id);
+        handleAlert("Change Profile", "설정 변경이 완료되었습니다", null, 'success');
       }
+      setIsLoading(false);
       handleSettingDialogClose();
     })(/* IIFE */);
   };
@@ -212,7 +242,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
     if (!twoFactorAuth) return; // 2차 인증 비활성화일 경우는 qr코드가 필요 없음.
     // load qr code here
     (async () => {
-      const qrCodeUrlFromServer = await API.getQrCodeBefore2FaActivation(handleError);
+      const qrCodeUrlFromServer = await API.getQrCodeBefore2FaActivation(handleAlert);
       if (qrCodeUrlFromServer) {
         setQrCodeUrl(qrCodeUrlFromServer);
         console.log("[DEV] QR코드 이미지를 서버로부터 전달받았습니다.");
@@ -226,10 +256,10 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
       let response: Response | undefined;
       if (twoFactorAuth) { // if off --> on
         console.log(`[DEV] Trying 2FA Auth On... | token:[${token}]`);
-        response = await API.activate2FA_SubmitOtpTokenToServer(handleError, token);
+        response = await API.activate2FA_SubmitOtpTokenToServer(handleAlert, token);
       } else { // if on --> off
         console.log(`[DEV] Trying 2FA Auth Off... | token:[${token}]`);
-        response = await API.deactivate2FA_SubmitOtpTokenToServer(handleError, token);
+        response = await API.deactivate2FA_SubmitOtpTokenToServer(handleAlert, token);
       }
       if (response) {
         console.log('[DEV] 2FA Auth Setting Change Success!');
@@ -250,8 +280,8 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
   // Log-out
   // ---------------------------------------------------------------------
   const handleLogout = async () => {
-    setOpen(false); // close dialog
-    const res = await API.requestLogOut(handleError);
+    setOpenSetting(false); // close dialog
+    const res = await API.requestLogOut(handleAlert);
     if (res) {
       navigate('/signin');
     }
@@ -259,15 +289,16 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
 
   // Dialog close
   // ---------------------------------------------------------------------
-  const handleSettingDialogClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
+  const handleSettingDialogClose = () => {
     // if (reason && reason === 'backdropClick') return; // 외곽 영역 클릭시 꺼지지 않도록 설정.
-    setOpen(false); // close dialog
+    setOpenSetting(false); // close dialog
+    navigate('/');
   };
 
   return (
       // https://mui.com/material-ui/api/container/
       <Container maxWidth="lg">
-        <Dialog open={open} onClose={handleSettingDialogClose}>
+        <Dialog open={openSetting} onClose={handleSettingDialogClose}>
           {/* 제목 */}
           <DialogTitle>Settings</DialogTitle>
           {/* X 버튼 */}
@@ -284,7 +315,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
               {/*<DialogContent sx={{ paddingBottom: 2 }}>*/}
               <DialogContent>
                 {/* 이미지 변경 */}
-                <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} />
+                <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} setIsImageChanged={setIsImageChanged} />
                 {/* 이름 변경 */}
                 <TextFieldWrapper
                     sx={{ maxWidth: '300px' }}
@@ -305,7 +336,7 @@ export default function SettingDialog({ open, setOpen }: settingDialogProps) {
                     color="info"
                     variant="outlined"
                     loading={isLoading}
-                    disabled={!isNicknameOk}
+                    disabled={disableSaveButton}
                     onClick={handleClickSave}
                 >
                   Save Profile

@@ -1,25 +1,6 @@
-import { ChannelType, ChannelUserRoles } from '../entities';
+import { ChannelType, ChannelUserRoles, MessageType } from "../entities";
 
-export interface User {
-  userId: string;
-  userName: string;
-  socketId: string;
-}
-
-export interface Room {
-  name: string;
-  host: User;
-  users: User[];
-}
-
-export interface Message {
-  user: User;
-  timeSent: Date;
-  message: string;
-  roomName: string;
-}
-
-export interface ChatUser {
+export interface ChatUserInterface {
   userId: number;
   userName: string;
   profile_url: string;
@@ -39,4 +20,25 @@ export interface ChannelInterface {
   type: ChannelType;
   thumbnail_url: string;
   owner: Owner;
+}
+
+export interface messageInterface {
+  message: string | null;
+  type: MessageType;
+  channel_id: number;
+}
+
+export interface toggleInterface {
+  user_id: number;
+  channel_id: number;
+  end_at: Date | null;
+}
+
+export interface basicsInterface {
+  user_id: number;
+  channel_id: number;
+}
+
+export interface idInterface {
+  channel_id: number;
 }

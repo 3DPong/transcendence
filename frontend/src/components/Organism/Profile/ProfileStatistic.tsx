@@ -19,7 +19,7 @@ import { FixedSizeList } from 'react-window';
 import { ListItem } from '@mui/material';
 import * as API from '@/api/API';
 import {useEffect, useState} from "react";
-import {useError} from "@/context/ErrorContext";
+import {useAlert} from "@/context/AlertContext";
 
 const Row = (props: { index: number; style: React.CSSProperties; data?: API.History[] }) => {
   {/*TODO: CSS 작업하기! */}
@@ -82,12 +82,12 @@ interface profileStatisticProps {
 
 export default function ProfileStatistic({ userData }: profileStatisticProps) {
   const [historyList, setHistoryList] = useState<API.History[]>();
-  const {handleError} = useError();
+  const {handleAlert} = useAlert();
 
   useEffect(() => {
     if (!userData) return;
     (async () => {
-      const res = await API.getUserHistoryById(handleError, userData.user_id);
+      const res = await API.getUserHistoryById(handleAlert, userData.user_id);
       if (res) {
         setHistoryList(res);
       }

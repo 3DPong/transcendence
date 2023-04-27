@@ -19,7 +19,8 @@ import GlobalContext from '@/context/GlobalContext';
 import ImageUpload from '@/components/Molecule/ImageUpload';
 import * as Utils from '@/utils/Validator';
 import * as API from '@/api/API';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
+import { API_URL } from '../../../../config/backend';
 
 export interface TextFieldWrapperProps {
   value: string;
@@ -36,45 +37,48 @@ export function TextFieldWrapper(props: TextFieldWrapperProps) {
     /* https://mui.com/material-ui/react-text-field/ */
   }
   return (
-      <TextField
-          sx={{ flex: 1 }} // 가득 채우기
-          id="standard-basic"
-          variant="standard"
-          type={props.type}
-          label={props.label}
-          onChange={(event) => {
-            props.onChange(event.target.value);
-          }}
-          placeholder={props.placeholder}
-          error={props.disabled}
-          helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
-          required={true}
-      />
+    <TextField
+      sx={{ flex: 1 }} // 가득 채우기
+      id="standard-basic"
+      variant="standard"
+      type={props.type}
+      label={props.label}
+      onChange={(event) => {
+        props.onChange(event.target.value);
+      }}
+      placeholder={props.placeholder}
+      error={props.disabled}
+      helperText={props.disabled ? props.disabledHelperText : ''} // 에러일 때만 표시
+      required={true}
+    />
   );
 }
 
 export function SignUp() {
+  const defaultImageUrl = `${API_URL}/image`;
   const { setLoggedUserId } = useContext(GlobalContext);
-  const [imageFile, setImageFile] = useState<string>('');
+  const [imageFile, setImageFile] = useState<string>(defaultImageUrl);
   const [nickname, setNickname] = useState<string>('');
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
   const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (submitDisabled) return;
+    if (!imageFile) {
+      handleAlert('SignUp', '회원가입시 프로필 이미지는 반드시 설정되어야 합니다.', null, 'warning');
+      return;
+    }
+
     (async () => {
       console.log('handle submit');
       setIsLoading(true);
-      const res = await API.requestSignUp(handleError, nickname, imageFile);
+      const res = await API.requestSignUp(handleAlert, nickname, imageFile);
       setIsLoading(false);
       if (res) {
-        alert("Sign-Up success. Please login again.");
-      } else { // signUp error
-        alert("Whoops! Sign-Up failure! Please sign-up again");
+        handleAlert('SignUp', '회원 가입이 완료되었습니다. 재로그인 해주시기 바랍니다.', '/signin', 'success');
       }
-      navigate('/signin');
     })(/* IIFE */);
   };
 
@@ -97,38 +101,38 @@ export function SignUp() {
   const HEIGHT = 250;
 
   return (
-      <div className=" w-screen h-screen flex justify-center items-center">
-        <div
-            className=" border border-green-400
+    <div className=" w-screen h-screen flex justify-center items-center">
+      <div
+        className=" border border-green-400
                       p-5
                       max-w-sm bg-white rounded-lg shadow-lg 
                       flex flex-col"
+      >
+        {/* Profile Setting */}
+        {/* TODO: 기본 제공 이미지 선택창이 있는게 좋지 않을까? */}
+        <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} width={WIDTH} height={HEIGHT} />
+
+        {/* Set Nickname */}
+        <TextFieldWrapper
+          value={nickname}
+          onChange={setNickname}
+          type={'text'}
+          label={'nickname'}
+          disabled={submitDisabled}
+          disabledHelperText={_validator.getRuleHint('@Nickname')}
+        />
+
+        {/* Submit Button */}
+        <LoadingButton
+          loading={isLoading}
+          disabled={submitDisabled}
+          sx={{ marginTop: 2 }}
+          variant="outlined"
+          onClick={handleSubmit}
         >
-          {/* Profile Setting */}
-          {/* TODO: 기본 제공 이미지 선택창이 있는게 좋지 않을까? */}
-          <ImageUpload thumbnail={imageFile} setThumbnail={setImageFile} width={WIDTH} height={HEIGHT} />
-
-          {/* Set Nickname */}
-          <TextFieldWrapper
-              value={nickname}
-              onChange={setNickname}
-              type={'text'}
-              label={'nickname'}
-              disabled={submitDisabled}
-              disabledHelperText={_validator.getRuleHint('@Nickname')}
-          />
-
-          {/* Submit Button */}
-          <LoadingButton
-              loading={isLoading}
-              disabled={submitDisabled}
-              sx={{ marginTop: 2 }}
-              variant="outlined"
-              onClick={handleSubmit}
-          >
-            Sign Up
-          </LoadingButton>
-        </div>
+          Sign Up
+        </LoadingButton>
       </div>
+    </div>
   );
 }

@@ -22,7 +22,7 @@ import React, { useEffect, useRef } from 'react';
 import * as ObjectConverter from '@/components/Organism/Game/Renderer/ObjectConverter';
 import * as gameType from '@/types/game';
 import { useSocket } from '@/context/SocketContext';
-import { useError } from '@/context/ErrorContext';
+import { useAlert } from '@/context/AlertContext';
 import HOCKEY_TABLE_3D from '@/assets/air_hockey_table.glb';
 import {attachGameEventToCanvas} from "@/components/Organism/Game/Renderer/KeyInput";
 
@@ -58,14 +58,11 @@ class CustomArchRotateCamera extends BABYLON.ArcRotateCamera {
 }
 
 export interface RenderSceneProps {
-  playerData?: gameType.PlayerData;
-  matchData?: gameType.matchStartData;
+  playerData: gameType.PlayerData;
+  matchData: (gameType.matchStartData | gameType.onSceneObserverData);
   width: number;
   height: number;
 }
-
-
-// matchData가 있고, 이 데이터의 player
 
 function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) {
   const sceneRef = useRef<Scene | null>(null);
@@ -73,16 +70,24 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
   let m_Gui: (GUI.AdvancedDynamicTexture | undefined);
 
   const { gameSocket } = useSocket();
-  const { handleError } = useError();
+  const { handleAlert } = useAlert();
+
+  useEffect(() => {
+    console.log("[DEV] Renderer3D re-rendering!!!----------------------------------------");
+  });
 
   // render each frame using data sent from server
   // https://socket.io/how-to/use-with-react
 
   useEffect(() => {
-    if (!matchData) return; // if '/develop'
+    if (!matchData) {
+      console.log("[DEV] error! matchData is null");
+      handleAlert('matchData', 'matchData is currently null');
+      return;
+    }
     if (!gameSocket) {
       console.log("[DEV] error! gameSocket is null");
-      handleError('gameSocket', 'gameSocket is currently null', '/');
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
       return;
     }
 
@@ -97,23 +102,30 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     }
     gameSocket.on('render', onFrameSentFromSever);
 
-
-
     function onScoreSentFromServer(scoreData: gameType.scoreData) {
-      // 스코어보드 업데이트.
-      console.log(`[DEV] gameScore --> LEFT:${scoreData.leftScore} RIGHT:${scoreData.rightScore}`);
-      if (m_Gui) {
-        let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
-        let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
-        if (matchData && matchData.playerLocation === gameType.PlayerLocation.LEFT) {
+
+      if (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) {
+        if (m_Gui) {
+          let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
+          let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
+          if (matchData && matchData.playerLocation === gameType.PlayerLocation.LEFT) {
+            UserA_Score.text = `${scoreData.leftScore}`;
+            UserB_Score.text = `${scoreData.rightScore}`;
+          } else {
+            UserA_Score.text = `${scoreData.rightScore}`;
+            UserB_Score.text = `${scoreData.leftScore}`;
+          }
+        }
+      } else { // Observer
+        if (m_Gui) {
+          let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
+          let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
           UserA_Score.text = `${scoreData.leftScore}`;
           UserB_Score.text = `${scoreData.rightScore}`;
-        } else {
-          UserA_Score.text = `${scoreData.rightScore}`;
-          UserB_Score.text = `${scoreData.leftScore}`;
         }
       }
     }
+
     gameSocket.on('score', onScoreSentFromServer);
 
     return () => {
@@ -122,13 +134,23 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       console.log('gameSocket: [score] off');
       gameSocket.off('score', onScoreSentFromServer);
       console.log('Player has closed the game.');
-      alert('[DEV] gameSocket.emit(`exit`) called');
       gameSocket.emit('exit'); // 화면을 나가게 되면 그때 exit 신호를 보내야 함.
     };
   }, []);
 
 
   const onSceneReady = (scene3D: Scene) => {
+    if (!matchData) {
+      console.log("[DEV] error! matchData is null");
+      handleAlert('matchData', 'matchData is currently null');
+      return;
+    }
+    if (!gameSocket) {
+      console.log("[DEV] error! gameSocket is null");
+      handleAlert('gameSocket', 'gameSocket is currently null', '/');
+      return;
+    }
+
     // (0) ** set scene to sceneRef
     sceneRef.current = scene3D;
     const _Canvas = scene3D.getEngine().getRenderingCanvas();
@@ -149,10 +171,7 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     Assert.NonNullish(canvas, 'canvas is null');
 
     // (1) Attach Control
-    if (matchData && !gameSocket) {
-      handleError('gameSocket', 'gameSocket is currently null', '/');
-      return ;
-    } else if (matchData && matchData.gameId && gameSocket) { // if not observer
+    if (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) {
       attachGameEventToCanvas(_Canvas, gameSocket, matchData.gameId, matchData.playerLocation);
     }
 
@@ -160,7 +179,7 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     // (2) create Light, ambient light
     scene3D.ambientColor = new BABYLON.Color3(1, 1, 1); // White
 
-    var light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, 0, 1), scene3D);
+    let light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, 0, 1), scene3D);
     light.intensity = 0.7;
     light.position = new BABYLON.Vector3(5, 5, -5);
     light.diffuse = new BABYLON.Color3(1, 1, 1);
@@ -190,20 +209,18 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
     ground.receiveShadows = true;
     */
 
-    if (playerData && matchData) {
-      const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
-      importPromise.then((result) => {
-        const table = new BABYLON.TransformNode("Table");
-        result.meshes.forEach(mesh => {
-          if (!mesh.parent) {
-            mesh.parent = table;
-          }
-        });
-        table.position = new Vector3(-20, -160, 38);
-        table.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
-        table.scaling = new Vector3(0.43, 0.43, 0.43);
+    const importPromise = BABYLON.SceneLoader.ImportMeshAsync(null, HOCKEY_TABLE_3D, '', scene3D);
+    importPromise.then((result) => {
+      const table = new BABYLON.TransformNode("Table");
+      result.meshes.forEach(mesh => {
+        if (!mesh.parent) {
+          mesh.parent = table;
+        }
       });
-    }
+      table.position = new Vector3(-20, -160, 38);
+      table.rotation = new Vector3(degrees_to_radians(-90), 0, 0);
+      table.scaling = new Vector3(0.43, 0.43, 0.43);
+    });
 
     // (6) create Objects using simulator's data
     if (matchData && matchData.sceneData) {
@@ -248,57 +265,49 @@ function Renderer3D({ playerData, matchData, width, height }: RenderSceneProps) 
       camera.spinTo('alpha', 0.001, 60, TOTAL_FRAME);
       camera.spinTo('beta', Math.PI / 180 * CAMERA_TILT_ANGLE, 60, TOTAL_FRAME);
     } else {
-      // ...  Observer ...
+      console.log("[DEV] Camera has been set to observer's view.");
     }
 
 
     // (5-1) Load GUI
-    if (playerData && matchData) {
-      console.log(playerData);
-      m_Gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("SCORE_GUI", true, scene3D);
-      (async () => {
-        // https://gui.babylonjs.com/#7YQSCB#2
-        await m_Gui.parseFromSnippetAsync("7YQSCB#3", false)
-        let UserA_Nickname = m_Gui.getControlByName('UserA_Nickname') as GUI.TextBlock;
-        UserA_Nickname.text = `${playerData.myNickName}`
-        let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
-        UserA_Score.text = `${0}`;
-        let UserB_Nickname = m_Gui.getControlByName('UserB_Nickname') as GUI.TextBlock;
-        UserB_Nickname.text = `${playerData.enemyNickName}`
-        let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
-        UserB_Score.text = `${0}`;
-      })(/* IIFE */);
-    }
-
-
-
+    m_Gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("SCORE_GUI", true, scene3D);
+    (async () => {
+      // https://gui.babylonjs.com/#7YQSCB#2
+      await m_Gui.parseFromSnippetAsync("7YQSCB#3", false)
+      let UserA_Nickname = m_Gui.getControlByName('UserA_Nickname') as GUI.TextBlock;
+      UserA_Nickname.text = `${playerData.leftPlayerNickName}`
+      let UserA_Score = m_Gui.getControlByName('UserA_Score') as GUI.TextBlock;
+      UserA_Score.text = `${0}`;
+      let UserB_Nickname = m_Gui.getControlByName('UserB_Nickname') as GUI.TextBlock;
+      UserB_Nickname.text = `${playerData.rightPlayerNickName}`
+      let UserB_Score = m_Gui.getControlByName('UserB_Score') as GUI.TextBlock;
+      UserB_Score.text = `${0}`;
+    })(/* IIFE */);
 
     // (6) Start Game after 120 frame.
-    if (matchData) {
-      console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
-      const readyTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("COUNT_GUI", true, scene3D);
-      const readyText = new GUI.TextBlock();
-      readyText.text = "";
-      readyText.fontSize = 50;
-      readyText.color = "white";
-      readyTexture.addControl(readyText);
-      let MS = CAMERA_ANIMATION_TIME_MS + 2000;
-      const ID = setInterval(() => {
-        if (MS === 2000) readyText.text = "Ready"
-        else if (MS === 1000) readyText.text = "Go!"
-        else if (MS <= 500) {
-          readyText.dispose();
-          clearInterval(ID);
-        }
-        MS -= 500;
-      }, 500);
-
-      if (gameSocket) {
-        setTimeout(() => {
-          gameSocket.emit('start');
-          console.log('[DEV] : GAME START!');
-        }, CAMERA_ANIMATION_TIME_MS + 2000);
+    console.log("Game Starting in ", CAMERA_ANIMATION_TIME_MS + 1000)
+    const readyTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("COUNT_GUI", true, scene3D);
+    const readyText = new GUI.TextBlock();
+    readyText.text = "";
+    readyText.fontSize = 50;
+    readyText.color = "white";
+    readyTexture.addControl(readyText);
+    let MS = CAMERA_ANIMATION_TIME_MS + 2000;
+    const ID = setInterval(() => {
+      if (MS === 2000) readyText.text = "Ready"
+      else if (MS === 1000) readyText.text = "Go!"
+      else if (MS <= 500) {
+        readyText.dispose();
+        clearInterval(ID);
       }
+      MS -= 500;
+    }, 500);
+
+    if (gameSocket) {
+      setTimeout(() => {
+        gameSocket.emit('start');
+        console.log('[DEV] : GAME START!');
+      }, CAMERA_ANIMATION_TIME_MS + 2000);
     }
   }; // onSceneReady
 

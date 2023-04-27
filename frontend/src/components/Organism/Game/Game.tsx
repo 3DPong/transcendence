@@ -29,23 +29,24 @@ import GlobalContext from "@/context/GlobalContext";
 import GameMatchingDialog from "@/components/Organism/Game/GameStartButton";
 
 import { MatchDataContext } from "@/context/MatchDataContext";
-import { useError } from "@/context/ErrorContext";
+import { useAlert } from "@/context/AlertContext";
 import { Navigate, useNavigate } from "react-router";
 
-export default function Game() {
-  const {gameSocket, notifySocket } = useSocket();
-  const {handleError} = useError();
+export function Game() {
+  const {gameSocket } = useSocket();
+  const {handleAlert} = useAlert();
   const {loggedUserId} = useContext(GlobalContext);
   const {clearInviteData} = useContext(MatchDataContext);
   const navigate = useNavigate();
   
-  const [matchData, setMatchData] = useState<gameType.matchStartData | null>();
+  const [matchData, setMatchData] = useState<gameType.matchStartData  | gameType.onSceneObserverData| null>();
   const [matchResult, setMatchResult] = useState<gameType.matchResult | null>();
   const [myProfile, setMyProfile] = useState<string>("");
   const [myNickname, setMyNickname] = useState<string>("");
   const [enemyProfile, setEnemyProfile] = useState<string>("");
   const [enemyNickname, setEnemyNickname] = useState<string>("");
- 
+
+
   const handleMatchResultDialogClose = () => {
     setMatchData(null);
     setMatchResult(null);
@@ -56,9 +57,10 @@ export default function Game() {
     if (!gameSocket) return;
     // 게임 도중 발생한 소켓 에러?
     gameSocket.on('error', (message) => {
-      handleError('Socket Error', message.message);
+      handleAlert('Socket Error', message.message);
       clearInviteData();
-      navigate(-1);
+      gameSocket.emit('exit');
+      navigate('/');
     });
      // if game finished
     function handleGameEnd(matchResult: gameType.matchResult) {
@@ -72,11 +74,6 @@ export default function Game() {
     }
   }, [gameSocket]); 
   
-  const playerData: gameType.PlayerData = {
-    myNickName: myNickname,
-    enemyNickName: enemyNickname,
-  }
-
   if (!matchData) { // 매치 정보가 없는 경우, 매칭 Dialog 띄우기.
     return (
         <div className=" flex items-center -z-49 justify-center h-screen">
@@ -94,7 +91,10 @@ export default function Game() {
           {/* 게임 렌더링 */}
           { !matchResult &&
               <div className=" absolute -z-50 w-0 h-0">
-                <Renderer3D playerData={playerData} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
+                <Renderer3D playerData={{
+                  leftPlayerNickName: myNickname,
+                  rightPlayerNickName: enemyNickname,
+                }} matchData={matchData} width={window.innerWidth} height={window.innerHeight} />
               </div>
           }
 
@@ -107,7 +107,7 @@ export default function Game() {
                   aria-describedby="match Result description"
               >
                 <DialogTitle id="alert-dialog-title">
-                  {(matchResult.winner === loggedUserId) ? "👑You Win" : "😥You Lose" }
+                  { 'Match Result' }
                 </DialogTitle>
                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   {/* (1) 내 프로필 정보 */}
@@ -123,12 +123,16 @@ export default function Game() {
                       />
                     </Box>
                     <Box sx={{ m: 1, position: 'relative' }}>
-                      <Typography display="block" variant="h5" color="text.primary">
-                        {myNickname}
-                      </Typography>
-                      <Typography display="block" variant="h3" color="text.primary">
-                        {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore}
-                      </Typography>
+                      <Typography display="block" variant="h5" color="text.primary"> {myNickname} </Typography>
+                      { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
+                          <div> {/* Player */}
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.leftScore : matchResult.rightScore} </Typography>
+                          </div>
+                        ) : (
+                          <div> {/* Observer */}
+                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.leftScore} </Typography>
+                          </div>)
+                      }
                     </Box>
                   </Box>
 
@@ -152,9 +156,15 @@ export default function Game() {
                       <Typography display="block" variant="h5" color="text.primary">
                         {enemyNickname}
                       </Typography>
-                      <Typography display="block" variant="h3" color="text.primary">
-                        {(matchResult.leftPlayerId === loggedUserId) ? matchResult.rightScore : matchResult.leftScore}
-                      </Typography>
+                      { (matchData.playerLocation !== gameType.PlayerLocation.OBSERVER) ? (
+                          <div> {/* Player */}
+                            <Typography display="block" variant="h3" color="text.primary"> {(matchResult.leftPlayerId === loggedUserId) ? matchResult.rightScore : matchResult.leftScore} </Typography>
+                          </div>
+                      ) : (
+                          <div> {/* Observer */}
+                            <Typography display="block" variant="h3" color="text.primary"> {matchResult.rightScore} </Typography>
+                          </div>)
+                      }
                     </Box>
                   </Box>
                 </Box>
@@ -170,3 +180,5 @@ export default function Game() {
     );
   }
 };
+
+export default React.memo(Game);

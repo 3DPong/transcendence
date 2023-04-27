@@ -169,12 +169,14 @@ export default function useArray<S extends ObjectLiteral>(initialState?: Array<S
    */
   function update(param: ((draft: S[]) => void) /*function*/ | S[] /*array*/): void {
     if (typeof param === 'function') {
-      // create newState by deep copying original state
-      const newArr = __array.map((arrElem: ObjectLiteral) => {
-        return __getDeepCopiedObject(arrElem) as S;
+      __setArray((prevArray) => {
+        // create newState by deep copying original state
+        const newArr = prevArray.map((arrElem: ObjectLiteral) => {
+          return __getDeepCopiedObject(arrElem) as S;
+        });
+        param(newArr); // param is "edit()" function. change newState's value
+        return (newArr);
       });
-      param(newArr); // param is "edit()" function. change newState's value
-      __setArray(newArr); // set newState
     } else if (Array.isArray(param)) {
       __setArray(param); // update whole
     }

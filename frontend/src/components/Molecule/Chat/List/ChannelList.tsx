@@ -41,6 +41,7 @@ const VirtualizedChannelList: FC<ChannelListProps> = ({ channels, isLoading, han
     ? Array.from({ length: 5 }, (_, index) => ({
         id: index,
         title: '',
+        thumbnail: null,
         type: 'public',
         owner: { id: 1, profile: '', nickname: '' },
       }))

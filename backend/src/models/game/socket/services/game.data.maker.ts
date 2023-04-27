@@ -4,6 +4,7 @@ import { PlayerLocation } from '../../enum/GameEnum';
 import { MatchResultData, ObjectData, OnSceneData, RenderData } from '../../gameData';
 import { GameManager } from '../../simul/GameManager';
 import * as Box2D from '../../Box2D';
+import { OnSceneObserverData } from '../../gameData/OnSceneObserverData';
 
 export class GameDataMaker {
   public makeOnSceneData(gameManager: GameManager, sid: string): OnSceneData {
@@ -16,13 +17,14 @@ export class GameDataMaker {
     return matchStartData;
   }
 
-  public makeObserverData(gameManager: GameManager): OnSceneData {
-    const matchStartData: OnSceneData = new OnSceneData();
-
+  public makeObserverData(gameManager: GameManager): OnSceneObserverData {
+    const matchStartData: OnSceneObserverData = new OnSceneObserverData();
     matchStartData.gameId = gameManager.gameId;
     matchStartData.playerLocation = PlayerLocation.OBSERVER;
-    matchStartData.enemyUserId = undefined;
+    matchStartData.leftPlayerId = gameManager.player1.dbId;
+    matchStartData.rightPlayerId = gameManager.player2.dbId;
     matchStartData.sceneData = this.makeObjectDatas(gameManager);
+    
     return matchStartData;
   }
 

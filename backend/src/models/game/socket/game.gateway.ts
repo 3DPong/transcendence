@@ -117,8 +117,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const gameManager: GameManager = this.gameRooms.get(inputData.gameId);
     if (gameManager?.started && this.gameService.isGamePlayer(gameManager, client.id)) {
       gameManager.Keyboard(inputData.key, client.id);
-    } else {
-      throw new SocketException('BadRequest', 'player가 아닙니다.');
     }
   }
 

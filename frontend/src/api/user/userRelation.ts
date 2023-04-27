@@ -16,9 +16,8 @@
 
 import { Assert } from '@/utils/Assert';
 import { globalUserData_t } from '@/types/user';
-import { useNavigate } from 'react-router';
 import { API_URL } from '../../../config/backend';
-import { handleErrorFunction, useError } from '@/context/ErrorContext';
+import { handleAlertFunction } from '@/context/AlertContext';
 import {userStatus} from "@/types/notify";
 
 /*----------------------------------------*
@@ -30,21 +29,21 @@ export interface GET_GlobalSearchResponseFormat {
   users: globalUserData_t[];
 }
 
-const validateSessionStatus = async (handleError: handleErrorFunction, res: Response) => {
+const validateSessionStatus = async (handleAlert: handleAlertFunction, res: Response) => {
   if (!res.ok) {
     const errorData = await res.json();
-    handleError('UserData', errorData.message, errorData.status === 401 ? '/login' : null); // redirect to /login page
+    handleAlert('UserData', errorData.message, errorData.status === 401 ? '/login' : null); // redirect to /login page
     return;
   }
   return res;
 };
 
-export async function getUserListBySearchString(handleError: handleErrorFunction, searchString: string) {
+export async function getUserListBySearchString(handleAlert: handleAlertFunction, searchString: string) {
   const requestUrl = `${API_URL}/user/search/${searchString}`;
   const userListResponse = await fetch(requestUrl, { method: 'GET' });
 
   // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
+  const validatedResponse = await validateSessionStatus(handleAlert, userListResponse);
   if (!validatedResponse) {
     return;
   }
@@ -79,7 +78,7 @@ export interface GET_RelationResponseFormat {
   relations: Relation[]; // Array
 }
 
-export async function getUserListByRelationType(handleError: handleErrorFunction, type: GET_RelationType) {
+export async function getUserListByRelationType(handleAlert: handleAlertFunction, type: GET_RelationType) {
   let requestUrl;
   switch (type) {
     case GET_RelationType.none: // 전체 사용자 그룹.
@@ -94,13 +93,14 @@ export async function getUserListByRelationType(handleError: handleErrorFunction
   }
   const userListResponse = await fetch(requestUrl, { method: 'GET' });
   // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
+  const validatedResponse = await validateSessionStatus(handleAlert, userListResponse);
   if (!validatedResponse) {
     return;
   }
   // on success
 
   const userData: GET_RelationResponseFormat = await validatedResponse.json();
+  console.log(userData.relations);
   return userData.relations;
 }
 
@@ -126,7 +126,7 @@ export enum PUT_RelationActionType {
 
 // PUT /user_relation
 export async function changeUserRelation(
-  handleError: handleErrorFunction,
+  handleAlert: handleAlertFunction,
   targetId: number,
   action: PUT_RelationActionType
 ) {
@@ -155,7 +155,7 @@ export async function changeUserRelation(
     body: JSON.stringify(requestPayload),
   });
   // on error
-  const validatedResponse = await validateSessionStatus(handleError, userListResponse);
+  const validatedResponse = await validateSessionStatus(handleAlert, userListResponse);
   if (!validatedResponse) {
     return;
   }

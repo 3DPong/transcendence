@@ -1,11 +1,11 @@
 import {API_URL, ORIGIN_URL} from '../../../config/backend';
-import { handleErrorFunction, useError } from '@/context/ErrorContext';
+import { handleAlertFunction, useAlert } from '@/context/AlertContext';
 import { useNavigate } from 'react-router';
 
 /** --------------------------------------
  * 2차 인증 활성화를 위한 QR코드 생성 API
  * ---------------------------------------*/
-export async function getQrCodeBefore2FaActivation(handleError: handleErrorFunction) {
+export async function getQrCodeBefore2FaActivation(handleAlert: handleAlertFunction) {
   // 서버 qr 요청
   const requestUrl = `${API_URL}/user/me/2fa/qr`;
   const qrCodeResponse = await fetch(requestUrl, {
@@ -15,7 +15,7 @@ export async function getQrCodeBefore2FaActivation(handleError: handleErrorFunct
   // on error
   if (!qrCodeResponse.ok) {
     const errorData = await qrCodeResponse.json();
-    handleError('2FA', errorData.message);
+    handleAlert('2FA', errorData.message);
     return;
   }
   // on success
@@ -26,7 +26,7 @@ export async function getQrCodeBefore2FaActivation(handleError: handleErrorFunct
 /** --------------------------------------
  * 서버에 OTP 토큰을 전송
  * ---------------------------------------*/
-export async function activate2FA_SubmitOtpTokenToServer(handleError: handleErrorFunction, token: string) {
+export async function activate2FA_SubmitOtpTokenToServer(handleAlert: handleAlertFunction, token: string) {
   // 서버에 OTP 제출
   const requestUrl = `${API_URL}/user/me/2fa`;
   const requestPayload = {
@@ -44,7 +44,7 @@ export async function activate2FA_SubmitOtpTokenToServer(handleError: handleErro
   // on error
   if (!submitResponse.ok) {
     const errorData = await submitResponse.json();
-    handleError('2FA', errorData.message);
+    handleAlert('2FA', errorData.message);
     return ; // null on error
   }
   // on success
@@ -54,7 +54,7 @@ export async function activate2FA_SubmitOtpTokenToServer(handleError: handleErro
 /** --------------------------------------
  * 2차 인증 끄기
  * ---------------------------------------*/
-export async function deactivate2FA_SubmitOtpTokenToServer(handleError: handleErrorFunction, token: string) {
+export async function deactivate2FA_SubmitOtpTokenToServer(handleAlert: handleAlertFunction, token: string) {
   // 서버 qr 요청
   const requestUrl = `${API_URL}/user/me/2fa`;
   const requestPayload = {
@@ -72,7 +72,7 @@ export async function deactivate2FA_SubmitOtpTokenToServer(handleError: handleEr
   // on error
   if (!submitResponse.ok) {
     const errorData = await submitResponse.json();
-    handleError('2FA', errorData.message);
+    handleAlert('2FA', errorData.message);
     return ; // null on error
   }
   // on success
