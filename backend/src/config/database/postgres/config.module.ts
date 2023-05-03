@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import configuration from './configuration';
 import { PostgresConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ENV_FILE } from '../../envFile.constant';
+
 /**
  * Import and provide app configuration related classes.
  *
@@ -11,14 +13,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.dev'],
+      envFilePath: ENV_FILE[process.env.NODE_ENV],
       load: [configuration],
       validationSchema: Joi.object({
-        PG_HOST: Joi.string().default('localhost'),
-        PG_PORT: Joi.number().default('5432'),
-        PG_USER_NAME: Joi.string(),
-        PG_PASSWORD: Joi.string(),
-        PG_DATABASE: Joi.string(),
+        NODE_ENV: Joi.string().valid('dev', 'prod', 'test').required(),
+        POSTGRES_HOST: Joi.string().default('localhost'),
+        POSTGRES_PORT: Joi.number().default('5432'),
+        POSTGRES_USER: Joi.string().required(),
+        POSTGRES_PASSWORD: Joi.string().required(),
+        POSTGRES_DB: Joi.string().required(),
       }),
     }),
   ],

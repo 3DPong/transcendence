@@ -10,41 +10,38 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { Assert } from "./Assert";
+import { Assert } from './Assert';
 
 // 아래 소스를 바탕으로 응용해본 것.
-export function dynamic_cast<TargetType extends Object/*JsObject*/>( src: Object )
-{
-    // let returnValue: TargetType = {...object} as TargetType;
+export function dynamic_cast<TargetType extends Object /*JsObject*/>(src: Object) {
+  // let returnValue: TargetType = {...object} as TargetType;
 
-    type keyArray = Array<keyof TargetType>;
-
-
+  type keyArray = Array<keyof TargetType>;
 }
 
 // https://github.com/eezstreet/typescript-cast
 // Original Authur : eezstreet
 // Tested : x (아직 사용 안해봄.)
-export function reinterpretCast<T extends Object>(object:any, options?: any):T {
-    let returnValue:T = {...object} as T;
-    if(options === undefined) {
-        return returnValue;
-    }
-
-    Object.keys(options).forEach(key => {
-        const value = (returnValue as any)[key];
-        if(value !== undefined) {
-            switch(options[key]) {
-                case "date":
-                case "Date":
-                    (returnValue as any)[key] = new Date(value);
-                    break;
-                case "number":
-                case "Number":
-                    (returnValue as any)[key] = parseInt(value);
-                    break;
-            }
-        }
-    });
+export function reinterpretCast<T extends Object>(object: any, options?: any): T {
+  let returnValue: T = { ...object } as T;
+  if (options === undefined) {
     return returnValue;
+  }
+
+  Object.keys(options).forEach((key) => {
+    const value = (returnValue as any)[key];
+    if (value !== undefined) {
+      switch (options[key]) {
+        case 'date':
+        case 'Date':
+          (returnValue as any)[key] = new Date(value);
+          break;
+        case 'number':
+        case 'Number':
+          (returnValue as any)[key] = parseInt(value);
+          break;
+      }
+    }
+  });
+  return returnValue;
 }
