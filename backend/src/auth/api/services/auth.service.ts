@@ -1,20 +1,24 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../models/user/entities';
 import { Repository } from 'typeorm';
 import { TokenStatusEnum } from '../../../common/enums/tokenStatusEnum';
 import { OtpService } from '../../otp/otp.service';
 import { JwtService } from '@nestjs/jwt';
+import { EmailService } from '../../email/email.service';
 import { FtDataInterface } from '../../../common/interfaces/FtData.interface';
 import { Response } from 'express';
 import { UserStatusEnum } from '../../../common/enums';
+import * as uuid from 'uuid';
+
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private jwtService: JwtService,
-    private otpService: OtpService
+    private otpService: OtpService,
+    private emailService: EmailService
   ) {}
 
   async redirect(ftData: FtDataInterface, res: Response): Promise<void> {
@@ -26,6 +30,21 @@ export class AuthService {
     } else {
       return this.signIn(user, res);
     }
+  }
+
+  async confirmEmailToken(email: string, signupVerifyToken: string, res: Response): Promise<void> {
+
+    // const user = await this.userRepository.findOne({ where: { email } });
+    // if (!user) {
+    //   return this.signUp(ftData, res);
+    // } else if (user.two_factor) {
+    //   return this.twoFactor(user.user_id, res);
+    // } else {
+    //   return this.signIn(user, res);
+    // }
+
+    //throw new UnauthorizedException('invalid token');
+
   }
 
   twoFactor(userId: number, res: Response): void {
@@ -73,4 +92,18 @@ export class AuthService {
       throw new UnauthorizedException('invalid token');
     }
   }
+
+  async verifyEmail(email: string, res: Response): Promise<void>  {
+
+    //await this.verifyDuplicateEmail(email);
+    const signupVerifyToken = uuid.vi();
+    await this.sendJoinEmail(email, signupVerifyToken);
+  }
+
+
+
+  private async sendJoinEmail(email: string, signupVerifyToken: string) {
+    await this.emailService.sendJoinEmail(email, signupVerifyToken);
+  }
+  
 }

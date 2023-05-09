@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../models/user/entities';
 import { Repository } from 'typeorm';
@@ -11,6 +11,8 @@ import { JwtGuard } from '../../common/guards/jwt/jwt.guard';
 import { TokenDto } from '../otp/token.dto';
 import { FtDataInterface } from '../../common/interfaces/FtData.interface';
 import { JwtPayloadInterface } from '../../common/interfaces/JwtUser.interface';
+import { EmailReqDto } from 'src/models/user/api/dtos/verifyEmailReq.dto';
+import { VerifyEmailToken } from 'src/models/user/api/dtos/VerifyEmailToken.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -56,4 +58,27 @@ export class AuthController {
   ): Promise<void> {
     return await this.authService.validateOtp(data.user_id, payload.token, res);
   }
+
+  @UseGuards(TwoFactorGuard)
+  @Post('/signin/email')
+  async verifyEmail(
+    @Body() payload: EmailReqDto,
+    @Res() res: Response
+  ): Promise<void> {
+    return await this.authService.verifyEmail(payload.email, res);
+  }
+
+
+  @Post('/email-verify')
+  async confirmEmail(
+    @Query() dto: VerifyEmailToken,
+    @Res() res: Response
+  ): Promise<void> {
+    const {signupVerifyToken} = dto;
+    return await this.authService.confirmEmailToken(signupVerifyToken, res);
+  }
+
+
+  
+
 }

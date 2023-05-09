@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from './dtos';
 import { UserService } from './services';
 import { UserCreationGuard } from '../../../common/guards/userCreation/userCreation.guard';
@@ -13,6 +13,8 @@ import { VerifyNicknameResponseDto } from './dtos/verifyNickname.dto';
 import { SearchUserResDto } from './dtos/searchUserRes.dto';
 import { TokenUserGuard } from '../../../common/guards/tokenUser/tokenUser.guard';
 import { GetUserHistoryResDto } from './dtos/getUserHistoryRes.dto';
+import { CreateEmailUserReqDto } from './dtos/createEmailUserReq.dto';
+import { VerifyEmailToken } from './dtos/VerifyEmailToken.dto';
 
 @Controller('user')
 export class UserController {
@@ -33,13 +35,19 @@ export class UserController {
     return this.userService.createUser(data, payload);
   }
 
+  @UseGuards(UserCreationGuard)
+  @Post()
+  async createEmailUser(@GetGuardData() data: JwtPayloadInterface, @Body() payload: CreateEmailUserReqDto): Promise<void> {
+    return this.userService.createEmailUser(data, payload);
+  }
+
   @UseGuards(TokenUserGuard)
   @Get('/verify/nickname/:nickname')
   async verifyNickname(@Param('nickname') nickname: string): Promise<VerifyNicknameResponseDto> {
     return this.userService.verifyDuplicateNickname(nickname);
   }
 
-  /**
+  /*
    * 주의! GET /me 로 할경우 상위의 /user/:userId와 겹쳐서 사용할 수 없음.
    */
   @UseGuards(JwtGuard)

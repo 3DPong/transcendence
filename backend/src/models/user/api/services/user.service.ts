@@ -8,6 +8,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { CreateUserReqDto, GetUserResDto, UpdateUserReqDto, UpdateUserResDto } from '../dtos';
 import { GetUserSettingResDto } from '../dtos/getUserSettingRes.dto';
 import { JwtPayloadInterface } from '../../../../common/interfaces/JwtUser.interface';
@@ -20,6 +21,7 @@ import { UserUpdateDto } from '../../../../common/interfaces/userUpdate.dto';
 import { GameHistoryDto, GetUserHistoryResDto } from '../dtos/getUserHistoryRes.dto';
 import { Match } from '../../../game/entities';
 import { RelationStatus } from '../../../../common/enums/relationStatus.enum';
+import { CreateEmailUserReqDto } from '../dtos/createEmailUserReq.dto';
 
 @Injectable()
 export class UserService {
@@ -71,6 +73,38 @@ export class UserService {
       }
     }
   }
+
+  async createEmailUser(data: JwtPayloadInterface, payload: CreateEmailUserReqDto): Promise<void> {    
+    const newUser = new User();
+    newUser.profile_url = payload.profile_url;
+    newUser.nickname = payload.nickname;
+    newUser.email = data.email;
+    
+    try {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(payload.password, salt);
+      newUser.password = hashedPassword;
+
+      await this.userRepository.save(newUser);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('unique constraint') && error.message.includes('violates unique constraint')) {
+          throw new ConflictException('duplicate column (nickname or email)');
+        } else {
+          throw new InternalServerErrorException('Database error');
+        }
+      } else {
+        throw new InternalServerErrorException('session error');
+      }
+    }
+  }
+
+  // async verifyEmail(signupVerifyToken: string): Promise<string> {
+
+
+  //   throw new InternalServerErrorException('email token error');
+
+  // }
 
   async updateUser(userId: number, payload: UpdateUserReqDto): Promise<UpdateUserResDto> {
     // check user is valid

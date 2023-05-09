@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 import { useEffect } from 'react';
-import { Icon } from '@mui/material';
+import { Button, Icon } from '@mui/material';
 import { useState } from 'react';
 import LoadingButton from '@mui/lab/LoadingButton';
 import LOGO_42 from '@/assets/42_logo.svg';
@@ -59,6 +59,8 @@ export function SignIn() {
           >
             SignIn
           </LoadingButton>
+          <br></br>
+          <Button>SignIn</Button>
         </div>
       </>
   );

@@ -27,6 +27,10 @@ export class User {
   @Factory((faker) => faker.helpers.unique(faker.internet.email))
   @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
+  
+  @Factory((faker) => faker.helpers.arrayElement([faker.internet.password(50), null]))
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  password: string;
 
   @Factory((faker) => faker.image.people())
   @Column({ type: 'varchar', length: 150 })

@@ -12,12 +12,14 @@ import { OtpModule } from '../otp/otp.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigModule } from '../../config/jwt/config.module';
 import { JwtConfigService } from '../../config/jwt/config.service';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     FtConfigModule,
     OtpModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [JwtConfigModule],
       useFactory: async (jwtConfigService: JwtConfigService) => ({
