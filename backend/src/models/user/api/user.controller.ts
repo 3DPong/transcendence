@@ -14,7 +14,7 @@ import { SearchUserResDto } from './dtos/searchUserRes.dto';
 import { TokenUserGuard } from '../../../common/guards/tokenUser/tokenUser.guard';
 import { GetUserHistoryResDto } from './dtos/getUserHistoryRes.dto';
 import { CreateEmailUserReqDto } from './dtos/createEmailUserReq.dto';
-import { VerifyEmailToken } from './dtos/VerifyEmailToken.dto';
+
 
 @Controller('user')
 export class UserController {

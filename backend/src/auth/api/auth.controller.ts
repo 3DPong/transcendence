@@ -11,8 +11,9 @@ import { JwtGuard } from '../../common/guards/jwt/jwt.guard';
 import { TokenDto } from '../otp/token.dto';
 import { FtDataInterface } from '../../common/interfaces/FtData.interface';
 import { JwtPayloadInterface } from '../../common/interfaces/JwtUser.interface';
-import { EmailReqDto } from 'src/models/user/api/dtos/verifyEmailReq.dto';
-import { VerifyEmailToken } from 'src/models/user/api/dtos/VerifyEmailToken.dto';
+import { EmailReqDto } from '../../models/user/api/dtos/verifyEmailReq.dto';
+import { VerifyEmailToken } from 'src/models/user/api/dtos/verifyEmailToken.dto';
+
 
 @Controller('auth')
 export class AuthController {
@@ -59,7 +60,7 @@ export class AuthController {
     return await this.authService.validateOtp(data.user_id, payload.token, res);
   }
 
-  @UseGuards(TwoFactorGuard)
+
   @Post('/signin/email')
   async verifyEmail(
     @Body() payload: EmailReqDto,
@@ -73,9 +74,9 @@ export class AuthController {
   async confirmEmail(
     @Query() dto: VerifyEmailToken,
     @Res() res: Response
-  ): Promise<void> {
+  ){
     const {signupVerifyToken} = dto;
-    return await this.authService.confirmEmailToken(signupVerifyToken, res);
+    return await this.authService.confirmEmailToken("test@naver.com", signupVerifyToken, res);
   }
 
 
