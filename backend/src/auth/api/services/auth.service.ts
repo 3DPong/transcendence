@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../../models/user/entities';
 import { Repository } from 'typeorm';
@@ -9,8 +9,8 @@ import { EmailService } from '../../email/email.service';
 import { FtDataInterface } from '../../../common/interfaces/FtData.interface';
 import { Response } from 'express';
 import { UserStatusEnum } from '../../../common/enums';
-import { v1 as uuid } from 'uuid';
-
+import { VerifyEmailToken } from '../../../models/user/api/dtos/verifyEmailToken.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -30,21 +30,6 @@ export class AuthService {
     } else {
       return this.signIn(user, res);
     }
-  }
-
-  async confirmEmailToken(email: string, signupVerifyToken: string, res: Response) {
-    console.log("회원가입 시작\n");
-    // const user = await this.userRepository.findOne({ where: { email } });
-    // if (!user) {
-    //   return this.signUp(ftData, res);
-    // } else if (user.two_factor) {
-    //   return this.twoFactor(user.user_id, res);
-    // } else {
-    //   return this.signIn(user, res);
-    // }
-    return res.status(200).json({ isMailSucssessed: true});
-    //throw new UnauthorizedException('invalid token');
-
   }
 
   twoFactor(userId: number, res: Response): void {
@@ -93,19 +78,43 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(email: string, res: Response): Promise<void>  {
 
-    //await this.verifyDuplicateEmail(email);
 
-    console.log("hihiaa\n\n")
-    const signupVerifyToken = uuid();
-    await this.sendJoinEmail(email, signupVerifyToken);
+  /*
+    email signin
+  */
+  async verifyEmail(email: string, res: Response) {
+    try {
+      const code = await this.emailService.sendJoinEmail(email);
+      res.status(200).json({ verifyCode: code});      
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
+
+  }
+
+
+  async confirmEmailToken(dto: VerifyEmailToken, res: Response) {
+
+    const {email, clientCode, verifyCode} = dto;
+    if (!(await bcrypt.compare(clientCode, verifyCode))) {
+      throw new BadRequestException('비밀번호가 맞지 않습니다!');
+    }
+
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      const ftData: FtDataInterface = {
+        email: email,
+        profile_url: ""
+      };
+      return this.signUp(ftData, res);
+    } else if (user.two_factor) {
+      return this.twoFactor(user.user_id, res);
+    } else {
+      return this.signIn(user, res);
+    }
   }
 
 
 
-  private async sendJoinEmail(email: string, signupVerifyToken: string) {
-    await this.emailService.sendJoinEmail(email, signupVerifyToken);
-  }
-  
 }

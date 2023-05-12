@@ -74,7 +74,7 @@ export class UserService {
     }
   }
 
-  async createEmailUser(data: JwtPayloadInterface, payload: CreateEmailUserReqDto): Promise<void> {    
+  async createEmailUser(data: JwtPayloadInterface, payload: CreateEmailUserReqDto): Promise<void> {
     const newUser = new User();
     newUser.profile_url = payload.profile_url;
     newUser.nickname = payload.nickname;
@@ -99,12 +99,6 @@ export class UserService {
     }
   }
 
-  // async verifyEmail(signupVerifyToken: string): Promise<string> {
-
-
-  //   throw new InternalServerErrorException('email token error');
-
-  // }
 
   async updateUser(userId: number, payload: UpdateUserReqDto): Promise<UpdateUserResDto> {
     // check user is valid

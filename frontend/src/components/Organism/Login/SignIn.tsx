@@ -11,13 +11,12 @@
 /* ************************************************************************** */
 
 import { useEffect } from 'react';
-import { Button, Icon } from '@mui/material';
+import { Icon } from '@mui/material';
 import { useState } from 'react';
 import LoadingButton from '@mui/lab/LoadingButton';
 import LOGO_42 from '@/assets/42_logo.svg';
 import { requestSignIn } from '@/api/login/signIn';
 import {useSocket} from "@/context/SocketContext";
-import * as API from "@/api/API";
 import {useAlert} from "@/context/AlertContext";
 import {useNavigate} from "react-router";
 
@@ -59,8 +58,6 @@ export function SignIn() {
           >
             SignIn
           </LoadingButton>
-          <br></br>
-          <Button>SignIn</Button>
         </div>
       </>
   );

@@ -26,12 +26,13 @@ export class CreateEmailUserReqDto {
       .{8,} : 최소 8자 이상
       $ : 끝
   */
+  // @IsString()
+  // @MinLength(8, {message:'비밀번호는 8자 이상 입니다.'})
+  // @MaxLength(25, {message:'비밀번호는 25자 이내 입니다.'})
+  // @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%\^&*()-_+={}[\]|;:'",./<>?])(?!.*\s).{8,}$/, {
+  //   message: '비밀번호는 최소 하나의 소문자, 대문자, 특수문자를 포함해야 합니다.'
+  // })
   @IsString()
-  @MinLength(8, {message:'비밀번호는 8자 이상 입니다.'})
-  @MaxLength(25, {message:'비밀번호는 25자 이내 입니다.'})
-  @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~`!@#$%\^&*()-_+={}[\]|;:'",./<>?])(?!.*\s).{8,}$/, {
-    message: '비밀번호는 최소 하나의 소문자, 대문자, 특수문자를 포함해야 합니다.'
-  })
   password: string;
 
   @IsUrl({ require_tld: false }, { message: 'Profile url is not valid' })

@@ -12,7 +12,7 @@ import { TokenDto } from '../otp/token.dto';
 import { FtDataInterface } from '../../common/interfaces/FtData.interface';
 import { JwtPayloadInterface } from '../../common/interfaces/JwtUser.interface';
 import { EmailReqDto } from '../../models/user/api/dtos/verifyEmailReq.dto';
-import { VerifyEmailToken } from 'src/models/user/api/dtos/verifyEmailToken.dto';
+import { VerifyEmailToken } from '../../models/user/api/dtos/verifyEmailToken.dto';
 
 
 @Controller('auth')
@@ -70,13 +70,12 @@ export class AuthController {
   }
 
 
-  @Post('/email-verify')
+  @Post('/emailVerify')
   async confirmEmail(
-    @Query() dto: VerifyEmailToken,
+    @Body() dto: VerifyEmailToken,
     @Res() res: Response
   ){
-    const {signupVerifyToken} = dto;
-    return await this.authService.confirmEmailToken("test@naver.com", signupVerifyToken, res);
+    return await this.authService.confirmEmailToken(dto, res);
   }
 
 
