@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/23 17:04:59 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/05/15 18:55:20 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/05/15 22:28:43 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,20 @@ import { Box, Icon, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Email } from '@mui/icons-material';
 import { Button } from '@mui/material';
+import { Divider } from '@mui/material';
+
 import LOGO_42 from '@/assets/42_logo.svg';
-import { request42SignIn } from '@/api/login/signIn';
+import LOGO_NAVER from '@/assets/Naver.png';
+import LOGO_KAKAO from '@/assets/KakaoTalk.svg';
+import LOGO_GOOGLE from '@/assets/Google.svg';
+
 import {useSocket} from "@/context/SocketContext";
 import * as API from "@/api/API";
 import {useAlert} from "@/context/AlertContext";
 import {useNavigate} from "react-router";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { grey, green } from '@mui/material/colors';
+import GoogleIcon from '@mui/icons-material/Google';
 
 const theme = createTheme({
   palette: {
@@ -45,18 +51,60 @@ function Icon42() {
   );
 }
 
+function IconKakao() {
+  return (
+    <Icon>
+      <img alt={"LOGO_KAKAO"} src={LOGO_KAKAO} className=" align-middle text-center h-full"></img>
+    </Icon>
+  );
+}
+
+function IconGoogle() {
+  return (
+    <Icon>
+      <img alt={"LOGO_GOOGLE"} src={LOGO_GOOGLE} className=" align-middle text-center h-full"></img>
+    </Icon>
+  );
+}
+
+function IconNaver() {
+  return (
+    <Icon>
+      <img alt={"LOGO_NAVER"} src={LOGO_NAVER} className=" align-middle text-center h-full"></img>
+    </Icon>
+  );
+}
+
 export function SignIn() {
   const navigate = useNavigate();
 
   const handle42SignInClick = () => {
     (async () => {
-      await request42SignIn(); // 이 과정을 거쳐 자동 JWT 토큰이 발급된.
+      await API.request42SignIn(); // 이 과정을 거쳐 자동 JWT 토큰이 발급된.
     })(/* IIFE */);
   };
 
   const handleEmailSignInClick = () => {
     // route to email signin page
     navigate('/email');
+  }
+
+  const handleKakaoSignInClick = () => {
+    (async () => {
+      await API.requestKakaoSignIn(); // 이 과정을 거쳐 자동 JWT 토큰이 발급된.
+    })(/* IIFE */);
+  }
+
+  const handleNaverSignInClick = () => {
+    (async () => {
+      await API.requestNaverSignIn(); // 이 과정을 거쳐 자동 JWT 토큰이 발급된.
+    })(/* IIFE */);
+  }
+
+  const handleGoogleSignInClick = () => {
+    (async () => {
+      await API.requestGoogleSignIn(); // 이 과정을 거쳐 자동 JWT 토큰이 발급된.
+    })(/* IIFE */);
   }
 
   return (
@@ -79,6 +127,41 @@ export function SignIn() {
               >
                 Continue with 42Intra
               </Button>
+
+              <Button
+                size='large'
+                onClick={handleKakaoSignInClick}
+                startIcon={<IconKakao />}
+                variant="contained"
+                color='primary'
+                sx={{ justifyContent: "start", textTransform: "none" }}
+              >
+                Continue with Kakao
+              </Button>
+
+              <Button
+                size='large'
+                onClick={handleNaverSignInClick}
+                startIcon={<IconNaver />}
+                variant="contained"
+                color='primary'
+                sx={{ justifyContent: "start", textTransform: "none" }}
+              >
+                Continue with Naver
+              </Button>
+
+              <Button
+                size='large'
+                onClick={handleGoogleSignInClick}
+                startIcon={<IconGoogle />}
+                variant="contained"
+                color='primary'
+                sx={{ justifyContent: "start", textTransform: "none" }}
+              >
+                Continue with Google
+              </Button>
+
+              <Divider />
 
               <Button
                 size='large'
