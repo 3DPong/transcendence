@@ -13,7 +13,7 @@ export async function sendEmailVerifyCode(
   handleAlert: handleAlertFunction,
   email_address: string
 ) {
-  const requestUrl = `${API_URL}/signin/email`;
+  const requestUrl = `${API_URL}/auth/signin/email`;
   const requestPayload: EmailVerifyCodeRequestPayload = {
     email: email_address
   };
@@ -37,8 +37,8 @@ export async function sendEmailVerifyCode(
       return;
     }
   }
-  const verifyCode: EmailVerifyCodeResponsePayload = await signUpResponse.json();
-  return verifyCode;
+  const responsePayload: EmailVerifyCodeResponsePayload = await signUpResponse.json();
+  return responsePayload.verifyCode;
 }
 
 // -------------------------------------------------------
@@ -55,7 +55,7 @@ export async function verifyEmail(
   clientCode: string,
   verifyCode: string
 ) {
-  const requestUrl = `${API_URL}/emailVerify`;
+  const requestUrl = `${API_URL}/auth/emailVerify`;
   const requestPayload: verifyEmailRequestPayload = {
     email: email_address,
     clientCode: clientCode,
