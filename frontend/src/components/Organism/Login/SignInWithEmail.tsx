@@ -33,7 +33,7 @@ export default function SignInWithEmailDialog() {
     // 1. send mail api
     const verifyCodeOnServer = await API.sendEmailVerifyCode(handleAlert, email);
     if (verifyCodeOnServer) {
-      setVerifyCode(verifyCode);
+      setVerifyCode(verifyCodeOnServer);
       setIsMailSent(true);
     }
   }
