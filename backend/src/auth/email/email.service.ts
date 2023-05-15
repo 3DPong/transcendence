@@ -35,6 +35,7 @@ export class EmailService {
     //const baseUrl = 'http://localhost:3000';
     //const url = `${baseUrl}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
     let verifyCode = await Math.random().toString().substr(2,6);
+    console.log("--------------------------verifyCode = " + verifyCode);
     const mailOptions: EmailOptions = {
       to: email,
       subject: '가입 인증 메일',

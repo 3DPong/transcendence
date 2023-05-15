@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Query, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../models/user/entities';
 import { Repository } from 'typeorm';
@@ -75,7 +75,18 @@ export class AuthController {
     @Body() dto: VerifyEmailToken,
     @Res() res: Response
   ){
-    return await this.authService.confirmEmailToken(dto, res);
+    try {
+      await this.authService.confirmEmailToken(dto, res);
+      return this.authService.redirectEmail(dto.email, res);
+    } catch (e) {
+      if (e instanceof BadRequestException) {
+        throw new BadRequestException('비밀번호가 일치하지 않습니다!');
+      } else if (e instanceof UnauthorizedException) {
+        res.status(400).json({redirectURL: '/signin_duplicated'});
+      } else {
+        res.status(400).json({redirectURL: '/signin_fail'});
+      }
+    }
   }
 
 

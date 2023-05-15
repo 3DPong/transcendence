@@ -11,6 +11,7 @@ import { Response } from 'express';
 import { UserStatusEnum } from '../../../common/enums';
 import { VerifyEmailToken } from '../../../models/user/api/dtos/verifyEmailToken.dto';
 import * as bcrypt from 'bcryptjs';
+import { responseEncoding } from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -98,20 +99,39 @@ export class AuthService {
 
     const {email, clientCode, verifyCode} = dto;
     if (!(await bcrypt.compare(clientCode, verifyCode))) {
-      throw new BadRequestException('비밀번호가 맞지 않습니다!');
+      throw new BadRequestException('비밀번호가 일치하지 않습니다!');
     }
+  }
 
+
+  async redirectEmail(email: string, res: Response): Promise<void> {
     const user = await this.userRepository.findOne({ where: { email } });
+
     if (!user) {
       const ftData: FtDataInterface = {
         email: email,
         profile_url: ""
       };
-      return this.signUp(ftData, res);
+      const accessToken = this.jwtService.sign({ status: TokenStatusEnum.SIGNUP, email });
+      res.cookie('Authentication', accessToken, {
+        httpOnly: true,
+      });
+      res.status(200).json({ redirectURL: '/signup'});
     } else if (user.two_factor) {
-      return this.twoFactor(user.user_id, res);
+      const accessToken = this.jwtService.sign({ status: TokenStatusEnum.TWO_FACTOR, user_id: user.user_id });
+      res.cookie('Authentication', accessToken, {
+        httpOnly: true,
+      });
+      res.status(200).json({redirectURL: '/2fa'});
     } else {
-      return this.signIn(user, res);
+      if (user.status === UserStatusEnum.ONLINE) {
+        throw new UnauthorizedException('user already connected');
+      }
+      const accessToken = this.jwtService.sign({ status: TokenStatusEnum.SUCCESS, user_id: user.user_id });
+      res.cookie('Authentication', accessToken, {
+        httpOnly: true,
+      });
+      res.status(200).json({redirectURL: '/'});
     }
   }
 
