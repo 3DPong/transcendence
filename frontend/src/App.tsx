@@ -36,6 +36,7 @@ import {SignInError} from "@/components/Organism/Login/SignInError";
 import {ServerError} from "@/components/Organism/Login/ServerError";
 import { MatchProvider } from "./context/MatchDataContext";
 import SettingDialog from "@/components/Organism/Setting/SettingDialog";
+import SignInWithEmailDialog from "./components/Organism/Login/SignInWithEmail";
 
 const router = createBrowserRouter([
   // ----------------------------------------------------
@@ -49,7 +50,15 @@ const router = createBrowserRouter([
           <SignIn />
           <AlertSnackbar />
         </div>,
-    errorElement: <ErrorPage />,
+    errorElement: <ErrorPage />, 
+  },
+  {
+    path: "/email",
+    element:
+      <div>
+        <SignInWithEmailDialog />
+        <AlertSnackbar />
+      </div>
   },
   {
     // 회원 가입 (프로필 설정)
