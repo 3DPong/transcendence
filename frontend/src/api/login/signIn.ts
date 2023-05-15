@@ -7,6 +7,25 @@ import {API_URL} from '../../../config/backend';
   // Let me not to describe oauth protocol here. You may check how remark handle oauth here for example
 */
 
-export async function requestSignIn() {
+export async function request4EmailSignIn() {
+  //.. 직접 날리기
+}
+
+
+export async function request42SignIn() {
   location.href = `${API_URL}/auth/signin/42`;
 }
+
+export async function requestKakaoSignIn() {
+  location.href = `${API_URL}/auth/signin/kakao`;
+}
+
+export async function requestNaverSignIn() {
+  // location.href = `${API_URL}/auth/signin/naver`;
+}
+
+export async function requestGoogleSignIn() {
+  // location.href = `${API_URL}/auth/signin/google`;
+}
+
+
