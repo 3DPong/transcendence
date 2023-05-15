@@ -16,12 +16,14 @@ export {
 } from '@/api/user/userRelation';
 
 // SignIn
-export { requestSignIn } from '@/api/login/signIn';
+export { request42SignIn } from '@/api/login/signIn';
 
 
 // SignIn 2FA Auth
 export { submit2FaTokenToServer } from '@/api/auth/auth';
 
+// SignIn with Email
+export { sendEmailVerifyCode, verifyEmail } from '@/api/login/verifyEmail';
 
 // SignUp
 export { requestSignUp } from '@/api/login/signUp';
