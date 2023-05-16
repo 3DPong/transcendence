@@ -13,11 +13,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtConfigModule } from '../../config/jwt/config.module';
 import { JwtConfigService } from '../../config/jwt/config.service';
 import { EmailModule } from '../email/email.module';
+import { KakaoStrategy } from '../../common/guards/kakao/kakao.strategy';
+import { KakaoGuard } from '../../common/guards/kakao/kakao.guard';
+import { EmailConfigModule } from '../../config/email/config.module';
+import { KakaoConfigModule } from 'src/config/kakao/config.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     FtConfigModule,
+    KakaoConfigModule,
+    EmailConfigModule,
     OtpModule,
     EmailModule,
     JwtModule.registerAsync({
@@ -31,6 +37,6 @@ import { EmailModule } from '../email/email.module';
     JwtConfigModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy],
+  providers: [AuthService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy, KakaoGuard, KakaoStrategy],
 })
 export class AuthModule {}

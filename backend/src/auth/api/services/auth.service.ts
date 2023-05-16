@@ -89,7 +89,8 @@ export class AuthService {
       const code = await this.emailService.sendJoinEmail(email);
       res.status(200).json({ verifyCode: code});      
     } catch (error) {
-      throw new UnauthorizedException(error);
+      console.log("\n\nerror!")
+      throw new UnauthorizedException(`Send Verify Mail Fail : ${error}`);
     }
 
   }
@@ -97,7 +98,7 @@ export class AuthService {
 
   async confirmEmailToken(dto: VerifyEmailToken, res: Response) {
 
-    const {email, clientCode, verifyCode} = dto;
+    const {clientCode, verifyCode} = dto;
     if (!(await bcrypt.compare(clientCode, verifyCode))) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다!');
     }

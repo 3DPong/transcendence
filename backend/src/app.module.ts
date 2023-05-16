@@ -23,6 +23,8 @@ import { WsExceptionFilter } from './common/filters/socket/wsException.filter';
 import { LoggerMiddleware } from './common/middlewares/logger/middleware/logger.middleware';
 import { NotifierModule } from './models/notifier/notifier.module';
 import { GameModule } from './models/game/socket';
+import { EmailConfigModule } from './config/email/config.module';
+import { KakaoConfigModule } from './config/kakao/config.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { GameModule } from './models/game/socket';
     AppConfigModule,
     SessionConfigModule,
     FtConfigModule,
+    KakaoConfigModule,
+    EmailConfigModule,
     RedisConfigModule,
     OtpConfigModule,
     ImageModule,

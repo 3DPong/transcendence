@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/models/user/entities';
 import { Repository } from 'typeorm';
 import Mail = require('nodemailer/lib/mailer');
 import * as nodemailer from 'nodemailer';
-import { MailConfigService } from 'src/config/email/config.service';
+import { MailConfigService } from '../../config/email/config.service';
 import * as bcrypt from 'bcryptjs';
 
 
@@ -27,13 +27,14 @@ export class EmailService {
       auth: {
         user: process.env.MAIL_ID,
         pass: process.env.MAIL_PASS
+        // user: MailConfigService.email,
+        // pass: MailConfigService.password
       }
     });
   }
  
   async sendJoinEmail(email: string) {
-    //const baseUrl = 'http://localhost:3000';
-    //const url = `${baseUrl}/users/email-verify?signupVerifyToken=${signupVerifyToken}`;
+
     let verifyCode = await Math.random().toString().substr(2,6);
     console.log("--------------------------verifyCode = " + verifyCode);
     const mailOptions: EmailOptions = {
@@ -51,16 +52,31 @@ export class EmailService {
       <h2> 3D Pong</h2> <br/> <h2> 아래의 인증 코드를 입력해주세요</h2> <br/> ${verifyCode} <br/><br/><br/><br/></div>`,  
     }
 
-    await this.transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        throw new Error(`Send Verify Mail Fail : ${error}`);
-      }
-      this.transporter.close();
-    });
+    // await this.transporter.sendMail(mailOptions, function (error, info) {
+    //   if (error) {
+    //     throw new UnauthorizedException();
+    //   }
+    //   this.transporter.close();
+    // });
+    try {
+      await this.transporter.sendMail(mailOptions); 
+      this.transporter.close();     
+      const salt = await bcrypt.genSalt();
+      const hashedEmailCode = await bcrypt.hash(verifyCode, salt);
+      return hashedEmailCode;
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
+    // await this.transporter.sendMail(mailOptions, function (error, info) {
+    //   if (error) {
+    //     throw new Error(`Send Verify Mail Fail : ${error}`);
+    //   }
+    //   this.transporter.close();
+    // });
 
-    const salt = await bcrypt.genSalt();
-    const hashedEmailCode = await bcrypt.hash(verifyCode, salt);
-    return hashedEmailCode;
+    // const salt = await bcrypt.genSalt();
+    // const hashedEmailCode = await bcrypt.hash(verifyCode, salt);
+    // return hashedEmailCode;
   }   
 
 

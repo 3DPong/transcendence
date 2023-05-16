@@ -8,6 +8,7 @@ import { Response } from 'express';
 import { TwoFactorGuard } from '../../common/guards/twoFactor/twoFactor.guard';
 import { GetGuardData } from '../../common/decorators';
 import { JwtGuard } from '../../common/guards/jwt/jwt.guard';
+import { KakaoGuard } from '../../common/guards/kakao/kakao.guard';
 import { TokenDto } from '../otp/token.dto';
 import { FtDataInterface } from '../../common/interfaces/FtData.interface';
 import { JwtPayloadInterface } from '../../common/interfaces/JwtUser.interface';
@@ -89,6 +90,50 @@ export class AuthController {
     }
   }
 
+  @UseGuards(KakaoGuard)
+  @Get('/signin/kakao')
+  loginKakao() {
+    return;
+  }
+
+  @UseGuards(KakaoGuard)
+  @Get("/redirect/kakao")
+  async kakaoRedirect(
+    @GetGuardData() data: FtDataInterface,
+    @Res() res: Response
+  ) {
+    // this.authService.OAuthLogin({ req, res });
+    try {
+      return await this.authService.redirect(data, res);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        res.redirect('/signin_duplicated');
+      } else {
+        res.redirect('/signin_fail');
+      }
+    }
+  }
+
+  // /* 구글 로그인 */
+  // @UseGuards(AuthGuard("google"))
+  // @Get("/signin/google")
+  // async loginGoogle(
+  //   @Req() req: Request & IOAuthUser, //
+  //   @Res() res: Response
+  // ) {
+  //   this.authService.OAuthLogin({ req, res });
+  // }
+
+  // /* 네이버 로그인 */
+  // @UseGuards(AuthGuard("naver"))
+  // @Get("/signin/naver")
+  // async loginNaver(
+  //   @Req() req: Request & IOAuthUser, //
+  //   @Res() res: Response
+  // ) {
+  //   this.authService.OAuthLogin({ req, res });
+  // }
+  
 
   
 
