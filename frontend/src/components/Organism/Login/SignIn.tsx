@@ -6,7 +6,7 @@
 /*   By: minkyeki <minkyeki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/23 17:04:59 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/05/15 22:28:43 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/05/16 16:42:16 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ import { Email } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { Divider } from '@mui/material';
 
+import * as API from "@/api/API";
 import LOGO_42 from '@/assets/42_logo.svg';
 import LOGO_NAVER from '@/assets/Naver.png';
 import LOGO_KAKAO from '@/assets/KakaoTalk.svg';
@@ -114,7 +115,7 @@ export function SignIn() {
         <ThemeProvider theme={theme}>
           <Box sx={{ margin: "auto" }}>
             <Stack spacing={2} sx={{ /*alignItems: "start", */width: "100%", flex: 1 }}>
-              <Typography gutterBottom fontWeight={600} textAlign="center" variant="h2" component="div" color={grey[800]} margin={0}>
+              <Typography gutterBottom fontWeight={600} textAlign="center" variant="h2" color={grey[800]} component="div" margin={0}>
                 {"Sign In"}
               </Typography>
               <Button
@@ -161,7 +162,7 @@ export function SignIn() {
                 Continue with Google
               </Button>
 
-              <Divider />
+              <Divider sx={{ bgcolor: "secondary.light" }} />
 
               <Button
                 size='large'

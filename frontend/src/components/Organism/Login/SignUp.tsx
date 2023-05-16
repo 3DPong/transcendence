@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SignUp.tsx                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
+/*   By: minkyeki <minkyeki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/23 18:55:41 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/24 22:21:22 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/05/16 15:02:13 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,13 +56,11 @@ export function TextFieldWrapper(props: TextFieldWrapperProps) {
 
 export function SignUp() {
   const defaultImageUrl = `${API_URL}/image`;
-  const { setLoggedUserId } = useContext(GlobalContext);
   const [imageFile, setImageFile] = useState<string>(defaultImageUrl);
   const [nickname, setNickname] = useState<string>('');
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { handleAlert } = useAlert();
-  const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (submitDisabled) return;

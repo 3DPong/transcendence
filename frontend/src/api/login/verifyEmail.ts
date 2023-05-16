@@ -49,6 +49,17 @@ interface verifyEmailRequestPayload {
   verifyCode: string,
 }
 
+interface verifyEmailResponsePayload {
+  redirectURL: string, // 프론트에서 이 경로로 리다이렉트 시켜줄 것.
+}
+
+/**
+ * @param handleAlert status에 따라 alert하기 위한 핸들러 함수
+ * @param email_address 이메일 주소
+ * @param clientCode 사용자가 입력한 인증 코드
+ * @param verifyCode sendEmailVerifyCode()에서 반환해준 이메일 인증용 암호 토큰
+ * @returns 리다이렉트 코드
+ */
 export async function verifyEmail(
   handleAlert: handleAlertFunction,
   email_address: string,
@@ -61,6 +72,7 @@ export async function verifyEmail(
     clientCode: clientCode,
     verifyCode: verifyCode,
   };
+
   const signUpResponse = await fetch(requestUrl, {
     method: 'POST',
     headers: {
@@ -69,13 +81,14 @@ export async function verifyEmail(
     body: JSON.stringify(requestPayload),
   });
 
+  const responsePayload: verifyEmailResponsePayload = await signUpResponse.json();
+
   // on error
   if (!signUpResponse.ok) {
-      const errorData = await signUpResponse.json();
-      handleAlert('Email Verification', errorData.message);
-      return;
+      handleAlert('Email Verify', 'Failure', null, 'error');
   } else { // on success
       handleAlert('Email Verify', 'Success', null, 'success');
   }
+  return (responsePayload.redirectURL);
 }
 
