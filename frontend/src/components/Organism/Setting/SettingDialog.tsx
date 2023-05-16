@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SettingDialog.tsx                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
+/*   By: minkyeki <minkyeki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/25 19:36:43 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/31 17:52:22 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/05/16 16:02:07 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,8 @@ export default function SettingDialog() {
       if (response) {
         console.log('[DEV] 2FA Auth Setting Change Success!');
         console.log('[DEV] SignOut...'); // 서버에서 로그아웃 처리
-        navigate('/signin'); // 로그아웃되었으니 로그인페이지로 이동.
+        handleAlert('2FA가 설정 변경 완료', '다시 로그인해주시기 바랍니다.', null, 'info');
+        handleLogout();
       } else {  // error
         handleAuthDialogClose(); // close Dialog
         setToken(""); // 초기화.

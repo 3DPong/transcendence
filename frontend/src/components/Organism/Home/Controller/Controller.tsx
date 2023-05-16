@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Controller.tsx                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: minkyeki <minkyeki@student.42seoul.kr>     +#+  +:+       +#+        */
+/*   By: minkyeki <minkyeki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 23:04:13 by minkyeki          #+#    #+#             */
-/*   Updated: 2023/03/31 17:31:39 by minkyeki         ###   ########.fr       */
+/*   Updated: 2023/05/16 15:03:20 by minkyeki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ import ListItemButtonLink from '@/components/Molecule/Link/ListItemButtonLink';
 import { AccountBox, Group, Chat, Settings } from '@mui/icons-material';
 import GamesIcon from '@mui/icons-material/Games';
 import { SxProps } from '@mui/material';
-import SettingDialog from '@/components/Organism/Setting/SettingDialog';
 import {useContext, useEffect} from "react";
 import GlobalContext from "@/context/GlobalContext";
 import {useSocket} from "@/context/SocketContext";
@@ -77,19 +76,12 @@ export default function Controller() {
  /** ----------------------------------------
    *             Socket Connect
    ------------------------------------------- */
- // 첫 렌더시 서버에서 기존 사용자 데이터를 받아오는 과정
- useEffect(() => {
+ // 첫 렌더 전에 미리 서버에서 기존 사용자 데이터를 받아오는 과정
+ React.useLayoutEffect(() => {
    console.log("[DEV] Connecting Sockets... at [Controller.tsx]");
    notifyConnect();
    chatConnect();
    gameConnect();
-
-   (async () => {
-     const loadedSettings = await API.getMySettings(handleAlert, navigate);
-     if (loadedSettings) {
-       setLoggedUserId(loadedSettings.user_id);
-     }
-   })(/* IIFE */)
  }, []);
 
 

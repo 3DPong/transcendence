@@ -38,6 +38,10 @@ import { MatchProvider } from "./context/MatchDataContext";
 import SettingDialog from "@/components/Organism/Setting/SettingDialog";
 import SignInWithEmailDialog from "./components/Organism/Login/SignInWithEmail";
 
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider } from "@mui/material";
+import { createTheme } from "@mui/material";
+
 const router = createBrowserRouter([
   // ----------------------------------------------------
   // 이 아래 경로는 Session이 부여된 상태에서만 접근 가능.
@@ -186,6 +190,17 @@ const router = createBrowserRouter([
   },
 ]);
 
+const themeDark = createTheme({
+  palette: {
+    background: {
+      default: "#222222"
+    },
+    text: {
+      primary: "#222222",
+      secondary: "#ffffff"
+    }
+  }
+});
 
 function App() {
   // GLOBAL CONTEXTS
@@ -205,21 +220,24 @@ function App() {
 
   return (
     <div>
-      <MatchProvider>
-        <SocketProvider>
-          <AlertProvider>
-            <div className="App">
-              <header className="App-header">
-                <GlobalContext.Provider
-                  value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
-                >
-                  <RouterProvider router={router} />
-                </GlobalContext.Provider>
-              </header>
-            </div>
-          </AlertProvider>
-        </SocketProvider>
-      </MatchProvider>
+      {/* <ThemeProvider theme={themeDark}> */}
+        {/* <CssBaseline /> */}
+        <MatchProvider>
+          <SocketProvider>
+            <AlertProvider>
+              <div className="App">
+                <header className="App-header">
+                  <GlobalContext.Provider
+                    value={{ channels, setChannels, friends, setFriends, loggedUserId, setLoggedUserId }}
+                  >
+                    <RouterProvider router={router} />
+                  </GlobalContext.Provider>
+                </header>
+              </div>
+            </AlertProvider>
+          </SocketProvider>
+        </MatchProvider>
+      {/* </ThemeProvider> */}
     </div>
   );
 }
