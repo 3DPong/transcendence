@@ -24,7 +24,8 @@ export default function SignInWithEmailDialog() {
 
   const [emailSentCode, setEmailSentCode] = React.useState("");
 
-  const handleClose = () => {
+  const handleClose = (event?: {}, reason?: 'backdropClick' | 'escapeKeyDown') => {
+    if (reason && reason === 'backdropClick') return; // 외곽 영역 클릭시 꺼지지 않도록 설정.
     setOpen(false);
     navigate('/signin');
   };
@@ -33,15 +34,17 @@ export default function SignInWithEmailDialog() {
     // 1. send mail api
     const verifyCodeOnServer = await API.sendEmailVerifyCode(handleAlert, email);
     if (verifyCodeOnServer) {
-      setVerifyCode(verifyCode);
+      setVerifyCode(verifyCodeOnServer);
       setIsMailSent(true);
     }
   }
 
   const handleSendSignIn = async () => {
     // 1. send verifyCode, emailSentCode
-    await API.verifyEmail(handleAlert, email, emailSentCode, verifyCode);
-    handleClose();
+    const redirectURL = await API.verifyEmail(handleAlert, email, emailSentCode, verifyCode);
+    console.log("[DEV] server's redirect url is ", redirectURL);
+    setOpen(false);
+    navigate(redirectURL);
   }
 
   return (
@@ -52,12 +55,12 @@ export default function SignInWithEmailDialog() {
             <>
               <DialogTitle>Sign in with your email</DialogTitle>
               <DialogContent>
-                <DialogContentText>
+                <DialogContentText color={"primary"}>
                    Please enter your email address here. <br/>
                    We will send you a temporary sign in code.
                 </DialogContentText>
                 <TextField
-                  color='secondary'
+                  color='primary'
                   autoFocus
                   required
                   margin="normal"
@@ -83,12 +86,12 @@ export default function SignInWithEmailDialog() {
             <>
               <DialogTitle>Enter Verify Code</DialogTitle>
               <DialogContent>
-                <DialogContentText>
+                <DialogContentText color={"info"}>
                   We just sent you a temporary sign in code. <br/>
                   Please check your inbox and paste the sign in code below.
                 </DialogContentText>
                 <TextField
-                  color='success'
+                  color='info'
                   autoFocus
                   required
                   margin="normal"

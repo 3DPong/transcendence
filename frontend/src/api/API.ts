@@ -16,7 +16,7 @@ export {
 } from '@/api/user/userRelation';
 
 // SignIn
-export { request42SignIn } from '@/api/login/signIn';
+export { request42SignIn, requestKakaoSignIn, requestGoogleSignIn, requestNaverSignIn } from '@/api/login/signIn';
 
 
 // SignIn 2FA Auth
