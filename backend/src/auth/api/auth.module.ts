@@ -16,13 +16,15 @@ import { EmailModule } from '../email/email.module';
 import { KakaoStrategy } from '../../common/guards/kakao/kakao.strategy';
 import { KakaoGuard } from '../../common/guards/kakao/kakao.guard';
 import { EmailConfigModule } from '../../config/email/config.module';
-import { KakaoConfigModule } from 'src/config/kakao/config.module';
+import { KakaoConfigModule } from '../../config/kakao/config.module';
+import { GoogleConfigModule } from '../../config/google/config.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     FtConfigModule,
     KakaoConfigModule,
+    GoogleConfigModule,
     EmailConfigModule,
     OtpModule,
     EmailModule,

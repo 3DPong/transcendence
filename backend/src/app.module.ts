@@ -25,6 +25,7 @@ import { NotifierModule } from './models/notifier/notifier.module';
 import { GameModule } from './models/game/socket';
 import { EmailConfigModule } from './config/email/config.module';
 import { KakaoConfigModule } from './config/kakao/config.module';
+import { GoogleConfigModule } from './config/google/config.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { KakaoConfigModule } from './config/kakao/config.module';
     SessionConfigModule,
     FtConfigModule,
     KakaoConfigModule,
+    GoogleConfigModule,
     EmailConfigModule,
     RedisConfigModule,
     OtpConfigModule,
