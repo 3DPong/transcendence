@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-google-oauth20";
 import { GoogleConfigService } from "../../../config/google/config.service";
+import axios from 'axios';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -10,22 +11,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: googleService.id,
       clientSecret: googleService.secret,
       callbackURL: googleService.callback,
-      scope: ["account_email", "profile_nickname"],
+      scope: ["email", "profile"],
     });
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
-    console.log('\n\naccessToken = '+accessToken)
-    console.log('refreshToken = '+refreshToken)
-    console.log(profile)
-    console.log(profile._json.google_account.email)
-
+    // console.log(profile)
+    if (!profile._json.email) return false;
     return {
-      name: profile.displayName,
-      email: profile._json.google_account.email,
-
-      // email: profile._json.google_account.email,
-      // profile_url: profile._json.google_account.profile,
+      email: profile._json.email,
+      profile_url: profile._json.picture
     };
   }
 }
