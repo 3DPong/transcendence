@@ -26,6 +26,7 @@ import { GameModule } from './models/game/socket';
 import { EmailConfigModule } from './config/email/config.module';
 import { KakaoConfigModule } from './config/kakao/config.module';
 import { GoogleConfigModule } from './config/google/config.module';
+import { NaverConfigModule } from './config/naver/config.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { GoogleConfigModule } from './config/google/config.module';
     KakaoConfigModule,
     GoogleConfigModule,
     EmailConfigModule,
+    NaverConfigModule,
     RedisConfigModule,
     OtpConfigModule,
     ImageModule,

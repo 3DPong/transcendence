@@ -9,12 +9,13 @@ import { TwoFactorGuard } from '../../common/guards/twoFactor/twoFactor.guard';
 import { GetGuardData } from '../../common/decorators';
 import { JwtGuard } from '../../common/guards/jwt/jwt.guard';
 import { KakaoGuard } from '../../common/guards/kakao/kakao.guard';
+import { GoogleGuard } from '../../common/guards/google/google.guard';
+import { NaverGuard } from '../../common/guards/naver/naver.guard';
 import { TokenDto } from '../otp/token.dto';
 import { FtDataInterface } from '../../common/interfaces/FtData.interface';
 import { JwtPayloadInterface } from '../../common/interfaces/JwtUser.interface';
 import { EmailReqDto } from '../../models/user/api/dtos/verifyEmailReq.dto';
 import { VerifyEmailToken } from '../../models/user/api/dtos/verifyEmailToken.dto';
-
 
 @Controller('auth')
 export class AuthController {
@@ -102,7 +103,6 @@ export class AuthController {
     @GetGuardData() data: FtDataInterface,
     @Res() res: Response
   ) {
-    // this.authService.OAuthLogin({ req, res });
     try {
       return await this.authService.redirect(data, res);
     } catch (e) {
@@ -114,27 +114,49 @@ export class AuthController {
     }
   }
 
-  // /* 구글 로그인 */
-  // @UseGuards(AuthGuard("google"))
-  // @Get("/signin/google")
-  // async loginGoogle(
-  //   @Req() req: Request & IOAuthUser, //
-  //   @Res() res: Response
-  // ) {
-  //   this.authService.OAuthLogin({ req, res });
-  // }
+  @UseGuards(GoogleGuard)
+  @Get('/signin/google')
+  loginGoogle() {
+    return;
+  }
 
-  // /* 네이버 로그인 */
-  // @UseGuards(AuthGuard("naver"))
-  // @Get("/signin/naver")
-  // async loginNaver(
-  //   @Req() req: Request & IOAuthUser, //
-  //   @Res() res: Response
-  // ) {
-  //   this.authService.OAuthLogin({ req, res });
-  // }
-  
+  @UseGuards(GoogleGuard)
+  @Get("/redirect/google")
+  async googleRedirect(
+    @GetGuardData() data: FtDataInterface,
+    @Res() res: Response
+  ) {
+    try {
+      return await this.authService.redirect(data, res);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        res.redirect('/signin_duplicated');
+      } else {
+        res.redirect('/signin_fail');
+      }
+    }
+  }
 
-  
+  @UseGuards(NaverGuard)
+  @Get('/signin/naver')
+  loginNaver() {
+    return;
+  }
 
+  @UseGuards(NaverGuard)
+  @Get("/redirect/naver")
+  async naverRedirect(
+    @GetGuardData() data: FtDataInterface,
+    @Res() res: Response
+  ) {
+    try {
+      return await this.authService.redirect(data, res);
+    } catch (e) {
+      if (e instanceof UnauthorizedException) {
+        res.redirect('/signin_duplicated');
+      } else {
+        res.redirect('/signin_fail');
+      }
+    }
+  }
 }

@@ -18,6 +18,11 @@ import { KakaoGuard } from '../../common/guards/kakao/kakao.guard';
 import { EmailConfigModule } from '../../config/email/config.module';
 import { KakaoConfigModule } from '../../config/kakao/config.module';
 import { GoogleConfigModule } from '../../config/google/config.module';
+import { NaverConfigModule } from '../../config/naver/config.module';
+import { GoogleGuard } from '../../common/guards/google/google.guard';
+import { GoogleStrategy } from '../../common/guards/google/google.strategy';
+import { NaverGuard } from '../../common/guards/naver/naver.guard';
+import { NaverStrategy } from '../../common/guards/naver/naver.strategy';
 
 @Module({
   imports: [
@@ -26,6 +31,7 @@ import { GoogleConfigModule } from '../../config/google/config.module';
     KakaoConfigModule,
     GoogleConfigModule,
     EmailConfigModule,
+    NaverConfigModule,
     OtpModule,
     EmailModule,
     JwtModule.registerAsync({
@@ -39,6 +45,9 @@ import { GoogleConfigModule } from '../../config/google/config.module';
     JwtConfigModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy, KakaoGuard, KakaoStrategy],
+  providers: [
+    AuthService, FtGuard, FtStrategy, TwoFactorGuard, TwoFactorStrategy,
+    KakaoGuard, KakaoStrategy, GoogleGuard, GoogleStrategy, NaverGuard, NaverStrategy
+  ],
 })
 export class AuthModule {}
